@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="올웨이즈">
+<title>올웨이즈 전시 프로토타입</title>
+<link rel="stylesheet" href="app.css">
+<style>
+:root{--stage-bg:#000;color-scheme:dark}
+html,body{margin:0;padding:0;background:var(--stage-bg);height:100%;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#stage{left:0;top:0}
+@media (prefers-reduced-motion: reduce){.screen-layer *{animation-duration:.01ms!important}}
+</style>
+</head><body>
+<div id="stage">
+  <div id="bg" class="bg-layer"></div>
+  <div id="ui" class="screen-layer"></div>
+  <div id="progress"></div>
+</div>
+<script src="app.js"></script>
+</body></html>
