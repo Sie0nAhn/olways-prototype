@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>olways 전시 가이드</title>
+<link rel="stylesheet" href="nav.css">
+<style>
+:root{--dark:#011722;--pri:#1FACF4;--pri-l:#71CBF8;--ink:#14191C;--navh:64px;--k:1;--u:calc(100vw / 1400);color-scheme:light;
+  --f-suit:"SUIT","Apple SD Gothic Neo",sans-serif;--f-gsf:"Google Sans Flex","SUIT",sans-serif}
+@font-face{font-family:"SUIT";font-weight:100 900;font-display:swap;src:url(fonts/suit.woff2) format("woff2-variations"),url(fonts/suit.woff2) format("woff2")}
+@font-face{font-family:"Google Sans Flex";font-weight:1 1000;font-display:swap;src:url(fonts/gsf-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F,U+2191,U+2193,U+2212}
+*{box-sizing:border-box}
+html{background:var(--dark)}
+body{margin:0;background:#F4F5F7;color:var(--ink);font-family:var(--f-suit);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;word-break:keep-all;overflow-x:hidden}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible{outline:2px solid var(--pri);outline-offset:3px;border-radius:12px}
+img,video{display:block}
+.fs{position:relative;width:100%;overflow:hidden}
+.plate{position:absolute;left:0;top:0;width:100%;height:100%}
+.rs:not(#s01cover) > .plate{top:-3%;height:106%;object-fit:cover}
+.b{position:absolute}
+.b > img{width:100%;height:100%}
+.cvw{position:absolute;inset:0;overflow:hidden}
+.cvw .plate{transform-origin:50% 60%}
+.live{position:absolute;left:1.6%;top:3%;display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:10px;background:rgba(1,23,34,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font-family:var(--f-gsf);font-size:11px;font-weight:700;letter-spacing:.06em;z-index:2}
+.live::before{content:"";width:6px;height:6px;border-radius:50%;background:#FF5A4F;animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+@keyframes ping{0%{opacity:1;transform:scale(.6)}100%{opacity:0;transform:scale(1.9)}}
+@property --sx{syntax:"<percentage>";inherits:false;initial-value:50%}
+@property --sy{syntax:"<percentage>";inherits:false;initial-value:50%}
+{{CSS}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div id="navroot"></div>
+<main id="main">
+{{SECTIONS}}
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="nav.js"></script>
+<script>
+const LOGO={{LOGO}};
+{{JS}}
+</script>
+</body>
+</html>

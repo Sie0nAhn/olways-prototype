@@ -1,10 +1,7 @@
-# olways 전시 가이드 웹
+# olways 전시 가이드
 
-아이패드 11인치 전시용 인터랙티브 페이지. 피그마 보드(경험 캡스톤 · 2616-37211)를 섹션별로 잘라 스크롤 인터랙션을 입혔어요.
+아이패드 11인치용 전시 웹. `index.html`을 열면 됩니다.
 
-- `index.html` — 페이지 (GSAP 3.12.5 · ScrollTrigger, cdnjs)
-- `s/` — 피그마 섹션 조각(2x webp)과 배경 판
-- `media/` — 프로토타입 녹화 영상
-- `_build/` — 피그마 내보내기 → 조각 생성 스크립트
-
-로컬 실행: `cd guide && python3 -m http.server 8000` → http://localhost:8000
+- 섹션은 피그마 레이아웃을 HTML로 다시 그렸고, Dystopian 제목만 피그마 렌더에서 배경 없이 떼어낸 이미지예요.
+- 상단 내비는 ReactDrops Bubble UI(soap-bubble) 컴포넌트를 번들한 `nav.js`를 씁니다(ReactDrops Component License 1.0, 번들 안에 라이선스 고지 포함). 컴포넌트 소스는 라이선스상 저장소에 포함하지 않았어요.
+- `_build/`는 생성 스크립트입니다.

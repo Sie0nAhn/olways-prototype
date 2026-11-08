@@ -1,0 +1,150 @@
+(()=>{
+const $=s=>document.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const secs=$$('#main > section');
+const topOf=el=>el.getBoundingClientRect().top+scrollY;
+const to=el=>window.scrollTo({top:topOf(el),behavior:'smooth'});
+
+/* ---------- nav (soap-bubble component) ---------- */
+const groups=[];secs.forEach(s=>{if(!groups.find(g=>g.name===s.dataset.g))groups.push({name:s.dataset.g,el:s})});
+let cur=-1,lastY=0,navLock=false,navSet=null,pend={};
+const navUpd=p=>{Object.assign(pend,p);if(navSet)navSet(pend)};
+window.__olwaysNavReady=()=>{navSet=window.__olwaysNav;navSet(pend)};
+if(window.mountOlwaysNav)window.mountOlwaysNav($('#navroot'),{
+  onGroup:i=>to(groups[i].el),onLogo:()=>to(secs[0]),
+  onNext:()=>{navLock=true;setTimeout(()=>navLock=false,1200);to(secs[cur>=secs.length-1?0:cur+1])}},LOGO);
+navUpd({groups:groups.map(g=>g.name)});
+function upd(){const y=scrollY,probe=y+innerHeight*.35;let i=0;secs.forEach((s,j)=>{if(topOf(s)<=probe)i=j});
+  const np=y+36;let dk=false;secs.forEach(s=>{const t=topOf(s);if(t<=np&&t+s.offsetHeight>np&&s.classList.contains('dk'))dk=true});
+  const p={dark:dk,prog:+(y/(document.documentElement.scrollHeight-innerHeight)).toFixed(3)};
+  if(i!==cur){cur=i;p.now=secs[i].dataset.l;p.idx=String(i+1).padStart(2,'0');p.active=groups.findIndex(g=>g.name===secs[i].dataset.g)}
+  if(y>lastY+4&&y>200&&!navLock)p.hidden=true;else if(y<lastY-4)p.hidden=false;lastY=y;navUpd(p)}
+addEventListener('scroll',()=>requestAnimationFrame(upd),{passive:true});upd();
+
+/* ---------- videos play only when visible ---------- */
+const io=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;if(e.isIntersecting)v.play().catch(()=>{});else v.pause()}),{threshold:.2});
+$$('video').forEach(v=>io.observe(v));
+
+/* ---------- anatomy / pass spotlight ---------- */
+$$('.ashot').forEach(sh=>{const sec=sh.closest('section'),sp=sh.querySelector('.spot'),bd=$$('.bdg',sh),cr=$$('.acard',sec);let i=0,hold=0,vis=false;
+  function pick(k){i=k;const b=bd[k];sp.style.setProperty('--sx',b.style.left);sp.style.setProperty('--sy',b.style.top);
+    bd.forEach((x,j)=>x.classList.toggle('on',j===k));cr.forEach((c,j)=>c.classList.toggle('on',j===k))}
+  bd.forEach((b,k)=>b.onclick=()=>{hold=performance.now()+8000;sp.classList.add('on');pick(k)});
+  cr.forEach((c,k)=>c.onclick=()=>{hold=performance.now()+8000;sp.classList.add('on');pick(k)});
+  new IntersectionObserver(es=>es.forEach(e=>{vis=e.isIntersecting;if(vis){sp.classList.add('on');pick(0)}else{sp.classList.remove('on');cr.forEach(c=>c.classList.remove('on'))}}),{threshold:.5}).observe(sh);
+  setInterval(()=>{if(vis&&performance.now()>hold)pick((i+1)%bd.length)},2600)});
+
+/* ---------- idle → back to top ---------- */
+let idle;const bump=()=>{clearTimeout(idle);idle=setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),180000)};['pointerdown','wheel','touchstart','keydown'].forEach(e=>addEventListener(e,bump,{passive:true}));bump();
+
+if(!window.gsap||location.search.includes('static')||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+gsap.registerPlugin(ScrollTrigger);ScrollTrigger.config({ignoreMobileResize:true});
+const ST=(el,start)=>({trigger:el,start:start||'top 88%',toggleActions:'play none none reverse'});
+
+/* cover */
+gsap.from('#s01cover .cv',{scale:1.18,duration:2.2,ease:'power2.out'});
+gsap.from('#s01cover .b',{y:60,opacity:0,duration:1.3,ease:'power3.out',stagger:.18,delay:.3});
+gsap.to('#s01cover .cv',{yPercent:12,scale:1.06,ease:'none',scrollTrigger:{trigger:'#s01cover',start:'top top',end:'bottom top',scrub:true}});
+/* remaining raster sections */
+$$('.rs:not(#s01cover)').forEach(sec=>{const m=sec.dataset.anim;$$('.b',sec).forEach((el,i)=>{
+  const fr=el.classList.contains('title')?{clipPath:'inset(0 50% 0 50%)',opacity:0}:el.classList.contains('dissolve')||m==='dissolve'?{opacity:0,scale:.85,filter:'blur(10px)'}:
+    m==='flip'?{rotateY:-60,opacity:0,transformPerspective:1000,transformOrigin:'0% 50%'}:{y:60,opacity:0};
+  gsap.fromTo(el,fr,{clipPath:'inset(0 0% 0 0%)',opacity:1,y:0,rotateY:0,scale:1,filter:'blur(0px)',duration:1.1,ease:'power3.out',delay:(i%3)*.08,scrollTrigger:ST(el,'top 92%')})})});
+
+/* ---------- Figma-rendered sections: one timeline per group, each mark at its time ---------- */
+const FROM={rise:{opacity:0,y:30},fade:{opacity:0},left:{opacity:0,x:-30},drop:{opacity:0,y:-26},pop:{opacity:0,scale:.3},bubble:{opacity:0,scale:.6,y:12},
+  dissolve:{opacity:0,scale:.86,filter:'blur(10px)'},herop:{opacity:0,scale:.2},
+  barh:{clipPath:'inset(-60px 100% -60px -60px)'},barv:{clipPath:'inset(100% -60px -60px -60px)'},draw:{clipPath:'inset(-20px 100% -20px -20px)'},
+  drawdown:{clipPath:'inset(-20px -20px 100% -20px)'},drawrev:{clipPath:'inset(-20px -20px -20px 100%)'},ring:{opacity:0,rotate:-140,scale:.6}};
+const EASE={pop:'back.out(2)',bubble:'back.out(1.8)',herop:'elastic.out(1,.55)',barh:'power2.inOut',barv:'power2.inOut',draw:'none',drawdown:'none',drawrev:'none',ring:'power3.out',dissolve:'expo.out'};
+const G={};$$('[data-a][data-g]').forEach(el=>{(G[el.dataset.g]||(G[el.dataset.g]=[])).push(el)});
+Object.entries(G).forEach(([g,els])=>{const sec=els[0].closest('section');
+  const trig=g.startsWith('hdr')||g==='ov'?els[0]:(document.getElementById('f'+g.replace(':','-'))||els[0]);
+  const tl=gsap.timeline({scrollTrigger:{trigger:trig,start:g==='ov'?'top 70%':'top 76%',toggleActions:'play none none reverse'}});
+  els.forEach(el=>{const a=el.dataset.a,t=+el.dataset.t,d=+(el.dataset.dur||0)||(a==='draw'?1:a.startsWith('bar')?.7:.6);
+    const fr=FROM[a]||FROM.rise;const tt={opacity:1,x:0,y:0,scale:1,rotate:0,filter:'blur(0px)',duration:d,ease:EASE[a]||'power3.out'};
+    if('clipPath' in fr){tt.clipPath='inset(-60px -60px -60px -60px)';fr.opacity=1}
+    tl.fromTo(el,{...fr},tt,t)})});
+
+/* ---------- interview: one mark at a time, then quotes ---------- */
+$$('.iv .ig').forEach(g=>{const ih=g.querySelector('.ih'),box=g.querySelector('.cbox'),qc=g.querySelector('.qcard');
+  gsap.fromTo(ih.children,{opacity:0,y:24},{opacity:1,y:0,duration:.7,stagger:.1,ease:'power3.out',scrollTrigger:ST(ih,'top 90%')});
+  const ps=$$('.pc',box).sort((a,b)=>a.dataset.o-b.dataset.o);gsap.set(ps,{opacity:0});
+  const tl=gsap.timeline({scrollTrigger:{trigger:box,start:'top 68%',toggleActions:'play none none reverse'}});
+  tl.fromTo(box,{opacity:0,y:40},{opacity:1,y:0,duration:.6,ease:'power3.out'},0);let t=.55;
+  ps.forEach((p,i)=>{const last=i===ps.length-1,k=p.classList;
+    if(k.contains('barh')){tl.fromTo(p,{opacity:1,clipPath:'inset(-40px 100% -40px 0)'},{clipPath:'inset(-40px -40px -40px 0)',duration:last?.9:.7,ease:'power2.inOut'},t);t+=last?1:.8}
+    else if(k.contains('barv')){tl.fromTo(p,{opacity:1,clipPath:'inset(100% -40px 0 -40px)'},{clipPath:'inset(0% -40px 0 -40px)',duration:last?.85:.65,ease:'power2.inOut'},t);t+=last?.95:.75}
+    else{tl.fromTo(p,{opacity:0,scale:.2},{opacity:1,scale:1,duration:last?.9:.6,ease:last?'elastic.out(1,.6)':'back.out(2)'},t);t+=last?.9:.5}});
+  tl.fromTo(qc,{opacity:0,x:60},{opacity:1,x:0,duration:.8,ease:'power3.out'},.35);
+  tl.fromTo(qc.querySelectorAll('.qt'),{opacity:0,y:16},{opacity:1,y:0,duration:.5,stagger:.25,ease:'power2.out'},.7)});
+$$('.iv .ban').forEach(el=>gsap.fromTo(el,{opacity:0,scale:.85,filter:'blur(10px)'},{opacity:1,scale:1,filter:'blur(0px)',duration:1.1,ease:'expo.out',scrollTrigger:ST(el,'top 85%')}));
+/* headers */
+$$('.hh').forEach(h=>gsap.fromTo(h.children,{opacity:0,y:26},{opacity:1,y:0,duration:.8,stagger:.09,ease:'power3.out',scrollTrigger:ST(h,'top 85%')}));
+
+/* ---------- hypothesis: column by column, left to right ---------- */
+$$('.hgrid').forEach(g=>{const tl=gsap.timeline({scrollTrigger:{trigger:g,start:'top 70%',toggleActions:'play none none reverse'}});let t=0;
+  for(let c=0;c<5;c++){const els=$$(`[data-c="${c}"]`,g);
+    if(c%2){tl.fromTo(els,{opacity:0,x:-14},{opacity:1,x:0,duration:.25,stagger:.05,ease:'power2.out'},t);t+=.2+.05*els.length}
+    else{tl.fromTo(els,{opacity:0,scale:.88,x:-24},{opacity:1,scale:1,x:0,duration:.45,stagger:.12,ease:'back.out(1.7)'},t);t+=.3+.12*els.length}}
+  tl.fromTo(g.parentElement.querySelector('.hfin'),{opacity:0,scale:.86,filter:'blur(10px)'},{opacity:1,scale:1,filter:'blur(0px)',duration:1,ease:'expo.out'},t+.1)});
+
+/* ---------- solution: today fails step by step, olways lands ---------- */
+$$('.so .scard').forEach((cd,ci)=>{const tl=gsap.timeline({scrollTrigger:{trigger:cd,start:'top 72%',toggleActions:'play none none reverse'}});
+  tl.fromTo(cd,{opacity:0,y:60,rotateX:18,transformPerspective:900,transformOrigin:'50% 100%'},{opacity:1,y:0,rotateX:0,duration:.9,ease:'power3.out'},ci*.15);
+  let t=.6+ci*.15;
+  cd.querySelectorAll('.lane').forEach(l=>{const ok=l.classList.contains('lo');
+    tl.fromTo(l.querySelector('.k'),{opacity:0,x:-10},{opacity:1,x:0,duration:.3},t);t+=.2;
+    l.querySelectorAll('.seg').forEach(sg=>{tl.fromTo(sg,{opacity:0,scale:.5},{opacity:1,scale:1,duration:.45,ease:'back.out(2.4)'},t);t+=.28});
+    const mk=l.querySelector('.mk'),em=l.querySelector('em');
+    tl.fromTo(mk,{opacity:0,scale:0},{opacity:1,scale:1,duration:.5,ease:ok?'elastic.out(1,.5)':'back.out(3)'},t);
+    if(!ok)tl.to(l.querySelectorAll('.seg,.mk'),{x:4,duration:.06,repeat:5,yoyo:true,ease:'none'},t+.25);
+    tl.fromTo(em,{opacity:0,x:-8},{opacity:1,x:0,duration:.35},t+.2);t+=.6})});
+
+/* ---------- usability test ---------- */
+$$('.ut .usetup .ucard').forEach((c,i)=>gsap.fromTo(c,{opacity:0,y:40},{opacity:1,y:0,duration:.8,ease:'power3.out',delay:i*.08,scrollTrigger:ST(c,'top 90%')}));
+$$('.ut .ui').forEach(ui=>{
+  const hd=ui.querySelector('.uh');gsap.fromTo(hd.children,{opacity:0,y:30},{opacity:1,y:0,duration:.8,stagger:.12,ease:'power3.out',scrollTrigger:ST(hd,'top 88%')});
+  $$('.why,.ups,.uq,.u3',ui).forEach(el=>gsap.fromTo(el,{opacity:0,y:40},{opacity:1,y:0,duration:.8,ease:'power3.out',scrollTrigger:ST(el,'top 90%')}));
+  const pin=ui.querySelector('.upin');if(!pin)return;
+  const tr=pin.querySelector('.utrack'),cs=$$('.uc',tr),dots=$$('.ud',pin);
+  const X=()=>{const vw=innerWidth,a=cs[0],b=cs[1],c=cs[2];const off=e=>e.offsetLeft,w=e=>e.offsetWidth;
+    return [vw/2-(off(a)+w(a)/2), vw/2-(off(a)+(off(b)+w(b)-off(a))/2), vw/2-(off(b)+(off(c)+w(c)-off(b))/2)]};
+  let xs=X();addEventListener('resize',()=>{xs=X()});
+  const st={i:-1};
+  const set=i=>{if(i===st.i)return;st.i=i;dots.forEach((d,j)=>d.classList.toggle('on',j===i));
+    cs.forEach((c,j)=>c.classList.toggle('dim',i===0?j!==0:i===1?j===2:j===0));
+    gsap.to(tr,{x:xs[i],duration:.9,ease:'power3.inOut',overwrite:true});gsap.to(cs[0],{scale:i===0?1.16:1,duration:.9,ease:'power3.inOut'})};
+  const trg=ScrollTrigger.create({trigger:pin,start:'top top',end:()=>'+='+innerHeight*1.8,pin:true,pinSpacing:true,invalidateOnRefresh:true,
+    onUpdate:s=>set(s.progress<.33?0:s.progress<.72?1:2),onRefresh:()=>{xs=X();const i=st.i;st.i=-1;set(Math.max(0,i))}});
+  gsap.set(tr,{x:xs[0]});gsap.set(cs[0],{scale:1.16,transformOrigin:'50% 0'});set(0);
+  const tl={scrollTrigger:trg};
+  dots.forEach((d,k)=>d.onclick=()=>{const s=tl.scrollTrigger;window.scrollTo({top:s.start+(s.end-s.start)*k/2,behavior:'smooth'})})});
+
+/* ---------- through the lens ---------- */
+$$('.lsplit').forEach(s=>{const v=s.querySelector('.lvid'),c=s.querySelector('.lcap'),rev=s.classList.contains('rev');
+  gsap.fromTo(v,{scale:.8,x:rev?120:-120,opacity:0},{scale:1,x:0,opacity:1,ease:'none',scrollTrigger:{trigger:s,start:'top 95%',end:'top 35%',scrub:.6}});
+  gsap.fromTo(c.children,{opacity:0,y:30},{opacity:1,y:0,duration:.8,stagger:.1,ease:'power3.out',scrollTrigger:ST(s,'top 55%')})});
+$$('.lfull').forEach(f=>{const v=f.querySelector('.lstick .lvid');
+  gsap.fromTo(v,{scale:.62,borderRadius:'36px'},{scale:1,borderRadius:'0px',ease:'none',scrollTrigger:{trigger:f,start:'top 95%',end:'top top',scrub:.5}});
+  gsap.fromTo(f.querySelector('.lcap.ov'),{y:60,opacity:0},{y:0,opacity:1,duration:.9,ease:'power3.out',scrollTrigger:ST(f.querySelector('.lover'),'top 70%')})});
+$$('.hwrap').forEach(w=>{const tr=w.querySelector('.htrack'),dots=$$('.hdots i',w),ps=[...tr.children];const dist=()=>Math.max(0,tr.scrollWidth-innerWidth);
+  dots[0]&&dots[0].classList.add('on');
+  gsap.to(tr,{x:()=>-dist(),ease:'none',scrollTrigger:{trigger:w,start:'top top',end:()=>'+='+Math.max(innerHeight*.8,dist()*1.2),pin:true,scrub:.6,invalidateOnRefresh:true,
+        onUpdate:s=>{const i=Math.round(s.progress*(ps.length-1));dots.forEach((d,j)=>d.classList.toggle('on',j===i))}}})});
+
+/* ---------- anatomy: the field-of-view map lands on the real screen ---------- */
+$$('.fovpin').forEach(p=>{const shot=p.querySelector('.fovshot'),img=shot.querySelector('img'),z=$$('.fovz .z,.fovz .hz',shot),txt=p.querySelector('.fovt');
+  const small=()=>{const u=innerWidth/1400;return {s:560/1320,x:(1360-560-40)*u*0+0}};
+  gsap.set(shot,{scale:560/1320,xPercent:0});
+  const tl=gsap.timeline({scrollTrigger:{trigger:p,start:'top top',end:()=>'+='+innerHeight*1.4,pin:true,scrub:.6}});
+  tl.fromTo(img,{opacity:0},{opacity:1,duration:.6},0)
+    .fromTo(shot,{scale:560/1320},{scale:1,duration:1,ease:'power2.inOut'},0)
+    .to(txt,{opacity:0,x:-80,duration:.5},0)
+    .fromTo(z,{opacity:1},{opacity:.62,duration:.4},.6)
+    .to({}, {duration:.4});
+  gsap.fromTo([...txt.children],{opacity:0,y:24},{opacity:1,y:0,stagger:.08,duration:.7,ease:'power3.out',scrollTrigger:ST(p,'top 70%')})});
+$$('.awrap').forEach(w=>{gsap.fromTo(w.querySelector('.ashot'),{opacity:0,y:60,scale:.96},{opacity:1,y:0,scale:1,duration:1,ease:'power3.out',scrollTrigger:ST(w,'top 85%')});
+  gsap.fromTo($$('.acard',w),{opacity:0,y:30},{opacity:1,y:0,duration:.6,stagger:.08,ease:'power3.out',scrollTrigger:ST(w.querySelector('.agrid'),'top 92%')})});
+
+addEventListener('load',()=>ScrollTrigger.refresh());
+})();
