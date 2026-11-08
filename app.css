@@ -12,3 +12,4 @@
 #ambfill{display:none;position:fixed;inset:-6%;width:112%;height:112%;z-index:-1;filter:blur(28px) brightness(.82) saturate(1.1);pointer-events:none}html.wide #ambfill{display:block}html.wide body{overflow:hidden;background:transparent}html.wide{background:#000}html.wide #stage,html.wide .bg-layer,html.wide .bg-scene{overflow:visible}html.wide #stage{background:transparent}html.wide #shade{left:-260px;right:-260px}
 
 [data-node-id="1649:3802"]{display:none!important}[data-node-id="1515:12646"]{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+[data-node-id="1527:13421"],[data-node-id="1515:12321"],[data-node-id="1430:8300"]{scale:.82}
