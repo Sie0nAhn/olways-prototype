@@ -140,7 +140,7 @@ $$('.ut .ui').forEach(ui=>{
 /* ---------- triptych opener: full-bleed scene shrinks into the centre, siblings slide in ---------- */
 $$('.trip').forEach(t=>{const c=t.querySelector('.tp-c .tpm'),l=t.querySelector('.tp-l'),r=t.querySelector('.tp-r'),caps=$$('figcaption',t),k=t.querySelector('.tkick');
   const R=()=>{const tr=c.style.transform;c.style.transform='none';const b=c.getBoundingClientRect(),sb=t.querySelector('.tstage').getBoundingClientRect();c.style.transform=tr;return {b,sb}};
-  const S=()=>{const {b}=R();return Math.max(innerWidth/b.width,innerHeight/b.height)*1.02};
+  const S=()=>{const {b}=R();return Math.min(innerWidth/b.width,innerHeight/b.height)};
   const cy=()=>{const {b,sb}=R();return (sb.top+sb.height/2)-(b.top+b.height/2)};
   const tl=gsap.timeline({scrollTrigger:{trigger:t,start:'top top',end:()=>'+='+innerHeight*1.3,pin:true,scrub:.7,invalidateOnRefresh:true}});
   tl.fromTo(c,{scale:S,y:cy,borderRadius:0},{scale:1,y:0,borderRadius:()=>getComputedStyle(c).borderTopLeftRadius||'18px',ease:'power2.inOut',duration:1},0)
@@ -150,7 +150,6 @@ $$('.trip').forEach(t=>{const c=t.querySelector('.tp-c .tpm'),l=t.querySelector(
 
 /* ---------- through the lens ---------- */
 $$('.lsplit').forEach(s=>{const v=s.querySelector('.lvid'),c=s.querySelector('.lcap'),rev=s.classList.contains('rev');
-  gsap.fromTo(v,{scale:.8,x:rev?120:-120,opacity:0},{scale:1,x:0,opacity:1,ease:'none',scrollTrigger:{trigger:s,start:'top 95%',end:'top 35%',scrub:.6}});
   gsap.fromTo(c.children,{opacity:0,y:30},{opacity:1,y:0,duration:.8,stagger:.1,ease:'power3.out',scrollTrigger:ST(s,'top 55%')})});
 $$('.lfull').forEach(f=>{const v=f.querySelector('.lstick .lvid');
   gsap.fromTo(v,{scale:.62,borderRadius:'36px'},{scale:1,borderRadius:'0px',ease:'none',scrollTrigger:{trigger:f,start:'top 95%',end:'top top',scrub:.5}});
@@ -159,6 +158,14 @@ $$('.hwrap').forEach(w=>{const tr=w.querySelector('.htrack'),dots=$$('.hdots i',
   dots[0]&&dots[0].classList.add('on');
   gsap.to(tr,{x:()=>-dist(),ease:'none',scrollTrigger:{trigger:w,start:'top top',end:()=>'+='+Math.max(innerHeight*.8,dist()*1.2),pin:true,scrub:.6,invalidateOnRefresh:true,
         onUpdate:s=>{const i=Math.round(s.progress*(ps.length-1));dots.forEach((d,j)=>d.classList.toggle('on',j===i))}}})});
+
+/* ---------- callmelord-style shutter reveals + headline masks ---------- */
+$$('.lsplit .lvid, .hp .lvid').forEach(v=>{const m=v.querySelector('video');
+  gsap.fromTo(v,{clipPath:'inset(0% 50% 0% 50% round 20px)'},{clipPath:'inset(0% 0% 0% 0% round 20px)',ease:'power3.inOut',duration:1.2,scrollTrigger:ST(v,'top 80%')});
+  m&&gsap.fromTo(m,{scale:1.25},{scale:1,ease:'power3.out',duration:1.6,scrollTrigger:ST(v,'top 80%')})});
+$$('.hh .htitle, .fx .fsv').forEach(t=>gsap.fromTo(t,{clipPath:'inset(0 0 100% 0)',y:30},{clipPath:'inset(0 0 -10% 0)',y:0,duration:1,ease:'expo.out',scrollTrigger:ST(t,'top 88%')}));
+/* will-phan-style marker sweep on the answer lines */
+$$('.ups .sv, .lcap h3, .acard h4').forEach(e=>{e.classList.add('hlx');gsap.to(e,{backgroundSize:'100% 100%',duration:1.1,ease:'power2.inOut',delay:.3,scrollTrigger:ST(e,'top 80%')})});
 
 /* ---------- headers: words light up one by one as you scroll (scrubbed) ---------- */
 $$('.hh .hsub, .fx [data-wr]').forEach(el=>{if(el.dataset.done)return;el.dataset.done=1;
@@ -179,6 +186,19 @@ $$('.fovpin').forEach(p=>{const shot=p.querySelector('.fovshot'),img=shot.queryS
   gsap.fromTo([...txt.children],{opacity:0,y:24},{opacity:1,y:0,stagger:.08,duration:.7,ease:'power3.out',scrollTrigger:ST(p,'top 70%')})});
 $$('.awrap').forEach(w=>{gsap.fromTo(w.querySelector('.ashot'),{opacity:0,y:60,scale:.96},{opacity:1,y:0,scale:1,duration:1,ease:'power3.out',scrollTrigger:ST(w,'top 85%')});
   gsap.fromTo($$('.acard',w),{opacity:0,y:30},{opacity:1,y:0,duration:.6,stagger:.08,ease:'power3.out',scrollTrigger:ST(w.querySelector('.agrid'),'top 92%')})});
+
+/* ---------- layer by layer (grida): the finished screen lifts apart, one layer per step ---------- */
+$$('.lyr').forEach(w=>{const st=w.querySelector('.lystack'),base=w.querySelector('.ly0'),ls=$$('.ly',w),steps=$$('.lysteps li',w),tags=$$('.lytag',w);
+  const on=k=>steps.forEach((s,i)=>s.classList.toggle('on',i<=k));on(-1);
+  const tl=gsap.timeline({scrollTrigger:{trigger:w,start:'top top',end:()=>'+='+innerHeight*2.2,pin:true,scrub:.7,invalidateOnRefresh:true,
+    onUpdate:s=>{const p=s.progress;on(p<.08?-1:p<.18?0:p<.3?1:p<.42?2:p<.54?3:4)}}});
+  tl.to(st,{rotateX:52,rotateZ:-28,scale:.78,y:30,duration:1,ease:'power2.inOut'},0)
+    .to(base,{opacity:.55,duration:.6},.3)
+    .to(base.querySelector('.lytag'),{opacity:1,duration:.2},.5);
+  ls.forEach((l,i)=>{tl.to(l,{z:[60,105,140,85][i],duration:.6,ease:'power3.out'},.8+i*.5).to(l.querySelector('.lytag'),{opacity:1,duration:.2},1.05+i*.5)});
+  tl.to({},{duration:.8});
+  tl.to(tags,{opacity:0,duration:.2},'>').to(ls,{z:0,duration:.7,ease:'power2.inOut',stagger:.05},'<').to(base,{opacity:1,duration:.5},'<')
+    .to(st,{rotateX:0,rotateZ:0,scale:1,y:0,duration:.9,ease:'power2.inOut'},'<.1')});
 
 addEventListener('load',()=>ScrollTrigger.refresh());
 })();

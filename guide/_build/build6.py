@@ -394,6 +394,15 @@ def anatomy():
              f'<div class="awrap"><div class="ashot"><img src="m/anat.jpg" alt="최종 렌즈 화면 — 여섯 요소" loading="lazy"><i class="spot"></i>{badges}</div>'
              f'<div class="agrid">{cards}</div></div>'
              f'<div class="fovpin"><div class="fovstage">{fovtxt}<div class="fovshot"><img src="m/anat.jpg" alt="" loading="lazy">{fov}</div></div></div>')
+    # Grida-style "layer by layer": the finished screen lifts apart into the layers it is built from
+    L = [('ly_route', 38.39, 19.84, 25.0, 80.16, '바닥 경로 · 위험 표시'), ('ly_nav', 68.57, 67.62, 27.32, 29.21, '내비 카드'),
+         ('ly_stat', 84.38, 4.92, 11.43, 7.62, '상태 위젯'), ('ly_voice', 42.68, 90.79, 14.82, 5.71, '음성 캡슐')]
+    lays = ''.join(f'<div class="ly" data-k="{k + 1}" style="left:{x}%;top:{y}%;width:{w}%;height:{h}%"><img src="m/{f}.webp" alt=""><span class="lytag">{lab}</span></div>'
+                   for k, (f, x, y, w, h, lab) in enumerate(L))
+    steps = ''.join(f'<li data-k="{k}"><i>{k + 1:02d}</i>{t}</li>' for k, t in enumerate(['실제 거리 (시야)'] + [l[5] for l in L]))
+    inner += (f'<div class="lyr"><div class="lystage"><div class="lyt"><p class="lyk">LAYER BY LAYER</p>'
+              f'<h3>한 화면을 겹겹이 나눠 보면</h3><p class="lyb">시야는 비워 두고, 정보는 바닥 · 가장자리 · 하단에만 얹었어요.</p><ol class="lysteps">{steps}</ol></div>'
+              f'<div class="lyscene"><div class="lystack"><div class="ly0"><img src="m/anat.jpg" alt="완성 화면"><span class="lytag">실제 거리 (시야)</span></div>{lays}</div></div></div></div>')
     return section('13anat', 'hx an', inner)
 
 PASS_BADGES = [(505.8, 501.7), (572, 795.96), (69, 824.96)]
