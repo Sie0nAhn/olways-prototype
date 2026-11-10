@@ -491,3 +491,94 @@ section,.fit,.st-item{--k:13u;--h2:28u;--h3:28u;--b:16u;--en:13u;--ct:18u;--cb:1
 .an2 .fovz .zl{white-space:normal;max-width:88%;padding:7u 12u}
 .lxrail b{font-size:var(--ct)}
 /*}U*/
+/* ===================== v14 ===================== */
+/*U{*/
+section,.fit,.st-item{--k:14u;--b:17u;--en:14u;--ct:19u;--cb:16u}
+.hh .htag{font-size:13.5u}.hh .hbody p{font-size:15.5u}.hh .hbody p.en{font-size:13.5u}
+/* Problem 03–04 header */
+.hh.sh{padding:14u 0 18u!important;align-items:center}
+.hh.sh .hsub{font-size:26u;margin-top:12u}
+.hh.sh .hl.sky{color:#0B97DE}
+/* So: two insights add up */
+.big.so{background:radial-gradient(120% 90% at 0% 100%,#1FACF4 0%,#0b5d88 34%,#03283A 70%,#011722 100%);position:relative}
+.mg{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;gap:24u;pointer-events:none}
+.mi{display:flex;flex-direction:column;gap:6u;padding:22u 28u;border-radius:22u;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 30u 60u rgba(0,0,0,.25);font-size:26u;font-weight:600;color:#fff;max-width:440u}
+.mi i{font-style:normal;font-family:var(--f-gsf);font-size:14u;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9ADAFA}
+.mi b{color:#71CBF8;font-weight:800}
+.mop{font-family:var(--f-gsf);font-size:56u;font-weight:300;color:#71CBF8;line-height:1}
+/* chapter cards */
+.chap{height:100svh;display:flex;align-items:center;justify-content:center;background:radial-gradient(90% 70% at 50% 110%,#0b5d88 0%,#03283A 45%,#011722 100%);overflow:hidden}
+.ch{width:1180u;display:flex;flex-direction:column;align-items:flex-start;color:#fff}
+.spine{list-style:none;margin:0 0 70u;padding:0;width:100%;display:flex;justify-content:space-between;position:relative}
+.spine s{position:absolute;left:8u;right:8u;top:7u;height:2u;background:rgba(255,255,255,.14);text-decoration:none}
+.spine s em{position:absolute;inset:0;background:#71CBF8;transform-origin:0 50%}
+.spine li{position:relative;display:flex;flex-direction:column;align-items:center;gap:10u;font-family:var(--f-gsf);font-size:14u;font-weight:700;letter-spacing:.06em;color:rgba(255,255,255,.35)}
+.spine li i{width:16u;height:16u;border-radius:50%;background:#03283A;box-shadow:inset 0 0 0 2px rgba(255,255,255,.3)}
+.spine li.past{color:rgba(255,255,255,.6)}.spine li.past i{background:#71CBF8;box-shadow:none}
+.spine li.on{color:#fff}.spine li.on i{background:#71CBF8;box-shadow:0 0 0 6u rgba(113,203,248,.25),0 0 24u #71CBF8}
+.cn{margin:0;font-family:var(--f-gsf);font-size:22u;font-weight:700;color:#71CBF8;overflow:hidden}
+.ct{margin:6u 0 26u;font-family:var(--f-dys,var(--f-gsf));font-size:120u;line-height:1;font-weight:700;letter-spacing:-.03em;display:flex;overflow:hidden;padding-bottom:.08em}
+.ct span{display:inline-block}
+.cq{margin:0;font-size:44u;font-weight:700;line-height:1.35;letter-spacing:-.025em}
+.cq .wr{opacity:.15}
+.ce{margin:12u 0 0;font-family:var(--f-gsf);font-size:20u;color:rgba(255,255,255,.55)}
+.cs{margin:40u 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:10u}
+.cs span{padding:8u 16u;border-radius:99px;background:rgba(113,203,248,.12);box-shadow:inset 0 0 0 1px rgba(113,203,248,.35);font-size:16u;font-weight:600;color:#CDEFFF}
+.cs i{font-style:normal;color:#71CBF8;font-size:16u}
+/* initial hypothesis, hand-built so it reads */
+.ih{padding:0 40u}
+.ih0{padding:24u 32u;border-radius:24u;background:rgba(255,255,255,.82);box-shadow:0 20u 40u rgba(9,123,181,.12);text-align:center}
+.ih0 .k{margin:0;font-family:var(--f-gsf);font-size:15u;font-weight:700;color:#097BB5;letter-spacing:.04em}
+.ih0 .t{margin:10u auto 0;max-width:980u;font-size:22u;font-weight:700;line-height:1.55;color:#14191C}
+.ihl{display:block;width:100%;height:56u;overflow:visible}
+.ihl path{fill:none;stroke:#1FACF4;stroke-width:2.5;vector-effect:non-scaling-stroke}
+.ihc{display:grid;grid-template-columns:repeat(3,1fr);gap:22u}
+.ihk{display:flex;flex-direction:column;align-items:stretch}
+.ihh{margin:0;padding:13u 18u;border-radius:14u;background:#14191C;color:#fff;font-size:18u;font-weight:700;display:flex;gap:10u;align-items:center}
+.ihh b{font-family:var(--f-gsf);color:#71CBF8}
+.ihp{margin-top:10u;padding:18u 20u;border-radius:18u;background:rgba(255,255,255,.85);min-height:118u}
+.ihp .k,.ihy .k{margin:0 0 6u;font-size:14u;font-weight:700}.ihp .k{color:#E9805F}
+.ihp p:last-child{margin:0;font-size:17u;line-height:1.6;color:#333435}
+.iha{display:flex;justify-content:center;height:36u}
+.iha s{display:block;width:2.5u;height:100%;background:#1FACF4;transform-origin:50% 0;position:relative}
+.iha s::after{content:"";position:absolute;left:50%;bottom:-2u;width:9u;height:9u;border-right:2.5u solid #1FACF4;border-bottom:2.5u solid #1FACF4;transform:translateX(-50%) rotate(45deg)}
+.ihy{padding:18u 20u;border-radius:18u;background:linear-gradient(135deg,#1FACF4,#0B8BD0);box-shadow:0 18u 40u rgba(11,139,208,.35);color:#fff;min-height:118u}
+.ihy .k{color:#CDEFFF}.ihy p:last-child{margin:0;font-size:18u;font-weight:700;line-height:1.55}
+/* positioning map: olways keeps pulsing */
+.oring{position:absolute;width:0;height:0;pointer-events:none}
+.oring::before,.oring::after{content:"";position:absolute;left:-40u;top:-40u;width:80u;height:80u;border-radius:50%;border:2px solid rgba(31,172,244,.7);opacity:0}
+.oring.on::before{animation:oping 2.4s ease-out infinite}.oring.on::after{animation:oping 2.4s ease-out 1.2s infinite}
+@keyframes oping{0%{transform:scale(.5);opacity:.9}100%{transform:scale(2.2);opacity:0}}
+/* solution: the wheelchair marker that walks each lane */
+.lane{position:relative}
+.trv{position:absolute;left:0;top:50%;width:30u;height:30u;margin-top:-15u;border-radius:50%;background:#fff;color:#14191C;display:grid;place-items:center;font-style:normal;font-size:16u;box-shadow:0 6u 16u rgba(0,0,0,.35);z-index:3;opacity:0}
+.trv b{font-weight:400;line-height:1}
+.trv.ok{background:#71CBF8;color:#011722;box-shadow:0 0 0 6u rgba(113,203,248,.25),0 6u 16u rgba(0,0,0,.35)}
+.trl{position:absolute;top:calc(100% + 2u);height:16u;border-top:2px dashed #FF9C80;border-left:2px solid #FF9C80;border-radius:0 0 0 8u;opacity:0;pointer-events:none}
+.trl span{position:absolute;left:8u;top:3u;font-style:normal;font-size:12u;font-weight:700;color:#FF9C80;white-space:nowrap}
+/* usability test v2: image | header + crop, then why + quotes under both */
+.xg{grid-template-columns:860u 1fr;column-gap:28u;row-gap:18u}
+.xm{display:flex;flex-direction:column;gap:12u;min-width:0}
+.xs{min-width:0;display:flex;flex-direction:column}
+.xs .xps{margin-top:16u}
+.xzs{display:grid;margin-top:10u}
+.xz{grid-area:1/1;display:flex;flex-direction:column;gap:10u;padding:14u}
+.xzk{margin:0;font-size:13u;font-weight:700;color:#F08A6B}.xz.ok .xzk{color:#71CBF8}
+.xzi{height:auto;max-height:190u}
+.xzi img{height:auto;max-height:190u}
+.xb{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,1fr);gap:12u}
+.xb.w3{grid-template-columns:1.25fr 1fr 1fr}
+.xb .xwhy{margin:0;grid-template-columns:140u 1fr}
+.xwm{display:flex;align-items:flex-start;gap:6u}
+.xwm figure{margin:0;flex:1;display:flex;flex-direction:column;align-items:center;gap:6u}
+.xwm figure span{width:100%;aspect-ratio:1.4;border-radius:10u;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);display:flex;align-items:center;padding:6u;box-sizing:border-box}
+.xwm .o span{justify-content:flex-end}
+.xwm figcaption{font-size:11u;white-space:nowrap}.xwm .x figcaption{color:#F08A6B}.xwm .o figcaption{color:#71CBF8}
+.xwm .xar{font-style:normal;color:#71CBF8;font-size:14u;margin-top:14u}
+.xwm .m{aspect-ratio:auto;box-shadow:none;padding:0;display:flex}
+.xq .ko{font-size:15.5u}.xq .en{font-size:13u}
+/* field-of-view: the grid can take the whole screen */
+.fovg{transition:none}
+.fovg.big{grid-template-columns:0 1fr;gap:0}
+.fovg.big .fovt{overflow:hidden;white-space:nowrap}
+/*}U*/

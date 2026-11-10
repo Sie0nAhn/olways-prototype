@@ -37,10 +37,25 @@ def section(key, cls, inner, h=None, extra=''):
     st = f' style="height:{U(h)}"' if (h and not extra) else ''
     return f'<section id="s{key}" class="fs {cls}{" dk" if dk else ""}" data-g="{g}" data-l="{E(l)}" data-anim="{anim}"{st}{extra}>\n{inner}\n</section>'
 
-ORDER = ['01cover', '02overview', '03problem', '04opp', '05journey', '06inithyp', '07interview', '08hyp', '09solution', '10flow',
-         '11iter', '12lens', '13anat', '14pass', '15loop', '16concl', '17thanks']
+CHAPS = {'c1': (1, 'Research', '휠체어 사용자는 왜 새로운 곳에 가지 않을까요?', 'Why don’t wheelchair users go somewhere new?', ['문제', '포지셔닝', '시나리오', '초기 가설', '인터뷰']),
+         'c2': (2, 'Strategy', '그래서, 무엇부터 풀어야 할까요?', 'So what do we solve first?', ['가설 수정', '솔루션', '유저 플로우']),
+         'c3': (3, 'Design', '어떻게 보여줘야 멈추지 않고 읽힐까요?', 'How do you show it so no one has to stop?', ['UT 3라운드', '최종 화면', '렌즈 구성', '입구 판정']),
+         'c4': (4, 'Outcome', '다녀온 길은 다음 사람을 어떻게 도울까요?', 'How does one trip help the next person?', ['데이터 루프', '결론'])}
+def chapter(key):
+    n, name, ko, en, steps = CHAPS[key]
+    spine = ''.join(f'<li class="{"on" if i == n else "past" if i < n else ""}"><i></i><span>{g}</span></li>' for i, g in enumerate(['Intro', 'Research', 'Strategy', 'Design', 'Outcome']))
+    st = '<i>→</i>'.join(f'<span>{E(x)}</span>' for x in steps)
+    inner = (f'<div class="ch" style="--n:{n}"><ol class="spine"><s><em></em></s>{spine}</ol>'
+             f'<p class="cn">{n:02d}</p><h2 class="ct">{"".join(f"<span>{c}</span>" for c in name)}</h2>'
+             f'<p class="cq">{E(ko)}</p><p class="ce">{E(en)}</p><p class="cs">{st}</p></div>')
+    return section(key, 'chap', inner)
+
+ORDER = ['01cover', '02overview', 'c1', '03problem', '04opp', '05journey', '06inithyp', '07interview', 'c2', '08hyp', '09solution', '10flow',
+         'c3', '11iter', '12lens', '13anat', '14pass', 'c4', '15loop', '16concl', '17thanks']
 META = {
  '01cover': ('Intro', 'olways', 1, 'cover'), '02overview': ('Intro', 'Overview', 1, 'rise'),
+ 'c1': ('Research', 'Chapter 01 · Research', 1, 'chap'), 'c2': ('Strategy', 'Chapter 02 · Strategy', 1, 'chap'),
+ 'c3': ('Design', 'Chapter 03 · Design', 1, 'chap'), 'c4': ('Outcome', 'Chapter 04 · Outcome', 1, 'chap'),
  '03problem': ('Research', '01 · Problem', 0, 'rise'), '04opp': ('Research', 'Positioning map', 0, 'rise'), '05journey': ('Research', '02 · Scenario', 0, 'rise'),
  '06inithyp': ('Research', '03 · Initial hypothesis', 0, 'cascade'), '07interview': ('Research', '04 · User interview', 0, 'sides'),
  '08hyp': ('Strategy', '04 · Hypothesis', 1, 'slideblur'), '09solution': ('Strategy', '06 · Solution', 1, 'tilt'), '10flow': ('Strategy', '07 · User flow', 0, 'rise'),
@@ -85,7 +100,11 @@ def overview():
 # ------------------------------------------------------------------ 03 problem
 def big(kicker, ko, en_html, cls='', marks=()):
     """voy-style statement screen: one sentence, words light up as you scroll"""
-    return (f'<div class="big {cls}"><p class="bk">{E(kicker)}</p><p class="bs" data-wr>{HL(ko, marks)}</p><p class="be">{en_html}</p></div>')
+    pre = ''
+    if cls == 'so':  # the two insights arrive from both sides and add up to the "So"
+        pre = ('<div class="mg"><span class="mi a"><i>Insight 01</i>외출 포기는 의지가 아니라 <b>몰라서</b></span><span class="mop">+</span>'
+               '<span class="mi b"><i>Insight 02</i>공식 정보는 <b>‘있다’만</b> 알려줘요</span></div>')
+    return (f'<div class="big {cls}">{pre}<p class="bk">{E(kicker)}</p><p class="bs" data-wr>{HL(ko, marks)}</p><p class="be">{en_html}</p></div>')
 
 def widen3(h):
     """3% / 44% / 75% columns: stretch to the card's content width (24–628) with a 10u gutter between columns"""
@@ -152,14 +171,17 @@ def problem():
             sp.put(lab, 'fade', t, g); sp.put(bar, 'barv', t + .1, g, dur=.65); sp.put(val, 'pop', t + .6, g); t += .85
         sp.put('2616:37364', 'fade', t, g)
     T = {n['id']: n['txt'] for n in nodes if n['k'] in 'TD'}
-    def story(pairs, kick, head, first=False):
+    def story(pairs, kick, head, first=False, top=None):
         nav = ''.join(f'<li><i>{k:02d}</i><strong>{SHORT[cid][0]}</strong><span>{SHORT[cid][1]}</span><b class="sbar"><em></em></b></li>' for k, (cid, tid, _) in pairs)
         items = ''.join(card(cid, fn) for k, (cid, tid, fn) in pairs)
-        top = f'<div class="st-top">{head_html}</div>' if first else ''
-        return (f'<div class="story side{" hd" if first else ""}"><div class="st-stage">{top}<div class="st-side"><p class="st-k">{kick}</p><p class="st-h">{head}</p><ol class="st-nav">{nav}</ol></div>'
+        top = f'<div class="st-top">{head_html if first else top}</div>' if (first or top) else ''
+        return (f'<div class="story side{" hd" if (first or top) else ""}"><div class="st-stage">{top}<div class="st-side"><p class="st-k">{kick}</p><p class="st-h">{head}</p><ol class="st-nav">{nav}</ol></div>'
                 f'<div class="st-items">{items}</div></div></div>')
     st1 = story([(1, ('2616:37248', '2616:37250', b1)), (2, ('2616:37269', '2616:37271', b2))], 'Problem · 01–02', '나가지 않는 게 아니라,<br>나갈 수 없어요', True)
-    st2 = story([(3, ('2616:37311', '2616:37313', b3)), (4, ('2616:37337', '2616:37339', b4))], 'Problem · 03–04', '공식 정보로는<br>알 수 없어요')
+    h2 = ('<header class="hh sh"><span class="htag">01  ·  PROBLEM  ·  03–04</span>'
+          '<h2 class="hsub">공식 정보는 ‘있다’만 알려줄 뿐, <b class="hl sky">‘지나갈 수 있는지’</b>는 알려주지 않아요</h2>'
+          '<div class="hbody"><p class="en">Official data says “accessible” — it can’t tell you whether your wheelchair gets through.</p></div></header>')
+    st2 = story([(3, ('2616:37311', '2616:37313', b3)), (4, ('2616:37337', '2616:37339', b4))], 'Problem · 03–04', '공식 정보로는<br>알 수 없어요', top=h2)
     i1 = big('Insight 01', T['2616:37306'], 'Avoiding Trips Isn’t About Will — It’s About <b>Not Knowing</b> If You Can Get In.', '', [('s', '미리 알 수 없어서예요')])
     i2 = big('Insight 02', '공식 인증과 지도는 ‘있다’만 알려줘요. 지나갈 수 있는지는 가봐야 알 수 있어서, 이동 시간과 헛걸음이 쌓였어요.',
              'Official Data Says “Accessible” — But It <b>Can’t Tell You</b> If Your Wheelchair Fits.', '', [('s', '지나갈 수 있는지는 가봐야')])
@@ -234,19 +256,24 @@ def journey():
 
 # ------------------------------------------------------------------ 06 initial hypothesis
 def inithyp():
-    S, h, nodes = render(EX('2616-37765')); byid = {n['id']: n for n in nodes}
-    sp = Spec(); hdr_spec(nodes, sp, 300)
-    sp.put('2616:37776', 'dissolve', 0, '2616:37776', dur=1); sp.put(['2616:37777', '2616:37778'], 'fade', .4, '2616:37776', .15)
-    g = '2616:37779'; t = 0
-    for col in ('2616:37780', '2616:37795', '2616:37810'):
-        c = byid[col]; items = [n for n in nodes if inside(n, c) and n['id'] != col and n['k'] != 'G']
-        headb = [n for n in items if n['y'] < 530]; prob = [n for n in items if 530 <= n['y'] < 642]
-        con = [n for n in items if 642 <= n['y'] < 686]; hyp = [n for n in items if n['y'] >= 686]
-        sp.put([n['id'] for n in headb], 'pop', t, g, .05); t += .3
-        sp.put([n['id'] for n in prob], 'rise', t, g, .06); t += .35
-        sp.put([n['id'] for n in con], 'drawdown', t, g, .1); t += .3
-        sp.put([n['id'] for n in hyp], 'pop', t, g, .06); t += .45
-    return pinfit('06inithyp', '', apply_spec(h, sp), S)
+    """hand-built so the hypothesis text can be read on an iPad: H0 branches into H1–H3, each problem leads to its hypothesis"""
+    S, nodes = parse(EX('2616-37765')); T = {n['id']: n['txt'].replace('⏎', ' ') for n in nodes if n['k'] in 'TD'}
+    import render as R
+    keep = [n for n in nodes if n['y'] < 300]
+    R_parse = R.parse; R.parse = lambda p: (S, keep)
+    _, h, _ = render(EX('2616-37765')); R.parse = R_parse
+    sp = Spec(); hdr_spec(keep, sp, 300)
+    cols = ''
+    for k, (hn, ht, pb, hy) in enumerate([('37782', '37783', '37787', '37794'), ('37797', '37798', '37802', '37809'), ('37812', '37813', '37817', '37824')]):
+        t = lambda i: E(T['2616:' + i])
+        cols += (f'<div class="ihk" data-k="{k}"><p class="ihh"><b>{t(hn)}</b>{t(ht)}</p>'
+                 f'<div class="ihp"><p class="k">문제</p><p>{t(pb)}</p></div><i class="iha"><s></s></i>'
+                 f'<div class="ihy"><p class="k">가설</p><p>{t(hy)}</p></div></div>')
+    br = ''.join(f'<path d="M660 0 V26 Q660 38 {660 + (12 if x > 660 else -12 if x < 660 else 0)} 38 H{x + (12 if x < 660 else -12) if x != 660 else 660} Q{x} 38 {x} 50 V72" />' if x != 660 else '<path d="M660 0 V72" />' for x in (218, 660, 1102))
+    body = (f'<div class="ih"><div class="ih0"><p class="k">{E(T["2616:37777"])}</p><p class="t">{E(T["2616:37778"])}</p></div>'
+            f'<svg class="ihl" viewBox="0 0 1320 72" preserveAspectRatio="none" aria-hidden="true">{br}</svg><div class="ihc">{cols}</div></div>')
+    inner = f'<div class="ihhead fx" style="height:{U(300)}">{apply_spec(h, sp)}</div>{body}'
+    return section('06inithyp', 'pinfit', f'<div class="fit">{inner}</div>', None, f' style="background:{S["bg"]}"')
 
 # ------------------------------------------------------------------ 10 user flow
 def flow():
@@ -359,8 +386,8 @@ def ut():
              '<li><i>과업 B · 이동 중</i><b>안내를 따라가다 자전거 접근</b><span>경로를 따라 이동 중 뒤에서 오는 자전거 경보에 반응해요</span></li>'
              '<li><i>과업 C · 입구 앞</i><b>이 입구로 들어갈 수 있을까?</b><span>통과 판정을 읽고, 막히면 다른 입구를 찾아가요</span></li></ul></div></div></div>')
     out = ''
-    U3 = [('As Is · 1차', 'ut3a', 'ut3az', ['배터리 %만 보여서, 남은 거리를 머릿속으로 계산해야 했어요'], [(89.6, 80, 6.5, 19)]),
-          ('To Be · 3차', 'ut3c', 'ut3cz', ['배터리를 % 대신 남은 주행 시간(120분)으로 보여줘요', '계산 없이 ‘갔다 올 수 있는지’ 바로 읽혀요'], [(85.1, 4.6, 11.8, 7.6)])]
+    U3 = [('As Is · 1차', 'ut3a', 'ut3az2', ['배터리 %만 보여서, 남은 거리를 머릿속으로 계산해야 했어요'], [(89.6, 80, 6.5, 19)]),
+          ('To Be · 3차', 'ut3c', 'ut3cz2', ['배터리를 % 대신 남은 주행 시간(120분)으로 보여줘요', '계산 없이 ‘갔다 올 수 있는지’ 바로 읽혀요'], [(85.1, 4.6, 11.8, 7.6)])]
     for it in secs5.UT:
         vers = U3 if it['n'] == 3 else [(l, im, z, notes, []) for l, im, z, notes in it['vers']]
         qs = ''.join(f'<div class="xq"><span class="who">{E(w)}</span><p class="ko">{E(k)}</p><p class="en">{E(e)}</p></div>' for w, k, e in it['q'])
@@ -368,23 +395,25 @@ def ut():
         why = ''
         if it['why']:
             a1, b1, c1 = it['why']
-            why = (f'<div class="xwhy"><div class="xwm"><span class="m x"><i>✕</i></span><b>→</b><span class="m o"><i>✓</i></span><em class="r">As Is · 왼쪽</em><em></em><em class="b">To Be · 오른쪽</em></div>'
+            why = (f'<div class="xwhy"><div class="xwm"><figure class="m x"><span><i>✕</i></span><figcaption>As Is · 왼쪽</figcaption></figure><em class="xar">→</em>'
+                   f'<figure class="m o"><span><i>✓</i></span><figcaption>To Be · 오른쪽</figcaption></figure></div>'
                    f'<div><p class="wk">{E(a1)}</p><p class="wt">{E(b1)}</p></div></div>')
-        figs, tabs = '', ''
+        figs, tabs, zs = '', '', ''
         for i, (lab, im, z, notes, zr) in enumerate(vers):
             tobe = lab.startswith('To')
             rr = ''.join(f'<i class="zr{" ok" if tobe else ""}" style="left:{x}%;top:{y}%;width:{w}%;height:{h}%"></i>' for x, y, w, h in zr)
             zz = ''
             if z:
                 nn = ''.join(f'<li>{E(t)}</li>' for t in notes)
-                zz = f'<div class="xz{" ok" if tobe else ""}"><div class="xzi"><img src="s/{z}.webp" alt="{E(lab)} 확대"></div><ul>{nn}</ul></div>'
+                zs += f'<div class="xz{" ok" if tobe else ""}" data-i="{i}"><p class="xzk">확대 · {E(lab)}</p><div class="xzi"><img src="s/{z}.webp" alt="{E(lab)} 확대"></div><ul>{nn}</ul></div>'
             figs += (f'<figure class="xf{" tobe" if tobe else ""}" data-i="{i}"><div class="xi"><img src="s/{im}.webp" alt="{E(lab)} 화면" loading="lazy">{rr}'
-                     f'<span class="vl{" tb" if tobe else ""}">{E(lab)}</span></div>{zz}</figure>')
+                     f'<span class="vl{" tb" if tobe else ""}">{E(lab)}</span></div></figure>')
             tabs += f'<button class="xt{" tb" if tobe else ""}" data-i="{i}"><i>{i + 1:02d}</i>{E(lab)}</button>'
         hdr = f'<header class="xh"><p class="xn"><span>UT {it["n"]:02d}</span>{E(it["prob"])}</p><h3>{it["head"]}</h3></header>'
         out += (f'<article class="ux" data-n="{len(vers)}"><div class="fit"><div class="xg">'
-                f'<div class="xl">{hdr}{ps}{why}<div class="xqs">{qs}</div></div>'
-                f'<div class="xr"><div class="xtabs">{tabs}<span class="xbar"><em></em></span></div><div class="xstage">{figs}</div></div>'
+                f'<div class="xm"><div class="xtabs">{tabs}<span class="xbar"><em></em></span></div><div class="xstage">{figs}</div></div>'
+                f'<div class="xs">{hdr}{ps}{"<div class=xzs>" + zs + "</div>" if zs else ""}</div>'
+                f'<div class="xb{" w3" if why else ""}">{why}{qs}</div>'
                 f'</div></div></article>')
     return section('11iter', 'hx ut', hd + setup + out)
 
@@ -443,12 +472,12 @@ def anatomy():
         g = lambda o: E(t[f'2616:{base+o}'])
         cards += f'<div class="acard" data-i="{k}"><p class="ak"><b>{g(0)}</b>{g(1)}</p><h4>{g(2)}</h4><p>{g(4)}</p></div>'
     # field-of-view grid (Figma 2464:143): the whole lens is divided — clear sky band, left / centre / right panels, voice strip
-    Z = [('fz-top', 2.1, 3.8, 95.7, 22.2, '수평선 위 · Keep clear', '시선 위는 비워 둬요'),
-         ('fz-l', 2.1, 29.8, 23.2, 66.4, '좌측 패널', '5–30% · 알림 · 메시지가 뜰 때'),
-         ('fz-c ctr', 27.1, 29.8, 45.7, 44.5, '중앙 — 위험 · 경로만', '시선 수평선 37–40%'),
-         ('fz-v', 27.1, 78.0, 45.7, 18.2, '하단 · 음성', '음성 캡슐'),
-         ('fz-r', 74.5, 29.8, 23.2, 66.4, '우측 패널', '70–95% · 상태 · 내비')]
-    fov = '<div class="fovz">' + ''.join(f'<div class="z {c}" style="left:{x}%;top:{y}%;width:{w}%;height:{h}%"><span class="zl"><b>{E(b1)}</b><i>{E(i1)}</i></span></div>' for c, x, y, w, h, b1, i1 in Z) + '<i class="hz" style="top:28%"><span>시선 수평선</span></i></div>'
+    Z = [('fz-top', 2.2, 3.8, 65.0, 22.2, '수평선 위 · Keep clear', '시선 위는 비워 둬요'),
+         ('fz-l', 2.2, 29.8, 22.8, 66.4, '좌측 패널', '알림 · 메시지'),
+         ('fz-c ctr', 26.6, 29.8, 40.6, 44.5, '중앙 — 위험 · 경로만', '시선 수평선 37–40%'),
+         ('fz-v', 26.6, 78.0, 40.6, 18.2, '하단 · 음성', '음성 캡슐'),
+         ('fz-r', 68.6, 3.8, 29.1, 92.4, '우측 패널', '상태 위젯 + 내비 카드')]
+    fov = '<div class="fovz">' + ''.join(f'<div class="z {c}" style="left:{x}%;top:{y}%;width:{w}%;height:{h}%"><span class="zl"><b>{E(b1)}</b><i>{E(i1)}</i></span></div>' for c, x, y, w, h, b1, i1 in Z) + '<i class="hz" style="top:28%;right:32.4%"><span>시선 수평선</span></i></div>'
     fovtxt = (f'<div class="fovt"><p class="fk">{E(t["2616:39119"])}</p><h3>{E(t["2616:39120"])}</h3>'
               f'<div class="fill"><img src="m/fov_ill.webp" alt="아래 · 좌우는 편하고, 위 · 대각선은 보기 어려워요 (Downward · Left and Right · Upward and Diagonal)"></div>'
               f'<p class="fb">{E(t["2616:39168"])}</p><p class="fs2">{E(t["2616:39169"])}</p></div>')
@@ -490,11 +519,34 @@ def prep_assets():
     for src, dst in [('/tmp/claude-0/v6/dl/anat.jpg', 'm/anat.jpg'), ('/tmp/claude-0/v6/dl/pass.jpg', 'm/pass.jpg')]:
         im = Image.open(src).convert('RGB'); im.save(OUT + dst, quality=86, optimize=True, progressive=True)
 
+def clean_curve():
+    """the journey curve raster was cut from the Figma composite, so it carries pieces of the speech bubbles and grid lines.
+    keep only the blue stroke, and clear every bubble/tail rectangle"""
+    S, nodes = parse(EX('2616-37609')); byid = {n['id']: n for n in nodes}
+    cv = byid['2616:37679']; f = OUT + 'm/2616-37679.png'
+    a = np.asarray(Image.open(f).convert('RGBA')).astype(np.int32)
+    k = a.shape[1] / cv['w']
+    r, g, b, al = a[..., 0], a[..., 1], a[..., 2], a[..., 3]
+    keep = (b - r > 70) & (b > 110) & (al > 30)
+    blue = [n for n in nodes if n['k'] == 'B' and n.get('name') == 'Bubble' and 'e2f3ff' in str(n.get('bg'))]  # orange bubbles carry no blue
+    tails = [n for n in nodes if n['k'] == 'B' and n.get('name') == 'Rectangle' and n['w'] < 20 and any(bb['x'] < n['x'] < bb['x'] + bb['w'] and abs(n['y'] - bb['y'] - bb['h']) < 14 for bb in blue)]
+    for n in blue + tails:
+        if True:
+            x0, y0 = int((n['x'] - cv['x']) * k) - 4, int((n['y'] - cv['y']) * k) - 4
+            x1, y1 = int((n['x'] + n['w'] - cv['x']) * k) + 4, int((n['y'] + n['h'] - cv['y']) * k) + 6
+            keep[max(0, y0):max(0, y1), max(0, x0):max(0, x1)] = False
+    a[..., 3] = np.where(keep, al, 0)
+    Image.fromarray(a.astype(np.uint8), 'RGBA').save(f, optimize=True)
+
 if __name__ == '__main__':
     prep_assets()
     GEN = {'02overview': overview, '03problem': problem, '04opp': opp, '05journey': journey, '06inithyp': inithyp, '07interview': interview,
            '08hyp': hyp, '09solution': solution, '10flow': flow, '11iter': ut, '12lens': lens, '13anat': anatomy, '14pass': passj, '15loop': loop}
-    secs = [GEN[k]() if k in GEN else raster(k) for k in ORDER]
+    secs = [chapter(k) if k in CHAPS else GEN[k]() if k in GEN else raster(k) for k in ORDER]
+    clean_curve()
+    # small Figma text is hard to read on an iPad: everything under 15 grows by 1.5 design units
+    bump = lambda m: f'font-size:calc(var(--u)*{float(m.group(1)) + (1.5 if float(m.group(1)) < 15 else 0):.2f})'
+    secs = [re.sub(r'font-size:calc\(var\(--u\)\*([\d.]+)\)', bump, x) for x in secs]
     logo = open('/tmp/claude-0/site/img/logo.svg').read().replace('<svg ', '<svg aria-hidden="true" ')
     tpl = open('/tmp/claude-0/v6/tpl6.html', encoding='utf-8').read()
     css5 = open('/tmp/claude-0/v5/css5.css').read()
