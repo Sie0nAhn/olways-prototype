@@ -12,3 +12,18 @@
 #ambfill{display:none;position:fixed;inset:-6%;width:112%;height:112%;z-index:-1;filter:blur(28px) brightness(.82) saturate(1.1);pointer-events:none}html.wide #ambfill{display:block}html.wide body{overflow:hidden;background:transparent}html.wide{background:#000}html.wide #stage,html.wide .bg-layer,html.wide .bg-scene{overflow:visible}html.wide #stage{background:transparent}html.wide #shade{left:-260px;right:-260px}
 
 [data-node-id="1649:3802"]{display:none!important}[data-node-id="1515:12646"]{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+
+/* v38: 16:9 version = iPad canvas + 232px each side; nothing outside it, no blurred fill */
+html.wide #ambfill{display:none!important}
+html.wide #stage{clip-path:inset(0 -232px)}
+html.wide .inset-0[class*="bg-[rgba(0,0,0,0.05)]"]{left:-232px!important;right:-232px!important}
+/* stable glass: color-dodge layers rendered as plain light tints (GPU browsers blew them out to white) */
+.mix-blend-color-dodge{mix-blend-mode:normal!important}
+.mix-blend-color-dodge[class*="bg-[rgba(94,94,94,0.06)]"]{background-color:rgba(255,255,255,.035)!important}
+.mix-blend-color-dodge[class*="bg-[rgba(94,94,94,0.13)]"]{background-color:rgba(255,255,255,.075)!important}
+.mix-blend-color-dodge[class*="bg-[rgba(94,94,94,0.18)]"]{background-color:rgba(255,255,255,.10)!important}
+.mix-blend-color-dodge[class*="bg-[rgba(94,94,94,0.36)]"]{background-color:rgba(255,255,255,.21)!important}
+html.wide .screen-root>.relative.size-full>.absolute.inset-0.overflow-hidden{overflow:visible!important}
+html.wide [data-name^="음성 UI"]{overflow:visible!important}
+html.wide .overflow-clip.w-\[1920px\]{overflow:visible!important}
+html.wide .absolute.left-0.w-\[1920px\].mix-blend-plus-lighter{scale:1.2417 1;transform-origin:50% 50%}
