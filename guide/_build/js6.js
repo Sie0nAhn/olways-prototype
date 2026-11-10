@@ -86,18 +86,22 @@ const story=(st,play)=>{const items=$$('.st-item',st),nav=$$('.st-nav li',st),n=
   ScrollTrigger.create({trigger:st,start:'top top',end:()=>'+='+innerHeight*.85*n,pin:true,pinSpacing:true,invalidateOnRefresh:true,
     onEnter:()=>{if(!live){live=true;play(items[cur])}},
     onUpdate:s=>{const f=s.progress*n;set(Math.min(n-1,Math.floor(f)));nav.forEach((l,j)=>{const e=l.querySelector('em');if(e)e.style.transform=`scaleX(${Math.max(0,Math.min(1,f-j))})`})}})};
+const fitCards=()=>$$('.pcw').forEach(c=>{const box=c.closest('.st-items').getBoundingClientRect(),u=innerWidth/1400;
+  c.style.setProperty('--s',Math.min(box.width/(+c.style.getPropertyValue('--w')*u),box.height/(+c.style.getPropertyValue('--h')*u)).toFixed(3))});
+fitCards();addEventListener('resize',fitCards);
 $$('#s03problem .story').forEach(st=>story(st,it=>{const tl=TL[it.dataset.g];tl&&tl.restart()}));
 /* journey: the line is drawn by your scroll — pinned, scrubbed */
 (()=>{const sec=$('#s05journey'),tl=TL['2616:37657'];if(!sec||!tl)return;
   ScrollTrigger.create({trigger:sec,start:'top top',end:()=>'+='+innerHeight*1.6,pin:true,pinSpacing:true,scrub:.6,animation:tl})})();
 
+const IVS=['확신 없으면 출발하지 않아요','방송보다, 다가오는 위험','보기 전에 먼저 짚어줘요','배터리로 어디까지 갈까','쓸 수 있는 화장실은 4곳 중 1곳'];
 /* ---------- interview → top-tab story; each finding plays its chart, then its quotes ---------- */
 $$('.iv .wrap').forEach(w=>{const igs=$$('.ig',w),ban=w.querySelector('.ban');
   const st=document.createElement('div');st.className='story top';
   st.innerHTML='<div class="st-stage"><ol class="st-nav"></ol><div class="st-items"></div></div>';
   const nav=st.querySelector('.st-nav'),box=st.querySelector('.st-items');
   igs.forEach((g,k)=>{const li=document.createElement('li');const h=g.querySelector('.ih h3');
-    li.innerHTML=`<i>${String(k+1).padStart(2,'0')}</i><span></span><b class="sbar"><em></em></b>`;li.querySelector('span').textContent=h?h.textContent:'';nav.appendChild(li);
+    li.innerHTML=`<i>${String(k+1).padStart(2,'0')}</i><span></span><b class="sbar"><em></em></b>`;li.querySelector('span').textContent=IVS[k]||(h?h.textContent:'');nav.appendChild(li);
     g.classList.add('st-item');box.appendChild(g);
     const ih=g.querySelector('.ih'),cb=g.querySelector('.cbox'),qc=g.querySelector('.qcard');
     const ps=$$('.pc',cb).sort((a,b)=>a.dataset.o-b.dataset.o);
