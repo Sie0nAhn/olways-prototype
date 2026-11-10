@@ -43,11 +43,11 @@ CHAPS = {'c1': (1, 'Research', '휠체어 사용자는 왜 새로운 곳에 가�
          'c4': (4, 'Outcome', '다녀온 길은 다음 사람을 어떻게 도울까요?', 'How does one trip help the next person?', ['데이터 루프', '결론'])}
 def chapter(key):
     n, name, ko, en, steps = CHAPS[key]
-    spine = ''.join(f'<li class="{"on" if i == n else "past" if i < n else ""}"><i></i><span>{g}</span></li>' for i, g in enumerate(['Intro', 'Research', 'Strategy', 'Design', 'Outcome']))
-    st = '<i>→</i>'.join(f'<span>{E(x)}</span>' for x in steps)
-    inner = (f'<div class="ch" style="--n:{n}"><ol class="spine"><s><em></em></s>{spine}</ol>'
-             f'<p class="cn">{n:02d}</p><h2 class="ct">{"".join(f"<span>{c}</span>" for c in name)}</h2>'
-             f'<p class="cq">{E(ko)}</p><p class="ce">{E(en)}</p><p class="cs">{st}</p></div>')
+    dots = ''.join(f'<li class="{"on" if i == n else "past" if i < n else ""}"><span>{g}</span></li>' for i, g in enumerate(['Intro', 'Research', 'Strategy', 'Design', 'Outcome']))
+    st = ''.join(f'<li><i>{k + 1:02d}</i>{E(x)}</li>' for k, x in enumerate(steps))
+    inner = (f'<div class="ch" style="--n:{n}"><div class="arc"></div>'
+             f'<p class="ck">Chapter {n:02d}  ·  {name}</p><h2 class="cq"><span>{E(ko)}</span></h2><p class="ce">{E(en)}</p>'
+             f'<ol class="cs">{st}</ol><ol class="spine">{dots}</ol></div>')
     return section(key, 'chap', inner)
 
 ORDER = ['01cover', '02overview', 'c1', '03problem', '04opp', '05journey', '06inithyp', '07interview', 'c2', '08hyp', '09solution', '10flow',
@@ -100,11 +100,12 @@ def overview():
 # ------------------------------------------------------------------ 03 problem
 def big(kicker, ko, en_html, cls='', marks=()):
     """voy-style statement screen: one sentence, words light up as you scroll"""
-    pre = ''
-    if cls == 'so':  # the two insights arrive from both sides and add up to the "So"
-        pre = ('<div class="mg"><span class="mi a"><i>Insight 01</i>외출 포기는 의지가 아니라 <b>몰라서</b></span><span class="mop">+</span>'
-               '<span class="mi b"><i>Insight 02</i>공식 정보는 <b>‘있다’만</b> 알려줘요</span></div>')
-    return (f'<div class="big {cls}">{pre}<p class="bk">{E(kicker)}</p><p class="bs" data-wr>{HL(ko, marks)}</p><p class="be">{en_html}</p></div>')
+    if cls == 'so':  # the two insights sit side by side, their lines meet in one point, and that point is the "So"
+        cards = ('<div class="mg"><div class="mi"><i>Insight 01</i><p>외출 포기는 의지가 아니라<br><b>갈 수 있는지 몰라서</b>예요</p></div>'
+                 '<div class="mi"><i>Insight 02</i><p>공식 정보는<br><b>‘있다’만</b> 알려줘요</p></div></div>'
+                 '<svg class="mgl" viewBox="0 0 820 80" preserveAspectRatio="none" aria-hidden="true"><path d="M205 0 V30 Q205 42 217 42 H398 Q410 42 410 54 V80"/><path d="M615 0 V30 Q615 42 603 42 H422 Q410 42 410 54 V80"/></svg><i class="mdot"></i>')
+        return (f'<div class="big so"><div class="sow"><p class="bk">{E(kicker)}</p>{cards}<p class="bs" data-wr>{HL(ko, marks)}</p><p class="be">{en_html}</p></div></div>')
+    return (f'<div class="big {cls}"><p class="bk">{E(kicker)}</p><p class="bs" data-wr>{HL(ko, marks)}</p><p class="be">{en_html}</p></div>')
 
 def widen3(h):
     """3% / 44% / 75% columns: stretch to the card's content width (24–628) with a 10u gutter between columns"""
@@ -270,7 +271,7 @@ def inithyp():
                  f'<div class="ihp"><p class="k">문제</p><p>{t(pb)}</p></div><i class="iha"><s></s></i>'
                  f'<div class="ihy"><p class="k">가설</p><p>{t(hy)}</p></div></div>')
     br = ''.join(f'<path d="M660 0 V26 Q660 38 {660 + (12 if x > 660 else -12 if x < 660 else 0)} 38 H{x + (12 if x < 660 else -12) if x != 660 else 660} Q{x} 38 {x} 50 V72" />' if x != 660 else '<path d="M660 0 V72" />' for x in (218, 660, 1102))
-    body = (f'<div class="ih"><div class="ih0"><p class="k">{E(T["2616:37777"])}</p><p class="t">{E(T["2616:37778"])}</p></div>'
+    body = (f'<div class="ihx"><div class="ih0"><p class="k">{E(T["2616:37777"])}</p><p class="t">{E(T["2616:37778"])}</p></div>'
             f'<svg class="ihl" viewBox="0 0 1320 72" preserveAspectRatio="none" aria-hidden="true">{br}</svg><div class="ihc">{cols}</div></div>')
     inner = f'<div class="ihhead fx" style="height:{U(300)}">{apply_spec(h, sp)}</div>{body}'
     return section('06inithyp', 'pinfit', f'<div class="fit">{inner}</div>', None, f' style="background:{S["bg"]}"')
@@ -389,31 +390,32 @@ def ut():
     U3 = [('As Is · 1차', 'ut3a', 'ut3az2', ['배터리 %만 보여서, 남은 거리를 머릿속으로 계산해야 했어요'], [(89.6, 80, 6.5, 19)]),
           ('To Be · 3차', 'ut3c', 'ut3cz2', ['배터리를 % 대신 남은 주행 시간(120분)으로 보여줘요', '계산 없이 ‘갔다 올 수 있는지’ 바로 읽혀요'], [(85.1, 4.6, 11.8, 7.6)])]
     for it in secs5.UT:
-        vers = U3 if it['n'] == 3 else [(l, im, z, notes, []) for l, im, z, notes in it['vers']]
+        vers = U3 if it['n'] == 3 else [(l, im, z, notes, [(36, 72, 28, 26)] if z else []) for l, im, z, notes in it['vers']]
         qs = ''.join(f'<div class="xq"><span class="who">{E(w)}</span><p class="ko">{E(k)}</p><p class="en">{E(e)}</p></div>' for w, k, e in it['q'])
-        ps = (f'<div class="xps"><div><p class="pk">문제</p><p>{E(it["p"])}</p></div><div><p class="sk">해결</p><p class="sv">{E(it["s"])}</p></div></div>')
+        ps = (f'<div class="xps"><div class="p"><p class="pk">문제</p><p>{E(it["p"])}</p></div><i class="xpa">→</i>'
+              f'<div class="s"><p class="sk">해결</p><p class="sv">{E(it["s"])}</p></div></div>')
         why = ''
         if it['why']:
             a1, b1, c1 = it['why']
-            why = (f'<div class="xwhy"><div class="xwm"><figure class="m x"><span><i>✕</i></span><figcaption>As Is · 왼쪽</figcaption></figure><em class="xar">→</em>'
+            why = (f'<div class="xwhy"><p class="wk">{E(a1)}</p><div class="xwm"><figure class="m x"><span><i>✕</i></span><figcaption>As Is · 왼쪽</figcaption></figure><em class="xar">→</em>'
                    f'<figure class="m o"><span><i>✓</i></span><figcaption>To Be · 오른쪽</figcaption></figure></div>'
-                   f'<div><p class="wk">{E(a1)}</p><p class="wt">{E(b1)}</p></div></div>')
+                   f'<p class="wt">{E(b1)}</p></div>')
         figs, tabs, zs = '', '', ''
         for i, (lab, im, z, notes, zr) in enumerate(vers):
             tobe = lab.startswith('To')
-            rr = ''.join(f'<i class="zr{" ok" if tobe else ""}" style="left:{x}%;top:{y}%;width:{w}%;height:{h}%"></i>' for x, y, w, h in zr)
-            zz = ''
+            rr = ''.join(f'<i class="zr{" ok" if tobe else ""}" style="left:{x}%;top:{y}%;width:{w}%;height:{h}%"><em>확대</em></i>' for x, y, w, h in zr)
             if z:
                 nn = ''.join(f'<li>{E(t)}</li>' for t in notes)
                 zs += f'<div class="xz{" ok" if tobe else ""}" data-i="{i}"><p class="xzk">확대 · {E(lab)}</p><div class="xzi"><img src="s/{z}.webp" alt="{E(lab)} 확대"></div><ul>{nn}</ul></div>'
             figs += (f'<figure class="xf{" tobe" if tobe else ""}" data-i="{i}"><div class="xi"><img src="s/{im}.webp" alt="{E(lab)} 화면" loading="lazy">{rr}'
                      f'<span class="vl{" tb" if tobe else ""}">{E(lab)}</span></div></figure>')
             tabs += f'<button class="xt{" tb" if tobe else ""}" data-i="{i}"><i>{i + 1:02d}</i>{E(lab)}</button>'
-        hdr = f'<header class="xh"><p class="xn"><span>UT {it["n"]:02d}</span>{E(it["prob"])}</p><h3>{it["head"]}</h3></header>'
+        hdr = f'<header class="xh"><p class="xn"><span>UT {it["n"]:02d}</span>{E(it["prob"])}</p><h3>{it["head"].replace("<br>", " ")}</h3></header>'
+        side = f'<div class="xzs">{zs}</div>' if zs else why
         out += (f'<article class="ux" data-n="{len(vers)}"><div class="fit"><div class="xg">'
-                f'<div class="xm"><div class="xtabs">{tabs}<span class="xbar"><em></em></span></div><div class="xstage">{figs}</div></div>'
-                f'<div class="xs">{hdr}{ps}{"<div class=xzs>" + zs + "</div>" if zs else ""}</div>'
-                f'<div class="xb{" w3" if why else ""}">{why}{qs}</div>'
+                f'{hdr}<div class="xtabs">{tabs}<span class="xbar"><em></em></span></div>'
+                f'<div class="xstage">{figs}</div><aside class="xside">{side}</aside>'
+                f'{ps}<div class="xqs">{qs}</div>'
                 f'</div></div></article>')
     return section('11iter', 'hx ut', hd + setup + out)
 
@@ -545,8 +547,12 @@ if __name__ == '__main__':
     secs = [chapter(k) if k in CHAPS else GEN[k]() if k in GEN else raster(k) for k in ORDER]
     clean_curve()
     # small Figma text is hard to read on an iPad: everything under 15 grows by 1.5 design units
-    bump = lambda m: f'font-size:calc(var(--u)*{float(m.group(1)) + (1.5 if float(m.group(1)) < 15 else 0):.2f})'
-    secs = [re.sub(r'font-size:calc\(var\(--u\)\*([\d.]+)\)', bump, x) for x in secs]
+    def bump_el(m):
+        tag, txt = m.group(0), m.group(2)
+        plain = re.sub(r'<[^>]+>', '', txt).strip()
+        if not plain or re.fullmatch(r'[A-Z0-9 ·&—\-–:/.()%×+]+', plain) or len(plain) < 6: return tag
+        return re.sub(r'font-size:calc\(var\(--u\)\*([\d.]+)\)', lambda q: f'font-size:calc(var(--u)*{float(q.group(1)) + (1.5 if float(q.group(1)) < 15 else 0):.2f})', tag, count=1)
+    secs = [re.sub(r'(<p class="fe ft[^"]*"[^>]*>)(.*?)</p>', bump_el, x, flags=re.S) for x in secs]
     logo = open('/tmp/claude-0/site/img/logo.svg').read().replace('<svg ', '<svg aria-hidden="true" ')
     tpl = open('/tmp/claude-0/v6/tpl6.html', encoding='utf-8').read()
     css5 = open('/tmp/claude-0/v5/css5.css').read()
