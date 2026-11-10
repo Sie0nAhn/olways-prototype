@@ -125,18 +125,25 @@ def problem():
             sp.put(lab, 'fade', t, g); sp.put(bar, 'barv', t + .1, g, dur=.65); sp.put(val, 'pop', t + .6, g); t += .85
         sp.put('2616:37364', 'fade', t, g)
     T = {n['id']: n['txt'] for n in nodes if n['k'] in 'TD'}
-    def story(pairs, kick, head):
+    def story(pairs, kick, head, first=False):
         nav = ''.join(f'<li><i>{k:02d}</i><strong>{SHORT[cid][0]}</strong><span>{SHORT[cid][1]}</span><b class="sbar"><em></em></b></li>' for k, (cid, tid, _) in pairs)
         items = ''.join(card(cid, fn) for k, (cid, tid, fn) in pairs)
-        return (f'<div class="story side"><div class="st-stage"><div class="st-side"><p class="st-k">{kick}</p><p class="st-h">{head}</p><ol class="st-nav">{nav}</ol></div>'
+        top = f'<div class="st-top">{head_html}</div>' if first else ''
+        return (f'<div class="story side{" hd" if first else ""}"><div class="st-stage">{top}<div class="st-side"><p class="st-k">{kick}</p><p class="st-h">{head}</p><ol class="st-nav">{nav}</ol></div>'
                 f'<div class="st-items">{items}</div></div></div>')
-    st1 = story([(1, ('2616:37248', '2616:37250', b1)), (2, ('2616:37269', '2616:37271', b2))], 'Problem · 01–02', '나가지 않는 게 아니라,<br>나갈 수 없어요')
+    st1 = story([(1, ('2616:37248', '2616:37250', b1)), (2, ('2616:37269', '2616:37271', b2))], 'Problem · 01–02', '나가지 않는 게 아니라,<br>나갈 수 없어요', True)
     st2 = story([(3, ('2616:37311', '2616:37313', b3)), (4, ('2616:37337', '2616:37339', b4))], 'Problem · 03–04', '공식 정보로는<br>알 수 없어요')
     i1 = big('Insight 01', T['2616:37306'], 'Avoiding Trips Isn’t About Will — It’s About <b>Not Knowing</b> If You Can Get In.')
     i2 = big('Insight 02', '공식 인증과 지도는 ‘있다’만 알려줘요. 지나갈 수 있는지는 가봐야 알 수 있어서, 이동 시간과 헛걸음이 쌓였어요.',
              'Official Data Says “Accessible” — But It <b>Can’t Tell You</b> If Your Wheelchair Fits.')
     so = big('So', '그래서 olways는 ‘갈 수 있는지’를 출발 전에 알려주는 것부터 시작해요', 'So olways starts by answering “Can I get there?” before you leave.', 'so')
-    return section('03problem', 'hx pr', head_html + st1 + i1 + st2 + i2 + so)
+    return section('03problem', 'hx pr', st1 + i1 + st2 + i2 + so)
+
+def pinfit(key, cls, inner, S=None):
+    """one screen: content is scaled to fit the iPad viewport, pinned until its animation has finished"""
+    fh = f' style="--fh:{S["h"]}"' if S else ''
+    bg = f' style="background:{S["bg"]}"' if S else ''
+    return section(key, cls + ' pinfit', f'<div class="fit{" fx" if S else ""}"{fh}>{inner}</div>', None, bg)
 
 def sec_bg(S): return f' style="background:{S["bg"]};height:{U(S["h"])}"'
 
@@ -162,7 +169,7 @@ def opp():
     sp.put(['2616:37405'], 'herop', t, g, dur=.9); sp.put(['2616:37406', '2616:37407'], 'fade', t + .3, g, .1)
     sp.put(['2616:37408', '2616:37409'], 'rise', t + .6, g, .12)
     sp.put([n['id'] for n in nodes if n['y'] > 995 and inside(n, card)], 'fade', t + 1, g, .03)
-    return section('04opp', 'fx', apply_spec(h, sp), S['h'], sec_bg(S))
+    return pinfit('04opp', '', apply_spec(h, sp), S)
 
 # ------------------------------------------------------------------ 05 journey
 TAILS = []; ORIG = {}
@@ -190,7 +197,7 @@ def journey():
         TAILS.extend(x['id'] for x in tail)
         ORIG[b['id']] = (dot['x'] + 9 - b['x'], dot['y'] + 9 - b['y'])  # grow out of the dot below
         for x in tail: ORIG[x['id']] = (dot['x'] + 9 - x['x'], dot['y'] + 9 - x['y'])
-        sp.put([n['id'] for n in nodes if n['k'] == 'T' and inside(n, b)], 'fade', tt + .4, g, .06)
+        sp.put([n['id'] for n in nodes if n['k'] == 'T' and inside(n, b)], 'btxt', tt, g)
     h = apply_spec(h, sp)
     for i in TAILS:  # Figma tails are 12px squares rotated 45° — draw the diamond (pointed tip), not the bounding box
         h = h.replace(f'id="{fid(i)}"', f'id="{fid(i)}" data-tail="1"', 1)
@@ -212,7 +219,7 @@ def inithyp():
         sp.put([n['id'] for n in prob], 'rise', t, g, .06); t += .35
         sp.put([n['id'] for n in con], 'drawdown', t, g, .1); t += .3
         sp.put([n['id'] for n in hyp], 'pop', t, g, .06); t += .45
-    return section('06inithyp', 'fx', apply_spec(h, sp), S['h'], sec_bg(S))
+    return pinfit('06inithyp', '', apply_spec(h, sp), S)
 
 # ------------------------------------------------------------------ 10 user flow
 def flow():
@@ -293,7 +300,7 @@ def hyp():
               '그래서 가설을 ‘출발 전 입구 · 경로 판정’과 ‘이동 중 위험 선제 경보’로 바꿨어요',
               [('ko', '인터뷰에서 예상과 달랐던 점 두 가지 — ① 포기는 현장이 아니라 출발 전에 일어났고, ② 위험은 안내 방송이 아니라 보지 · 듣지 못한 근거리에서 왔어요.'),
                ('en', 'Users gave up before leaving, and danger came from what they couldn’t see or hear nearby — so we shifted from on-the-move help to judging ahead and alerting first.')], dark=True)
-    return section('08hyp', 'hx hy', hd + h)
+    return pinfit('08hyp', 'hx hy', hd + h)
 
 def solution():
     h = secs5.solution('<section', None).split('>', 1)[1].rsplit('</section>', 1)[0]

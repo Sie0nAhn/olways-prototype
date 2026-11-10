@@ -342,3 +342,19 @@
 .st-h{margin:0 0 18u;font-size:30u;font-weight:800;line-height:1.3;letter-spacing:-.025em;color:#14191C}
 .story.side .st-nav{justify-content:flex-start;gap:6u}
 /*}U*/
+/*U{*/
+/* ---- v12: one-screen sections ---- */
+.pinfit{height:100svh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:calc(var(--navh) - 4px) 0 10px!important;overflow:hidden}
+.fit{position:relative;flex:none;width:calc(var(--u)*1400);margin:0 auto}
+.fit.fx{height:calc(var(--u)*var(--fh))}
+/* problem / interview: header shares the first screen */
+.story.hd .st-stage{grid-template-rows:auto minmax(0,1fr);row-gap:14u}
+.story.side.hd .st-stage{grid-template-columns:300u 1fr}
+.st-top{grid-column:1/-1;margin:0 -40u}
+.st-top .phead{height:196u;margin-top:-96u;overflow:visible}
+.story.top.hd .st-stage{grid-template-rows:auto auto minmax(0,1fr);row-gap:16u}
+.st-top .hh{padding:0!important;margin:0!important;gap:6u!important}
+.st-top .hh .hbody p.en{display:none}
+/* ---- insights: a card that opens to fill the screen ---- */
+.big{height:100svh;min-height:0;will-change:clip-path}
+/*}U*/
