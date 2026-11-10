@@ -63,6 +63,14 @@ def raster(key):
     return f'<section id="s{key}" class="fs rs{" dk" if dk else ""}" data-g="{g}" data-l="{E(l)}" data-anim="{anim}" style="aspect-ratio:1400/{H:.2f}">\n' + '\n'.join(parts) + '\n</section>'
 
 # ------------------------------------------------------------------ 02 overview
+def HL(text, marks):
+    """escape, then wrap phrases: ('b', phrase) = heavier weight, ('s', phrase) = sky + heavier"""
+    h = E(text)
+    for kind, ph in marks:
+        ph = E(ph); assert ph in h, ph
+        h = h.replace(ph, f'<b class="hl{" sky" if kind == "s" else ""}">{ph}</b>', 1)
+    return h
+
 def overview():
     # callmelord-style: full-bleed street video stays put, the title rises out of a mask, then the statement lights up word by word
     from svgt import svg_title
@@ -71,13 +79,30 @@ def overview():
     inner = ('<div class="ovpin"><video class="ovv" src="media/bg_street.mp4" muted playsinline loop preload="metadata"></video><div class="ovt"></div>'
              f'<div class="ovc"><p class="ovk">Overview</p><div class="ovtitle" style="aspect-ratio:{w:g}/{hh:g}">{sv}</div>'
              f'<p class="ovsub">{E(T["2616:37230"])}</p></div></div>'
-             f'<div class="ovs"><p class="ovbig" data-wr>{E(T["2616:37233"])}</p><p class="oven">{E(T["2616:37232"])}</p></div>')
+             f'<div class="ovs"><p class="ovbig" data-wr>{HL(T["2616:37233"], [("b", "휠체어 사용자를 위한 스마트 글라스"), ("s", "내 휠체어 실측값"), ("b", "갈 수 있는 곳인지 먼저"), ("s", "보지 · 듣지 못한 위험"), ("b", "두 손을 핸들에 둔 채"), ("s", "‘갈 수 있다’는 확신")])}</p><p class="oven">{E(T["2616:37232"])}</p></div>')
     return section('02overview', 'ov2', inner)
 
 # ------------------------------------------------------------------ 03 problem
-def big(kicker, ko, en_html, cls=''):
+def big(kicker, ko, en_html, cls='', marks=()):
     """voy-style statement screen: one sentence, words light up as you scroll"""
-    return (f'<div class="big {cls}"><p class="bk">{E(kicker)}</p><p class="bs" data-wr>{E(ko)}</p><p class="be">{en_html}</p></div>')
+    return (f'<div class="big {cls}"><p class="bk">{E(kicker)}</p><p class="bs" data-wr>{HL(ko, marks)}</p><p class="be">{en_html}</p></div>')
+
+def widen3(h):
+    """3% / 44% / 75% columns: stretch to the card's content width (24–628) with a 10u gutter between columns"""
+    cols = [range(37322, 37326), range(37326, 37331), range(37331, 37336)]
+    f = (604 - 20) / 520
+    for k, ids in enumerate(cols):
+        for i in ids:
+            def fix(m):
+                st = m.group(0)
+                if 'src="' in st:  # raster numerals keep their size, pinned to the column's right edge
+                    L = float(re.search(r'left:calc\(var\(--u\)\*(-?[\d.]+)\)', st).group(1)); W = float(re.search(r'width:calc\(var\(--u\)\*([\d.]+)\)', st).group(1))
+                    return re.sub(r'left:calc\(var\(--u\)\*(-?[\d.]+)\)', f'left:calc(var(--u)*{24 + (L + W - 24) * f + k * 10 - W:.2f})', st, count=1)
+                st = re.sub(r'left:calc\(var\(--u\)\*(-?[\d.]+)\)', lambda q: f'left:calc(var(--u)*{24 + (float(q.group(1)) - 24) * f + k * 10:.2f})', st, count=1)
+                st = re.sub(r'width:calc\(var\(--u\)\*([\d.]+)\)', lambda q: f'width:calc(var(--u)*{float(q.group(1)) * f:.2f})', st, count=1)
+                return st
+            h = re.sub(r'id="f2616-%d"[^>]*?style="[^"]*"' % i, fix, h, count=1)
+    return h
 
 SHORT = {'2616:37248': ('58%', '새로운 곳, 한 곳도 못 가요'), '2616:37269': ('53%', '가장 큰 벽은 탑승'),
          '2616:37311': ('3%', '인증된 길 · 정류장은 3%뿐'), '2616:37337': ('3.3×', '환승은 3.3배 더 걸려요')}
@@ -85,12 +110,13 @@ def problem():
     S, nodes = parse(EX('2616-37234')); byid = {n['id']: n for n in nodes}
     card2 = byid['2616:37269']; card4 = byid['2616:37337']
     shift = {n['id'] for n in nodes if inside(n, card2) and n['y'] >= 390 and n['id'] != card2['id']}
+    DY = {n['id']: 59 for n in nodes if inside(n, card4) and n['y'] - card4['y'] >= 134 and n['id'] != card4['id']}
     card2['h'] = 387; card4['h'] = 457
     import render as R
     R_parse = R.parse
     def part(keep, dx, dy):
         R.parse = lambda p: (S, keep)
-        _, h, _ = render(EX('2616-37234'), dx_fn=lambda n: dx, dy_fn=lambda n: dy + (36 if n['id'] in shift else 0))
+        _, h, _ = render(EX('2616-37234'), dx_fn=lambda n: dx, dy_fn=lambda n: dy + (36 if n['id'] in shift else 0) + DY.get(n['id'], 0))
         R.parse = R_parse
         return h
     ids = lambda a, b: [n['id'] for n in nodes if a <= int(n['id'].split(':')[1]) <= b]
@@ -103,6 +129,7 @@ def problem():
         c = byid[cid]; keep = [n for n in nodes if inside(n, c)]
         sp = Spec(); g = cid; build(sp, g)
         h = apply_spec(part(keep, -c['x'], -c['y']), sp)
+        if cid == '2616:37311': h = widen3(h)
         return f'<div class="st-item" data-g="{g}"><div class="pcw" style="--w:{c["w"]};--h:{c["h"]}"><div class="pcard fx">{h}</div></div></div>'
     def b1(sp, g):
         sp.put(ids(37249, 37257), 'rise', 0, g, .05); t = .5
@@ -133,10 +160,10 @@ def problem():
                 f'<div class="st-items">{items}</div></div></div>')
     st1 = story([(1, ('2616:37248', '2616:37250', b1)), (2, ('2616:37269', '2616:37271', b2))], 'Problem · 01–02', '나가지 않는 게 아니라,<br>나갈 수 없어요', True)
     st2 = story([(3, ('2616:37311', '2616:37313', b3)), (4, ('2616:37337', '2616:37339', b4))], 'Problem · 03–04', '공식 정보로는<br>알 수 없어요')
-    i1 = big('Insight 01', T['2616:37306'], 'Avoiding Trips Isn’t About Will — It’s About <b>Not Knowing</b> If You Can Get In.')
+    i1 = big('Insight 01', T['2616:37306'], 'Avoiding Trips Isn’t About Will — It’s About <b>Not Knowing</b> If You Can Get In.', '', [('s', '미리 알 수 없어서예요')])
     i2 = big('Insight 02', '공식 인증과 지도는 ‘있다’만 알려줘요. 지나갈 수 있는지는 가봐야 알 수 있어서, 이동 시간과 헛걸음이 쌓였어요.',
-             'Official Data Says “Accessible” — But It <b>Can’t Tell You</b> If Your Wheelchair Fits.')
-    so = big('So', '그래서 olways는 ‘갈 수 있는지’를 출발 전에 알려주는 것부터 시작해요', 'So olways starts by answering “Can I get there?” before you leave.', 'so')
+             'Official Data Says “Accessible” — But It <b>Can’t Tell You</b> If Your Wheelchair Fits.', '', [('s', '지나갈 수 있는지는 가봐야')])
+    so = big('So', '그래서 olways는 ‘갈 수 있는지’를 출발 전에 알려주는 것부터 시작해요', 'So olways starts by answering <b>“Can I get there?”</b> before you leave.', 'so', [('s', '‘갈 수 있는지’'), ('s', '출발 전에')])
     return section('03problem', 'hx pr', st1 + i1 + st2 + i2 + so)
 
 def pinfit(key, cls, inner, S=None):
@@ -241,8 +268,8 @@ def flow():
              (['2616:38565', '2616:38566', '2616:38567'], 'draw'), (['2616:38552', '2616:38553'], 'pop')]
     seq, t = [], .45
     for ids, a in steps:
-        seq.append((ids, a, t)); t += .32 if a.startswith('draw') else .38
-    for ids, a, t in seq: sp.put(ids, a, t, g, dur=(.35 if a.startswith('draw') else None))
+        seq.append((ids, a, t)); t += .5 if a.startswith('draw') else .4
+    for ids, a, t in seq: sp.put(ids, a, t, g, dur=(.6 if a.startswith('draw') else None))
     sp.put(['2616:38571', '2616:38572'], 'rise', t + .2, g, .12)
     return section('10flow', 'fx', apply_spec(h, sp), S['h'], sec_bg(S))
 
@@ -332,39 +359,34 @@ def ut():
              '<li><i>과업 B · 이동 중</i><b>안내를 따라가다 자전거 접근</b><span>경로를 따라 이동 중 뒤에서 오는 자전거 경보에 반응해요</span></li>'
              '<li><i>과업 C · 입구 앞</i><b>이 입구로 들어갈 수 있을까?</b><span>통과 판정을 읽고, 막히면 다른 입구를 찾아가요</span></li></ul></div></div></div>')
     out = ''
+    U3 = [('As Is · 1차', 'ut3a', 'ut3az', ['배터리 %만 보여서, 남은 거리를 머릿속으로 계산해야 했어요'], [(89.6, 80, 6.5, 19)]),
+          ('To Be · 3차', 'ut3c', 'ut3cz', ['배터리를 % 대신 남은 주행 시간(120분)으로 보여줘요', '계산 없이 ‘갔다 올 수 있는지’ 바로 읽혀요'], [(85.1, 4.6, 11.8, 7.6)])]
     for it in secs5.UT:
-        qs = ''.join(f'<div class="uq"><span class="who d">{E(w)}</span><p class="ko">{E(k)}</p><p class="en">{E(e)}</p></div>' for w, k, e in it['q'])
-        ps = (f'<div class="ups"><div><p class="pk">문제</p><p>{E(it["p"])}</p></div><div><p class="sk">해결</p><p class="sv">{E(it["s"])}</p></div></div>')
-        hdr = f'<header class="uh"><p class="up"><span class="un">{it["n"]}</span>{E(it["prob"])}</p><h3>{it["head"]}</h3></header>'
-        if it['n'] == 3:
-            cmp = ('<div class="u3"><figure class="u3a"><span class="vl">As Is · 1차</span><div class="u3w"><img src="s/ut3a.webp" alt="As Is 1차 화면" loading="lazy">'
-                   '<i class="zr" style="left:89.6%;top:80%;width:6.5%;height:19%"></i></div>'
-                   '<div class="u3z"><img src="s/ut3az.webp" alt="상태 위젯 확대 — 배터리 % 게이지"><p><b>상태 위젯 · % 게이지</b>남은 거리를 머릿속으로 계산해야 했어요</p></div></figure>'
-                   '<span class="u3arr" aria-hidden="true">→</span>'
-                   '<figure class="u3b"><span class="vl tb">To Be · 3차</span><div class="u3w"><img src="s/ut3c.webp" alt="To Be 3차 화면" loading="lazy">'
-                   '<i class="zr ok" style="left:85.1%;top:4.6%;width:11.8%;height:7.6%"></i></div>'
-                   '<div class="u3z ok"><img src="s/ut3cz.webp" alt="상단 상태 위젯 확대 — 시간과 휠체어 주행 가능 120분"><p><b>상태 위젯 · 휠체어 120분</b>배터리를 % 대신 남은 주행 시간으로 보여줘, 계산 없이 바로 읽혀요</p></div></figure></div>')
-            out += f'<article class="ui u3x">{hdr}{cmp}{ps}<div class="uqs">{qs}</div></article>'
-            continue
-        cards = ''
-        for i, (lab, im, z, notes) in enumerate(it['vers']):
+        vers = U3 if it['n'] == 3 else [(l, im, z, notes, []) for l, im, z, notes in it['vers']]
+        qs = ''.join(f'<div class="xq"><span class="who">{E(w)}</span><p class="ko">{E(k)}</p><p class="en">{E(e)}</p></div>' for w, k, e in it['q'])
+        ps = (f'<div class="xps"><div><p class="pk">문제</p><p>{E(it["p"])}</p></div><div><p class="sk">해결</p><p class="sv">{E(it["s"])}</p></div></div>')
+        why = ''
+        if it['why']:
+            a1, b1, c1 = it['why']
+            why = (f'<div class="xwhy"><div class="xwm"><span class="m x"><i>✕</i></span><b>→</b><span class="m o"><i>✓</i></span><em class="r">As Is · 왼쪽</em><em></em><em class="b">To Be · 오른쪽</em></div>'
+                   f'<div><p class="wk">{E(a1)}</p><p class="wt">{E(b1)}</p></div></div>')
+        figs, tabs = '', ''
+        for i, (lab, im, z, notes, zr) in enumerate(vers):
             tobe = lab.startswith('To')
+            rr = ''.join(f'<i class="zr{" ok" if tobe else ""}" style="left:{x}%;top:{y}%;width:{w}%;height:{h}%"></i>' for x, y, w, h in zr)
             zz = ''
             if z:
                 nn = ''.join(f'<li>{E(t)}</li>' for t in notes)
-                zz = f'<div class="zc{" ok" if tobe else ""}"><img src="s/{z}.webp" alt=""><ul>{nn}</ul></div>'
-            cards += (f'<figure class="uc{" tobe" if tobe else ""}" data-i="{i}"><span class="vl{" tb" if tobe else ""}">{E(lab)}</span>'
-                      f'<div class="uimg"><img src="s/{im}.webp" alt="{E(lab)} 화면" loading="lazy"></div>{zz}</figure>')
-        why = ''
-        if it['why']:
-            a, b, c = it['why']
-            why = (f'<div class="why"><div class="wd"><div class="wm"><i class="x">✕</i></div><span class="wa">→</span><div class="wm r"><i class="o">✓</i></div>'
-                   f'<span class="wl wlr">As Is · 왼쪽</span><span></span><span class="wl wlb">To Be · 오른쪽</span></div>'
-                   f'<div><p class="wk">{E(a)}</p><p class="wt">{E(b)}</p><p class="we">{E(c)}</p></div></div>')
-        dots = ''.join(f'<button class="ud" data-i="{k}" aria-label="{k+1}단계">{["As Is 1차","As Is 1·2차","As Is ↔ To Be"][k]}</button>' for k in range(3))
-        out += (f'<article class="ui"><div class="upin">{hdr}<div class="utrack">{cards}</div><div class="usteps">{dots}</div>{ps}</div>'
-                f'{why}<div class="uqs">{qs}</div></article>')
-    return section('11iter', 'hx ut', hd + setup + f'<div class="uwrap">{out}</div>')
+                zz = f'<div class="xz{" ok" if tobe else ""}"><div class="xzi"><img src="s/{z}.webp" alt="{E(lab)} 확대"></div><ul>{nn}</ul></div>'
+            figs += (f'<figure class="xf{" tobe" if tobe else ""}" data-i="{i}"><div class="xi"><img src="s/{im}.webp" alt="{E(lab)} 화면" loading="lazy">{rr}'
+                     f'<span class="vl{" tb" if tobe else ""}">{E(lab)}</span></div>{zz}</figure>')
+            tabs += f'<button class="xt{" tb" if tobe else ""}" data-i="{i}"><i>{i + 1:02d}</i>{E(lab)}</button>'
+        hdr = f'<header class="xh"><p class="xn"><span>UT {it["n"]:02d}</span>{E(it["prob"])}</p><h3>{it["head"]}</h3></header>'
+        out += (f'<article class="ux" data-n="{len(vers)}"><div class="fit"><div class="xg">'
+                f'<div class="xl">{hdr}{ps}{why}<div class="xqs">{qs}</div></div>'
+                f'<div class="xr"><div class="xtabs">{tabs}<span class="xbar"><em></em></span></div><div class="xstage">{figs}</div></div>'
+                f'</div></div></article>')
+    return section('11iter', 'hx ut', hd + setup + out)
 
 # ------------------------------------------------------------------ 09 lens
 def lens():
@@ -395,10 +417,15 @@ def lens():
         media = (f'<video src="media/{v}.mp4" poster="media/{v}.jpg" muted playsinline loop preload="metadata"></video>' if cls == 'c'
                  else f'<img src="media/{v}.jpg" alt="" loading="lazy">')
         return f'<figure class="tp tp-{cls}"><div class="tpm">{media}</div><figcaption>{E(lab)}</figcaption></figure>'
-    trip = (f'<div class="trip"><div class="tstage"><p class="tkick">한 번의 외출 · 세 장면</p>'
+    trip = (f'<div class="trip"><div class="tstage"><div class="thead"><p class="tkick">PROTOTYPE · 외출 한 번을 따라가 보면</p>'
+            f'<h3 class="ttl">출발 전 집에서, 길 위에서, 건물 입구 앞에서<br>olways가 먼저 알려줘요</h3></div>'
             f'<div class="trow">{tp(1, "l")}{tp(2, "c")}{tp(3, "r")}</div></div></div>')
-    inner = (f'<div class="lhead fx" style="height:{U(560)}">{apply_spec(h, sp)}</div>' + trip
-             + split(0, False) + split(1, True) + full(2) + track)
+    # one continuous walkthrough: S1 → S5 on the same stage, a rail on top shows where you are in the trip
+    rail = ''.join(f'<li data-i="{i}"><i>{i + 1:02d}</i><b>{E(caps[i][0].split(" · ")[0])}</b><span>{E(caps[i][0].split(" · ", 1)[-1])}</span><s><em></em></s></li>' for i in range(5))
+    vs = ''.join(f'<div class="lxm" data-i="{i}"><video src="media/{v}.mp4" poster="media/{v}.jpg" muted playsinline loop preload="metadata"></video><span class="live">PROTOTYPE · S{i + 1}</span></div>' for i, v in enumerate(vids))
+    cs = ''.join(f'<div class="lxc" data-i="{i}"><p class="lk"><i>{i + 1:02d}</i>{E(a)}</p><h3>{E(b)}</h3><p class="lb">{E(c)}</p><p class="le">{E(d)}</p></div>' for i, (a, b, c, d) in enumerate(caps))
+    lx = f'<div class="lx"><div class="fit"><ol class="lxrail">{rail}</ol><div class="lxg"><div class="lxv">{vs}</div><div class="lxcs">{cs}</div></div></div></div>'
+    inner = f'<div class="lhead fx" style="height:{U(560)}">{apply_spec(h, sp)}</div>' + trip + lx
     return section('12lens', 'hx ln', inner)
 
 # ------------------------------------------------------------------ 09 anatomy + pass
@@ -415,29 +442,20 @@ def anatomy():
     for k, base in enumerate([39077, 39084, 39091, 39098, 39105, 39112]):
         g = lambda o: E(t[f'2616:{base+o}'])
         cards += f'<div class="acard" data-i="{k}"><p class="ak"><b>{g(0)}</b>{g(1)}</p><h4>{g(2)}</h4><p>{g(4)}</p></div>'
-    # zones sized to the real panels in the final screen (measured on the 1120×630 export)
-    fov = ('<div class="fovz">'
-           '<div class="z fz-s"><span class="zl bl"><b>우측 상단 · 상태</b><i>시간 · 주행 가능 시간</i></span></div>'
-           '<div class="z fz-n"><span class="zl"><b>우측 하단 · 내비</b><i>시야 70–95% · 경로 카드</i></span></div>'
-           '<div class="z fz-c ctr"><span class="zl"><b>중앙 — 위험 · 경로만</b><i>시선 수평선 37–40%</i></span></div>'
-           '<div class="z fz-v"><span class="zl"><b>하단 · 음성</b></span></div>'
-           '<i class="hz"><span>시선 수평선</span></i></div>')
+    # field-of-view grid (Figma 2464:143): the whole lens is divided — clear sky band, left / centre / right panels, voice strip
+    Z = [('fz-top', 2.1, 3.8, 95.7, 22.2, '수평선 위 · Keep clear', '시선 위는 비워 둬요'),
+         ('fz-l', 2.1, 29.8, 23.2, 66.4, '좌측 패널', '5–30% · 알림 · 메시지가 뜰 때'),
+         ('fz-c ctr', 27.1, 29.8, 45.7, 44.5, '중앙 — 위험 · 경로만', '시선 수평선 37–40%'),
+         ('fz-v', 27.1, 78.0, 45.7, 18.2, '하단 · 음성', '음성 캡슐'),
+         ('fz-r', 74.5, 29.8, 23.2, 66.4, '우측 패널', '70–95% · 상태 · 내비')]
+    fov = '<div class="fovz">' + ''.join(f'<div class="z {c}" style="left:{x}%;top:{y}%;width:{w}%;height:{h}%"><span class="zl"><b>{E(b1)}</b><i>{E(i1)}</i></span></div>' for c, x, y, w, h, b1, i1 in Z) + '<i class="hz" style="top:28%"><span>시선 수평선</span></i></div>'
     fovtxt = (f'<div class="fovt"><p class="fk">{E(t["2616:39119"])}</p><h3>{E(t["2616:39120"])}</h3>'
-              f'<p class="fdirs"><span>{E(t["2616:39122"])}</span><span>{E(t["2616:39166"])}</span><span>{E(t["2616:39167"])}</span></p>'
+              f'<div class="fill"><img src="m/fov_ill.webp" alt="아래 · 좌우는 편하고, 위 · 대각선은 보기 어려워요 (Downward · Left and Right · Upward and Diagonal)"></div>'
               f'<p class="fb">{E(t["2616:39168"])}</p><p class="fs2">{E(t["2616:39169"])}</p></div>')
-    inner = (hd +
-             f'<div class="awrap"><div class="ashot"><img src="m/anat.jpg" alt="최종 렌즈 화면 — 여섯 요소" loading="lazy"><i class="spot"></i>{badges}</div>'
-             f'<div class="agrid">{cards}</div></div>'
-             f'<div class="fovpin"><div class="fovstage">{fovtxt}<div class="fovshot"><img src="m/anat.jpg" alt="" loading="lazy">{fov}</div></div></div>')
-    # Grida-style "layer by layer": the finished screen lifts apart into the layers it is built from
-    L = [('ly_route', 38.39, 19.84, 25.0, 80.16, '바닥 경로 · 위험 표시'), ('ly_nav', 68.57, 67.62, 27.32, 29.21, '내비 카드'),
-         ('ly_stat', 84.38, 4.92, 11.43, 7.62, '상태 위젯'), ('ly_voice', 42.68, 90.79, 14.82, 5.71, '음성 캡슐')]
-    lays = ''.join(f'<div class="ly" data-k="{k + 1}" style="left:{x}%;top:{y}%;width:{w}%;height:{h}%"><img src="m/{f}.webp" alt=""><span class="lytag">{lab}</span></div>'
-                   for k, (f, x, y, w, h, lab) in enumerate(L))
-    steps = ''.join(f'<li data-k="{k}"><i>{k + 1:02d}</i>{t}</li>' for k, t in enumerate(['실제 거리 (시야)'] + [l[5] for l in L]))
-    inner += (f'<div class="lyr"><div class="lystage"><div class="lyt"><p class="lyk">LAYER BY LAYER</p>'
-              f'<h3>한 화면을 겹겹이 나눠 보면</h3><p class="lyb">시야는 비워 두고, 정보는 바닥 · 가장자리 · 하단에만 얹었어요.</p><ol class="lysteps">{steps}</ol></div>'
-              f'<div class="lyscene"><div class="lystack"><div class="ly0"><img src="m/anat.jpg" alt="완성 화면"><span class="lytag">실제 거리 (시야)</span></div>{lays}</div></div></div></div>')
+    inner = (f'<div class="sx an1"><div class="fit">{hd}'
+             f'<div class="awrap ax"><div class="ashot"><img src="m/anat.jpg" alt="최종 렌즈 화면 — 여섯 요소" loading="lazy"><i class="spot"></i>{badges}</div>'
+             f'<div class="agrid">{cards}</div></div></div></div>'
+             f'<div class="sx an2"><div class="fit"><div class="fovg">{fovtxt}<div class="fovshot"><img src="m/anat.jpg" alt="" loading="lazy">{fov}</div></div></div></div>')
     return section('13anat', 'hx an', inner)
 
 PASS_BADGES = [(505.8, 501.7), (572, 795.96), (69, 824.96)]
@@ -453,9 +471,9 @@ def passj():
     cards = ''
     for k, (a, b, c, d) in enumerate([(39251, 39252, 39253, 39255), (39258, 39259, 39260, 39262), (39265, 39266, 39267, 39269)]):
         cards += f'<div class="acard dk" data-i="{k}"><p class="ak"><b>{E(t[f"2616:{a}"])}</b>{E(t[f"2616:{b}"])}</p><h4>{E(t[f"2616:{c}"])}</h4><p>{E(t[f"2616:{d}"])}</p></div>'
-    inner = (f'<div class="ahead fx" style="height:{U(300)}">{apply_spec(h, sp)}</div>'
-             f'<div class="awrap"><div class="ashot ps"><img src="m/pass.jpg" alt="입구 판정 화면" loading="lazy"><i class="spot"></i>{badges}</div>'
-             f'<div class="agrid g3">{cards}</div></div>')
+    inner = (f'<div class="sx pj1"><div class="fit"><div class="ahead fx" style="height:{U(300)}">{apply_spec(h, sp)}</div>'
+             f'<div class="awrap ax"><div class="ashot ps"><img src="m/pass.jpg" alt="입구 판정 화면" loading="lazy"><i class="spot"></i>{badges}</div>'
+             f'<div class="agrid g3">{cards}</div></div></div></div>')
     return section('14pass', 'hx pj', inner)
 
 # ------------------------------------------------------------------ assets prepared once

@@ -2,7 +2,7 @@
 const $=s=>document.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const secs=$$('#main > section');
 const topOf=el=>el.getBoundingClientRect().top+scrollY;
-const to=el=>window.scrollTo({top:topOf(el),behavior:'smooth'});
+const to=el=>{window.__jump&&window.__jump();window.scrollTo({top:topOf(el),behavior:'smooth'})};
 
 /* ---------- nav (soap-bubble component) ---------- */
 const groups=[];secs.forEach(s=>{if(!groups.find(g=>g.name===s.dataset.g))groups.push({name:s.dataset.g,el:s})});
@@ -24,17 +24,8 @@ addEventListener('scroll',()=>requestAnimationFrame(upd),{passive:true});upd();
 const io=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;if(e.isIntersecting)v.play().catch(()=>{});else v.pause()}),{threshold:.2});
 $$('video').forEach(v=>io.observe(v));
 
-/* ---------- anatomy / pass spotlight ---------- */
-$$('.ashot').forEach(sh=>{const sec=sh.closest('section'),sp=sh.querySelector('.spot'),bd=$$('.bdg',sh),cr=$$('.acard',sec);let i=0,hold=0,vis=false;
-  function pick(k){i=k;const b=bd[k];sp.style.setProperty('--sx',b.style.left);sp.style.setProperty('--sy',b.style.top);
-    bd.forEach((x,j)=>x.classList.toggle('on',j===k));cr.forEach((c,j)=>c.classList.toggle('on',j===k))}
-  bd.forEach((b,k)=>b.onclick=()=>{hold=performance.now()+8000;sp.classList.add('on');pick(k)});
-  cr.forEach((c,k)=>c.onclick=()=>{hold=performance.now()+8000;sp.classList.add('on');pick(k)});
-  new IntersectionObserver(es=>es.forEach(e=>{vis=e.isIntersecting;if(vis){sp.classList.add('on');pick(0)}else{sp.classList.remove('on');cr.forEach(c=>c.classList.remove('on'))}}),{threshold:.5}).observe(sh);
-  setInterval(()=>{if(vis&&performance.now()>hold)pick((i+1)%bd.length)},2600)});
-
 /* ---------- idle → back to top ---------- */
-let idle;const bump=()=>{clearTimeout(idle);idle=setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),180000)};['pointerdown','wheel','touchstart','keydown'].forEach(e=>addEventListener(e,bump,{passive:true}));bump();
+let idle;const bump=()=>{clearTimeout(idle);idle=setTimeout(()=>{window.__jump&&window.__jump();window.scrollTo({top:0,behavior:'smooth'})},180000)};['pointerdown','wheel','touchstart','keydown'].forEach(e=>addEventListener(e,bump,{passive:true}));bump();
 
 if(!window.gsap||location.search.includes('static')||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
 gsap.registerPlugin(ScrollTrigger);ScrollTrigger.config({ignoreMobileResize:true});
@@ -55,7 +46,7 @@ const FROM={rise:{opacity:0,y:30},fade:{opacity:0},left:{opacity:0,x:-30},drop:{
   dissolve:{opacity:0,scale:.86,filter:'blur(10px)'},herop:{opacity:0,scale:.2},
   barh:{clipPath:'inset(-60px calc(100% + 60px) -60px -60px)'},barv:{clipPath:'inset(calc(100% + 60px) -60px -60px -60px)'},draw:{clipPath:'inset(-20px 100% -20px -20px)'},
   drawdown:{clipPath:'inset(-20px -20px 100% -20px)'},drawrev:{clipPath:'inset(-20px -20px -20px 100%)'},ring:{opacity:0,rotate:-140,scale:.6}};
-const EASE={pop:'back.out(2)',bubble:'back.out(1.4)',tail:'back.out(1.4)',herop:'elastic.out(1,.55)',barh:'power2.inOut',barv:'power2.inOut',draw:'none',drawdown:'none',drawrev:'none',ring:'power3.out',dissolve:'expo.out'};
+const EASE={pop:'back.out(2)',bubble:'back.out(1.4)',tail:'back.out(1.4)',herop:'elastic.out(1,.55)',barh:'power2.inOut',barv:'power2.inOut',draw:'power1.inOut',drawdown:'power1.inOut',drawrev:'power1.inOut',ring:'power3.out',dissolve:'expo.out'};
 /* timelines that must wait for another to finish (e.g. Problem row 2 waits for Insight 01) */
 const TL={},AFTER={'2616:37311':'2616:37248','2616:37370':'2616:37311'};
 const run=g=>{const tl=TL[g],p=AFTER[g],pt=p&&TL[p];
@@ -110,8 +101,92 @@ $$('.iv .wrap').forEach(w=>{const igs=$$('.ig',w),ban=w.querySelector('.ban');
   ban&&ban.remove();
   const hh=w.closest('section').querySelector('.hh');if(hh){const top=document.createElement('div');top.className='st-top';top.appendChild(hh);st.querySelector('.st-stage').prepend(top);st.classList.add('hd')}
   st._play=it=>it._tl&&it._tl.restart()});
+/* ================= scenes =================
+   Every block that animates is a scene. While a scene on screen has not finished, the page will not scroll past it:
+   a scroll attempt hurries the animation instead (×3), and momentum that overshoots is pulled back to the scene. */
+const SC=[];window.__SC=SC;
+const stop=e=>{e.cancelable&&e.preventDefault()};
+const done=tl=>!tl||tl.progress()>=1;
+const hurry=tl=>{if(!tl||tl.progress()>=1)return;if(!tl.isActive())tl.play();tl.timeScale(3.2)};
+const fresh=tl=>{if(tl){tl.timeScale(1);tl.restart()}};
+const fitAll=()=>$$('.fit').forEach(f=>{f.style.removeProperty('--u');const u=innerWidth/1400,nav=64;
+  const h=f.style.getPropertyValue('--fh')?(+f.style.getPropertyValue('--fh'))*u:f.scrollHeight;
+  const s=Math.min(1,(innerHeight-nav-16)/h);f.style.setProperty('--u',`calc(100vw / 1400 * ${s.toFixed(4)})`)});
+fitAll();fitIv();addEventListener('resize',()=>{fitAll();fitCards();fitIv()});
+/* stepped scene: pinned for one screen, one gesture = one step, each step must finish before the next */
+const mkStep=(el,n,show,o={})=>{let cur=-1,live=false,cool=0;const st={dl:[],tl:[]};
+  const per=o.per||.55;
+  const trg=ScrollTrigger.create({trigger:el,start:'top top',end:()=>'+='+innerHeight*per*n,pin:true,pinSpacing:true,invalidateOnRefresh:true,
+    onEnter:()=>{live=true;if(cur<0)set(0,true)},onEnterBack:()=>{live=true},
+    onUpdate:s=>{if(live)set(Math.min(n-1,Math.floor(s.progress*n*.999)))}});
+  ScrollTrigger.create({trigger:el,start:'top 55%',onEnter:()=>{live=true;if(cur<0)set(0,true)}});
+  function set(i,force){if(i===cur&&!force)return;const back=i<cur;cur=i;const r=show(i,back);
+    st.tl[i]=r&&r.tl?r.tl:r||null;st.dl[i]=performance.now()+(r&&r.dwell!=null?r.dwell:(o.dwell||0))}
+  const fin=k=>st.dl[k]!=null&&performance.now()>=st.dl[k]&&done(st.tl[k]);
+  const pos=k=>trg.start+(trg.end-trg.start)*(k+.5)/n;
+  const firstOpen=()=>{for(let k=0;k<n;k++)if(!fin(k))return k;return -1};
+  const go=k=>{cool=performance.now()+650;scrollTo({top:pos(k),behavior:'instant'});set(k)};
+  const hur=()=>{const k=cur<0?0:cur;hurry(st.tl[k]);if(st.dl[k])st.dl[k]=Math.min(st.dl[k],performance.now()+350)};
+  SC.push({a:()=>trg.start-innerHeight*.7,b:()=>trg.end,
+    hold:()=>{const k=firstOpen();return k<=0?trg.start:pos(k)},busy:()=>firstOpen()>=0,hurry:hur,
+    step:(dir,e)=>{const y=scrollY;if(y<trg.start-4||y>trg.end+4)return false;const now=performance.now();
+      if(now<cool){stop(e);return true}
+      if(dir>0){if(cur<0){set(0);stop(e);return true}
+        if(!fin(cur)){stop(e);hur();return true}
+        if(cur<n-1){stop(e);go(cur+1);return true}return false}
+      if(cur>0&&y<=trg.end){stop(e);go(cur-1);return true}return false}});
+  el._go=k=>{if(scrollY<trg.start||scrollY>trg.end)scrollTo({top:pos(k),behavior:'instant'});go(k)};
+  return trg};
+/* soft scene: an element that animates in place (not pinned); the page stops once it is fully on screen until it is done */
+const soft=(el,tl)=>{if(!el||!tl)return;const nav=70;
+  const hold=()=>{const r=el.getBoundingClientRect(),t=r.top+scrollY,h=r.height;return h<=innerHeight-nav-20?t+h-innerHeight+20:t-nav};
+  SC.push({a:()=>hold()-innerHeight,b:()=>hold()+6,hold,busy:()=>!done(tl),hurry:()=>hurry(tl)})};
+let jumpUntil=0;window.__jump=()=>{jumpUntil=performance.now()+1800};
+const intent=(dir,e)=>{if(performance.now()<jumpUntil)return;const y=scrollY;
+  for(const s of SC){if(s.step&&s.step(dir,e))return}
+  if(dir>0)for(const s of SC){const h=s.hold();if(y>=h-4&&y<=h+innerHeight*.5&&s.busy()){stop(e);s.hurry();return}}};
+addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>2)intent(Math.sign(e.deltaY),e)},{passive:false});
+let gty=0;addEventListener('touchstart',e=>{gty=e.touches[0].clientY},{passive:true});
+addEventListener('touchmove',e=>{const dy=gty-e.touches[0].clientY;if(Math.abs(dy)>10){intent(Math.sign(dy),e);gty=e.touches[0].clientY}},{passive:false});
+addEventListener('keydown',e=>{if(['ArrowDown','PageDown',' '].includes(e.key))intent(1,e);else if(['ArrowUp','PageUp'].includes(e.key))intent(-1,e)});
+/* momentum (iPad fling) cannot be cancelled — pull it back to the scene that is still playing */
+let py=scrollY;addEventListener('scroll',()=>{const y=scrollY;
+  if(y>py&&performance.now()>jumpUntil){for(const s of SC){const h=s.hold();if(py<=h+3&&y>h+3&&s.busy()){scrollTo({top:h,behavior:'instant'});s.hurry();py=h;return}}}
+  py=y},{passive:true});
+
+/* ---- problem / interview stories ---- */
+const storyNav=(st,i)=>{$$('.st-item',st).forEach((it,j)=>{it.classList.toggle('on',j===i);it.classList.toggle('past',j<i)});
+  $$('.st-nav li',st).forEach((l,j)=>{l.classList.toggle('on',j===i);l.classList.toggle('done',j<i);const e=l.querySelector('em');if(e)e.style.transform=`scaleX(${j<=i?1:0})`})};
+const mkStory=st=>{const items=$$('.st-item',st);storyNav(st,0);
+  mkStep(st,items.length,i=>{storyNav(st,i);const it=items[i],tl=it._tl||TL[it.dataset.g];fresh(tl);return {tl,dwell:500}},{per:.6});
+  $$('.st-nav li',st).forEach((l,k)=>l.onclick=()=>st._go&&st._go(k))};
+/* ---- insight statements: card opens to the full screen, then the words light up (scrubbed) ---- */
+const mkBig=b=>{const bs=b.querySelector('.bs');
+  const walk=n=>{[...n.childNodes].forEach(ch=>{if(ch.nodeType===3){const f=document.createDocumentFragment();
+      ch.textContent.split(/(\s+)/).forEach(w=>{if(!w)return;if(/^\s+$/.test(w))f.appendChild(document.createTextNode(w));else{const s=document.createElement('span');s.className='wr';s.textContent=w;f.appendChild(s)}});
+      ch.replaceWith(f)}else if(ch.nodeType===1)walk(ch)})};walk(bs);
+  const tl=gsap.timeline({scrollTrigger:{trigger:b,start:'top top',end:()=>'+='+innerHeight*1.2,pin:true,pinSpacing:true,scrub:.6}});
+  tl.fromTo(b,{clipPath:'inset(18% 9% 18% 9% round 40px)'},{clipPath:'inset(0% 0% 0% 0% round 0px)',ease:'power2.inOut',duration:1})
+    .fromTo(b.querySelector('.bk'),{opacity:0,y:24},{opacity:1,y:0,duration:.25},.55)
+    .to(bs.querySelectorAll('.wr'),{opacity:1,stagger:.05,duration:.2,ease:'none'},.7)
+    .fromTo(bs.querySelectorAll('.hl'),{'--hl':0},{'--hl':1,duration:.4,stagger:.1},'>-.1')
+    .fromTo(b.querySelector('.be'),{opacity:0,y:20},{opacity:1,y:0,duration:.3},'>-.1')
+    .to({},{duration:.4})};
+/* ---- one-screen figures (positioning map, hypotheses): play, hold until drawn ---- */
+const mkFit=sec=>{const tls=sec._tls||[];const all=gsap.timeline({paused:true});
+  mkStep(sec,1,()=>{tls.forEach(t=>{t.timeScale(1);if(t.progress()<1)t.play()});
+    const tl={progress:()=>Math.min(...tls.map(t=>t.progress()),1),isActive:()=>tls.some(t=>t.isActive()),play:()=>tls.forEach(t=>t.play()),timeScale:v=>tls.forEach(t=>t.timeScale(v))};
+    return {tl,dwell:300}},{per:.35})};
+/* ---- journey: the line follows the scroll; each speech bubble rises whole when the line reaches its dot ---- */
+const mkJourney=sec=>{const tl=TL['2616:37657'];if(!tl)return;
+  const groups=Object.entries(BUB).map(([t,els])=>{const w=document.createElement('div');w.className='bgrp';sec.appendChild(w);els.forEach(e=>{w.appendChild(e);gsap.set(e,{opacity:1,clearProps:'transform,clipPath'})});
+    gsap.set(w,{opacity:0,y:26});return {t:+t,w,on:false}});
+  ScrollTrigger.create({trigger:sec,start:'top top',end:()=>'+='+innerHeight*1.6,pin:true,pinSpacing:true,scrub:.5,animation:tl,
+    onUpdate:s=>{const now=tl.duration()*s.progress;groups.forEach(g=>{const want=now>=g.t;if(want!==g.on){g.on=want;
+      gsap.to(g.w,want?{opacity:1,y:0,duration:.6,ease:'power3.out',overwrite:true}:{opacity:0,y:18,duration:.25,ease:'power2.in',overwrite:true})}})}})};
+
 /* headers */
-$$('.hh').forEach(h=>gsap.fromTo(h.children,{opacity:0,y:26},{opacity:1,y:0,duration:.8,stagger:.09,ease:'power3.out',scrollTrigger:ST(h,'top 85%')}));
+$$('.hh').forEach(h=>!h.closest('.st-top')&&gsap.fromTo(h.children,{opacity:0,y:26},{opacity:1,y:0,duration:.8,stagger:.09,ease:'power3.out',scrollTrigger:ST(h,'top 85%')}));
 
 /* ---------- hypothesis: column by column, left to right ---------- */
 $$('.hgrid').forEach(g=>{const tl=gsap.timeline({scrollTrigger:{trigger:g,start:'top 70%',toggleActions:'play none none reverse'}});const sc=g.closest('section');(sc._tls||(sc._tls=[])).push(tl);let t=0;
@@ -121,7 +196,7 @@ $$('.hgrid').forEach(g=>{const tl=gsap.timeline({scrollTrigger:{trigger:g,start:
   tl.fromTo(g.parentElement.querySelector('.hfin'),{opacity:0,scale:.86,filter:'blur(10px)'},{opacity:1,scale:1,filter:'blur(0px)',duration:1,ease:'expo.out'},t+.1)});
 
 /* ---------- solution: today fails step by step, olways lands ---------- */
-$$('.so .scard').forEach((cd,ci)=>{const tl=gsap.timeline({scrollTrigger:{trigger:cd,start:'top 72%',toggleActions:'play none none reverse'}});
+$$('.so .scard').forEach((cd,ci)=>{const tl=gsap.timeline({scrollTrigger:{trigger:cd,start:'top 72%',toggleActions:'play none none reverse'}});soft(cd,tl);
   tl.fromTo(cd,{opacity:0,y:60,rotateX:18,transformPerspective:900,transformOrigin:'50% 100%'},{opacity:1,y:0,rotateX:0,duration:.9,ease:'power3.out'},ci*.15);
   let t=.6+ci*.15;
   cd.querySelectorAll('.lane').forEach(l=>{const ok=l.classList.contains('lo');
@@ -132,151 +207,89 @@ $$('.so .scard').forEach((cd,ci)=>{const tl=gsap.timeline({scrollTrigger:{trigge
     if(!ok)tl.to(l.querySelectorAll('.seg,.mk'),{x:4,duration:.06,repeat:5,yoyo:true,ease:'none'},t+.25);
     tl.fromTo(em,{opacity:0,x:-8},{opacity:1,x:0,duration:.35},t+.2);t+=.6})});
 
-/* ---------- pinned scenes, created in page order ---------- */
-const GATES=[];let gcool=0;
-const inR=st=>scrollY>=st.start-4&&scrollY<=st.end+4;
-const gate=(dir,e)=>{for(const g of GATES){if(inR(g.st)&&g.handle(dir,e))return}};
-addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>2)gate(Math.sign(e.deltaY),e)},{passive:false});
-let gty=0;addEventListener('touchstart',e=>{gty=e.touches[0].clientY},{passive:true});
-addEventListener('touchmove',e=>{const dy=gty-e.touches[0].clientY;if(Math.abs(dy)>10){gate(Math.sign(dy),e);gty=e.touches[0].clientY}},{passive:false});
-addEventListener('keydown',e=>{if(['ArrowDown','PageDown',' '].includes(e.key))gate(1,e);else if(['ArrowUp','PageUp'].includes(e.key))gate(-1,e)});
-const stop=e=>{e.cancelable&&e.preventDefault()};
-const busyTl=tl=>!!tl&&(tl.isActive()||tl.progress()<1);
-/* fit one-screen sections to the iPad viewport */
-const fitAll=()=>$$('.fit').forEach(f=>{f.style.removeProperty('--u');const u=innerWidth/1400,nav=64;
-  const h=f.style.getPropertyValue('--fh')?(+f.style.getPropertyValue('--fh'))*u:f.scrollHeight;
-  const s=Math.min(1,(innerHeight-nav-18)/h);f.style.setProperty('--u',`calc(100vw / 1400 * ${s.toFixed(4)})`)});
-fitAll();fitIv();addEventListener('resize',()=>{fitAll();fitCards();fitIv()});
-/* story: one gesture = one step; the next step waits until this one has finished drawing */
-const mkStory=(st,play)=>{const items=$$('.st-item',st),nav=$$('.st-nav li',st),n=items.length;let cur=-1,live=false;
-  const set=i=>{if(i===cur)return;cur=i;items.forEach((it,j)=>{it.classList.toggle('on',j===i);it.classList.toggle('past',j<i)});
-    nav.forEach((l,j)=>{l.classList.toggle('on',j===i);l.classList.toggle('done',j<i);const e=l.querySelector('em');if(e)e.style.transform=`scaleX(${j<=i?1:0})`});if(live)play(items[i])};
-  set(0);
-  const trg=ScrollTrigger.create({trigger:st,start:'top top',end:()=>'+='+innerHeight*.6*n,pin:true,pinSpacing:true,invalidateOnRefresh:true,
-    onEnter:()=>{if(!live){live=true;play(items[cur])}},onEnterBack:()=>{live=true},
-    onUpdate:s=>set(Math.min(n-1,Math.floor(s.progress*n*.999)))});
-  const tlOf=it=>it._tl||TL[it.dataset.g];
-  const go=k=>{gcool=performance.now()+700;scrollTo({top:trg.start+(trg.end-trg.start)*(k+.5)/n,behavior:'instant'});set(k)};
-  GATES.push({st:trg,handle:(dir,e)=>{const now=performance.now();
-    if(dir>0){if(!live){live=true;play(items[cur])}
-      if(busyTl(tlOf(items[cur]))||now<gcool){stop(e);return true}
-      if(cur<n-1){stop(e);go(cur+1);return true}return false}
-    if(cur>0){stop(e);if(now>=gcool)go(cur-1);return true}return false}})};
-const mkBig=b=>{const ws=[];const bs=b.querySelector('.bs');
-  bs.childNodes.forEach(()=>{});bs.innerHTML=bs.textContent.split(/(\s+)/).map(w=>/^\s+$/.test(w)?w:`<span class="wr">${w}</span>`).join('');
-  const tl=gsap.timeline({scrollTrigger:{trigger:b,start:'top top',end:()=>'+='+innerHeight*1.2,pin:true,pinSpacing:true,scrub:.6}});
-  tl.fromTo(b,{clipPath:'inset(18% 9% 18% 9% round 40px)'},{clipPath:'inset(0% 0% 0% 0% round 0px)',ease:'power2.inOut',duration:1})
-    .fromTo(b.querySelector('.bk'),{opacity:0,y:24},{opacity:1,y:0,duration:.25},.55)
-    .to(bs.querySelectorAll('.wr'),{opacity:1,stagger:.05,duration:.2,ease:'none'},.7)
-    .fromTo(b.querySelector('.be'),{opacity:0,y:20},{opacity:1,y:0,duration:.3},'>-.1')
-    .to({},{duration:.4})};
-const mkFit=sec=>{const trg=ScrollTrigger.create({trigger:sec,start:'top top',end:()=>'+='+innerHeight*.35,pin:true,pinSpacing:true,
-    onEnter:()=>(sec._tls||[]).forEach(t=>{if(t.progress()<1&&!t.isActive())t.play()})});
-  GATES.push({st:trg,handle:(dir,e)=>{if(dir>0&&(sec._tls||[]).some(busyTl)){stop(e);return true}return false}})};
-const mkJourney=sec=>{const tl=TL['2616:37657'];if(!tl)return;
-  const groups=Object.entries(BUB).map(([t,els])=>({t:+t,els,on:false}));groups.forEach(g=>gsap.set(g.els,{opacity:0,y:10}));
-  ScrollTrigger.create({trigger:sec,start:'top top',end:()=>'+='+innerHeight*1.6,pin:true,pinSpacing:true,scrub:.5,animation:tl,
-    onUpdate:s=>{const now=tl.duration()*s.progress;groups.forEach(g=>{const want=now>=g.t;if(want!==g.on){g.on=want;
-      gsap.to(g.els,{opacity:want?1:0,y:want?0:10,duration:want?.45:.2,ease:want?'power3.out':'power2.in',overwrite:true})}})}})};
 $$('.story, .big, .pinfit, #s05journey').forEach(el=>{
-  if(el.classList.contains('story'))mkStory(el,el._play||(it=>{const tl=TL[it.dataset.g];tl&&tl.restart()}));
-  else if(el.classList.contains('big'))mkBig(el);
-  else if(el.id==='s05journey')mkJourney(el);
-  else mkFit(el)});
+  if(el.classList.contains('story'))mkStory(el);else if(el.classList.contains('big'))mkBig(el);else if(el.id==='s05journey')mkJourney(el);else mkFit(el)});
+/* usability test setup cards */
+$$('.ut .usetup .ucard').forEach((c,i)=>{const tl=gsap.fromTo(c,{opacity:0,y:40},{opacity:1,y:0,duration:.8,ease:'power3.out',delay:i*.08,scrollTrigger:ST(c,'top 90%')});soft(c,tl)});
+/* ---- usability test: one screen per round — header, problem → fix, why and quotes stay beside the images; one gesture = next version ---- */
+$$('.ux').forEach(ux=>{const figs=$$('.xf',ux),tabs=$$('.xt',ux),bar=ux.querySelector('.xbar em'),xl=ux.querySelector('.xl'),n=figs.length;let shown=-1;
+  gsap.set(figs,{autoAlpha:0});gsap.set(xl.children,{opacity:0,y:24});
+  mkStep(ux,n,(i,back)=>{const tl=gsap.timeline();
+    if(shown<0)tl.to(xl.children,{opacity:1,y:0,stagger:.1,duration:.6,ease:'power3.out'},0);
+    tabs.forEach((t,j)=>{t.classList.toggle('on',j===i);t.classList.toggle('done',j<i)});
+    gsap.to(bar,{scaleX:(i+1)/n,duration:.6,ease:'power3.inOut'});
+    figs.forEach((f,j)=>{if(j===i){tl.fromTo(f,{autoAlpha:0,x:back?-60:60},{autoAlpha:1,x:0,duration:.75,ease:'power3.out'},shown<0?.25:.15);
+        const z=f.querySelector('.xz');if(z)tl.fromTo([z.querySelector('.xzi'),...z.querySelectorAll('li')],{opacity:0,y:16},{opacity:1,y:0,stagger:.12,duration:.45,ease:'power2.out'},'>-.25')}
+      else if(j===shown)tl.to(f,{autoAlpha:0,x:j<i?-60:60,duration:.45,ease:'power2.in'},0)});
+    shown=i;return {tl,dwell:700}},{per:.5});
+  tabs.forEach((t,k)=>t.onclick=()=>ux._go&&ux._go(k))});
 
-/* ---------- usability test ---------- */
-$$('.ut .usetup .ucard').forEach((c,i)=>gsap.fromTo(c,{opacity:0,y:40},{opacity:1,y:0,duration:.8,ease:'power3.out',delay:i*.08,scrollTrigger:ST(c,'top 90%')}));
-$$('.ut .ui').forEach(ui=>{
-  const hd=ui.querySelector('.uh');gsap.fromTo(hd.children,{opacity:0,y:30},{opacity:1,y:0,duration:.8,stagger:.12,ease:'power3.out',scrollTrigger:ST(hd,'top 88%')});
-  $$('.why,.ups,.uq,.u3',ui).forEach(el=>gsap.fromTo(el,{opacity:0,y:40},{opacity:1,y:0,duration:.8,ease:'power3.out',scrollTrigger:ST(el,'top 90%')}));
-  const pin=ui.querySelector('.upin');if(!pin)return;
-  const tr=pin.querySelector('.utrack'),cs=$$('.uc',tr),dots=$$('.ud',pin);
-  const X=()=>{const vw=innerWidth,u=vw/1400,a=cs[0],b=cs[1],c=cs[2];const off=e=>e.offsetLeft,w=e=>e.offsetWidth;
-    return [vw/2-(off(a)+w(a)/2), vw/2-(off(a)+(off(b)+w(b)-off(a))/2), (vw-40*u)-(off(c)+w(c))]};
-  let xs=X();addEventListener('resize',()=>{xs=X()});
-  const st={i:-1};
-  const set=i=>{if(i===st.i)return;st.i=i;dots.forEach((d,j)=>d.classList.toggle('on',j===i));
-    cs.forEach((c,j)=>c.classList.toggle('dim',i===0?j!==0:i===1?j===2:j===0));
-    gsap.to(tr,{x:xs[i],duration:.9,ease:'power3.inOut',overwrite:true})};
-  const P=[0,.5,.98];
-  const trg=ScrollTrigger.create({trigger:pin,start:'top top',end:()=>'+='+innerHeight*1.5,pin:true,pinSpacing:true,invalidateOnRefresh:true,
-    onUpdate:s=>set(s.progress<.3?0:s.progress<.75?1:2),onRefresh:()=>{xs=X();const i=st.i;st.i=-1;set(Math.max(0,i))}});
-  gsap.set(tr,{x:xs[0]});set(0);
-  /* while pinned, one gesture = one step; the page itself does not move on until To Be is on screen */
-  let cool=0;const inPin=()=>scrollY>=trg.start-4&&scrollY<=trg.end+4;
-  const go=k=>{cool=performance.now()+750;window.scrollTo({top:trg.start+(trg.end-trg.start)*P[k],behavior:'instant'});set(k)};
-  const step=(dir,e)=>{if(!inPin())return;const i=st.i;
-    if(dir>0&&i<2){e.cancelable&&e.preventDefault();if(performance.now()>cool)go(i+1)}
-    else if(dir<0&&i>0){e.cancelable&&e.preventDefault();if(performance.now()>cool)go(i-1)}
-    else if(performance.now()<cool){e.cancelable&&e.preventDefault()}};
-  addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>2)step(Math.sign(e.deltaY),e)},{passive:false});
-  let ty=0;addEventListener('touchstart',e=>{ty=e.touches[0].clientY},{passive:true});
-  addEventListener('touchmove',e=>{const dy=ty-e.touches[0].clientY;if(Math.abs(dy)>14){step(Math.sign(dy),e);ty=e.touches[0].clientY}},{passive:false});
-  addEventListener('keydown',e=>{if(['ArrowDown','PageDown',' '].includes(e.key))step(1,e);else if(['ArrowUp','PageUp'].includes(e.key))step(-1,e)});
-  dots.forEach((d,k)=>d.onclick=()=>go(k))});
-
+/* ---------- triptych opener ---------- */
 /* ---------- triptych opener: full-bleed scene shrinks into the centre, siblings slide in ---------- */
 $$('.trip').forEach(t=>{const c=t.querySelector('.tp-c .tpm'),l=t.querySelector('.tp-l'),r=t.querySelector('.tp-r'),caps=$$('figcaption',t),k=t.querySelector('.tkick');
   const R=()=>{const tr=c.style.transform;c.style.transform='none';const b=c.getBoundingClientRect(),sb=t.querySelector('.tstage').getBoundingClientRect();c.style.transform=tr;return {b,sb}};
   const S=()=>{const {b}=R();return Math.min(innerWidth/b.width,innerHeight/b.height)};
   const cy=()=>{const {b,sb}=R();return (sb.top+sb.height/2)-(b.top+b.height/2)};
   const tl=gsap.timeline({scrollTrigger:{trigger:t,start:'top top',end:()=>'+='+innerHeight*1.3,pin:true,scrub:.7,invalidateOnRefresh:true}});
-  tl.fromTo(c,{scale:S,y:cy,borderRadius:0},{scale:1,y:0,borderRadius:()=>getComputedStyle(c).borderTopLeftRadius||'18px',ease:'power2.inOut',duration:1},0)
+  tl.fromTo(c,{scale:S,y:cy,borderRadius:0},{scale:1,y:0,borderRadius:()=>(22*innerWidth/1400)+'px',ease:'power2.inOut',duration:1},0)
     .fromTo(l,{xPercent:-130,opacity:0},{xPercent:0,opacity:1,ease:'power3.out',duration:.6},.45)
     .fromTo(r,{xPercent:130,opacity:0},{xPercent:0,opacity:1,ease:'power3.out',duration:.6},.45)
     .fromTo([k,...caps],{opacity:0,y:18},{opacity:1,y:0,stagger:.06,duration:.3},.85)});
+/* ---- lens: S1 → S5 on one stage; the rail fills as the trip goes on ---- */
+$$('.lx').forEach(lx=>{const ms=$$('.lxm',lx),cs=$$('.lxc',lx),rail=$$('.lxrail li',lx);let shown=-1;
+  gsap.set([...ms,...cs],{autoAlpha:0});
+  mkStep(lx,ms.length,(i,back)=>{const tl=gsap.timeline();
+    rail.forEach((l,j)=>{l.classList.toggle('on',j===i);l.classList.toggle('done',j<i);gsap.to(l.querySelector('em'),{scaleX:j<i?1:j===i?1:0,duration:j===i?2:.4,ease:j===i?'none':'power2.out',overwrite:true})});
+    if(shown>=0&&shown!==i){tl.to(ms[shown],{autoAlpha:0,y:back?40:-40,scale:.97,duration:.5,ease:'power2.in'},0).to(cs[shown],{autoAlpha:0,y:back?20:-20,duration:.4,ease:'power2.in'},0)}
+    ms.forEach((m,j)=>{const v=m.querySelector('video');if(j===i){v.currentTime=0;v.play().catch(()=>{})}else v.pause()});
+    tl.fromTo(ms[i],{autoAlpha:0,y:back?-50:70,scale:.96},{autoAlpha:1,y:0,scale:1,duration:.85,ease:'power3.out'},shown<0?0:.3)
+      .fromTo(cs[i],{autoAlpha:1},{autoAlpha:1,duration:.01},'<')
+      .fromTo(cs[i].children,{opacity:0,y:26},{opacity:1,y:0,stagger:.1,duration:.6,ease:'power3.out'},'<.2');
+    shown=i;return {tl,dwell:2000}},{per:.6});
+  rail.forEach((l,k)=>l.onclick=()=>lx._go&&lx._go(k))});
 
-/* ---------- through the lens ---------- */
-$$('.lsplit').forEach(s=>{const v=s.querySelector('.lvid'),c=s.querySelector('.lcap'),rev=s.classList.contains('rev');
-  gsap.fromTo(c.children,{opacity:0,y:30},{opacity:1,y:0,duration:.8,stagger:.1,ease:'power3.out',scrollTrigger:ST(s,'top 55%')})});
-$$('.lfull').forEach(f=>{const v=f.querySelector('.lstick .lvid');
-  gsap.fromTo(v,{scale:.62,borderRadius:'36px'},{scale:1,borderRadius:'0px',ease:'none',scrollTrigger:{trigger:f,start:'top 95%',end:'top top',scrub:.5}});
-  gsap.fromTo(f.querySelector('.lcap.ov'),{y:60,opacity:0},{y:0,opacity:1,duration:.9,ease:'power3.out',scrollTrigger:ST(f.querySelector('.lover'),'top 70%')})});
-$$('.hwrap').forEach(w=>{const tr=w.querySelector('.htrack'),dots=$$('.hdots i',w),ps=[...tr.children];const dist=()=>Math.max(0,tr.scrollWidth-innerWidth);
-  dots[0]&&dots[0].classList.add('on');
-  gsap.to(tr,{x:()=>-dist(),ease:'none',scrollTrigger:{trigger:w,start:'top top',end:()=>'+='+Math.max(innerHeight*.8,dist()*1.2),pin:true,scrub:.6,invalidateOnRefresh:true,
-        onUpdate:s=>{const i=Math.round(s.progress*(ps.length-1));dots.forEach((d,j)=>d.classList.toggle('on',j===i))}}})});
+/* ---- anatomy / pass: header and screen together; one gesture = next element (spotlight + its card) ---- */
+const shotPick=sec=>{const sh=sec.querySelector('.ashot'),sp=sh.querySelector('.spot'),bd=$$('.bdg',sh),cr=$$('.acard',sec);
+  return k=>{const b=bd[k];sp.classList.add('on');sp.style.setProperty('--sx',b.style.left);sp.style.setProperty('--sy',b.style.top);
+    bd.forEach((x,j)=>x.classList.toggle('on',j===k));cr.forEach((c,j)=>{c.classList.toggle('on',j===k);c.classList.toggle('seen',j<k)});return cr[k]}};
+$$('.sx.an1, .sx.pj1').forEach(sx=>{const pick=shotPick(sx),cards=$$('.acard',sx),head=sx.querySelector('.hh, .ahead'),shot=sx.querySelector('.ashot');let first=true;
+  gsap.set([shot,...cards],{opacity:0});
+  mkStep(sx,cards.length,i=>{const tl=gsap.timeline();
+    if(first){first=false;tl.fromTo(shot,{opacity:0,y:40,scale:.97},{opacity:1,y:0,scale:1,duration:.8,ease:'power3.out'},0)
+      .fromTo(cards,{opacity:0,x:30},{opacity:1,x:0,stagger:.06,duration:.45,ease:'power3.out'},.3)}
+    const c=pick(i);tl.fromTo(c,{'--a':0},{'--a':1,duration:.5},first?.9:0);return {tl,dwell:1100}},{per:.45});
+  $$('.bdg,.acard',sx).forEach(b=>b.onclick=()=>sx._go&&sx._go(+b.dataset.i))});
+/* field-of-view grid: the lens is divided into five zones, one after another */
+$$('.sx.an2').forEach(sx=>{const z=$$('.fovz .z',sx),hz=sx.querySelector('.hz'),img=sx.querySelector('.fovshot>img'),t=sx.querySelector('.fovt');
+  gsap.set([...z,hz,...t.children],{opacity:0});
+  mkStep(sx,1,()=>{const tl=gsap.timeline();
+    tl.to(t.children,{opacity:1,y:0,startAt:{y:24},stagger:.1,duration:.6,ease:'power3.out'},0)
+      .fromTo(img,{opacity:.35,scale:1.04},{opacity:1,scale:1,duration:1,ease:'power2.out'},0)
+      .fromTo(hz,{opacity:0,scaleX:0},{opacity:1,scaleX:1,duration:.7,ease:'power3.inOut'},.5)
+      .fromTo(z,{opacity:0,scale:.94},{opacity:1,scale:1,stagger:.28,duration:.55,ease:'back.out(1.6)'},.9);
+    return {tl,dwell:400}},{per:.4})});
+
+/* ---- remaining in-place animations become soft scenes ---- */
+Object.entries(TL).forEach(([g,tl])=>{const el=document.getElementById('f'+g.replace(':','-'))||$(`[data-g="${g}"]`);
+  if(!el||el.closest('.story,.sx,.pinfit,[data-manual],.big'))return;
+  const sec=el.closest('section'),els=$$(`[data-g="${g}"]`,sec);
+  /* the group's box: from its first to its last mark */
+  const box=document.createElement('i');box.className='gbox';sec.appendChild(box);
+  const R=()=>{let t=1e9,b=-1e9;const st=sec.getBoundingClientRect().top;els.forEach(e=>{const r=e.getBoundingClientRect();if(r.height){t=Math.min(t,r.top-st);b=Math.max(b,r.bottom-st)}});box.style.top=t+'px';box.style.height=Math.max(1,b-t)+'px'};
+  R();addEventListener('resize',R);addEventListener('load',R);soft(box,tl)});
 
 /* ---------- callmelord-style shutter reveals + headline masks ---------- */
 $$('.lsplit .lvid, .hp .lvid').forEach(v=>{const m=v.querySelector('video');
   gsap.fromTo(v,{clipPath:'inset(0% 50% 0% 50% round 20px)'},{clipPath:'inset(0% 0% 0% 0% round 20px)',ease:'power3.inOut',duration:1.2,scrollTrigger:ST(v,'top 80%')});
   m&&gsap.fromTo(m,{scale:1.25},{scale:1,ease:'power3.out',duration:1.6,scrollTrigger:ST(v,'top 80%')})});
-$$('.hh .htitle, .fx .fsv').forEach(t=>gsap.fromTo(t,{clipPath:'inset(0 0 100% 0)',y:30},{clipPath:'inset(0 0 -10% 0)',y:0,duration:1,ease:'expo.out',scrollTrigger:ST(t,'top 88%')}));
+$$('.hh .htitle, .fx .fsv').forEach(t=>!t.closest('.st-top')&&gsap.fromTo(t,{clipPath:'inset(0 0 100% 0)',y:30},{clipPath:'inset(0 0 -10% 0)',y:0,duration:1,ease:'expo.out',scrollTrigger:ST(t,'top 88%')}));
 
 /* ---------- headers: words light up one by one as you scroll (scrubbed) ---------- */
-$$('.hh .hsub, [data-wr]').forEach(el=>{if(el.dataset.done||el.closest('.big'))return;el.dataset.done=1;
+$$('.hh .hsub, [data-wr]').forEach(el=>{if(el.dataset.done||el.closest('.big,.st-top'))return;el.dataset.done=1;
   const walk=n=>{[...n.childNodes].forEach(ch=>{if(ch.nodeType===3){const f=document.createDocumentFragment();
       ch.textContent.split(/(\s+)/).forEach(w=>{if(!w)return;if(/^\s+$/.test(w))f.appendChild(document.createTextNode(w));else{const s=document.createElement('span');s.className='wr';s.textContent=w;f.appendChild(s)}});
       ch.replaceWith(f)}else if(ch.nodeType===1)walk(ch)})};
   walk(el);gsap.to(el.querySelectorAll('.wr'),{opacity:1,stagger:.1,ease:'none',scrollTrigger:{trigger:el,start:'top 82%',end:'top 42%',scrub:.4}})});
 
-/* ---------- anatomy: the field-of-view map lands on the real screen ---------- */
-$$('.fovpin').forEach(p=>{const shot=p.querySelector('.fovshot'),img=shot.querySelector('img'),z=$$('.fovz .z,.fovz .hz',shot),txt=p.querySelector('.fovt');
-  const small=()=>{const u=innerWidth/1400;return {s:560/1320,x:(1360-560-40)*u*0+0}};
-  gsap.set(shot,{scale:560/1320,xPercent:0});
-  const tl=gsap.timeline({scrollTrigger:{trigger:p,start:'top top',end:()=>'+='+innerHeight*1.4,pin:true,scrub:.6}});
-  tl.fromTo(img,{opacity:0},{opacity:1,duration:.6},0)
-    .fromTo(shot,{scale:560/1320},{scale:1,duration:1,ease:'power2.inOut'},0)
-    .to(txt,{opacity:0,x:-80,duration:.5},0)
-    .to({}, {duration:.4});
-  gsap.fromTo([...txt.children],{opacity:0,y:24},{opacity:1,y:0,stagger:.08,duration:.7,ease:'power3.out',scrollTrigger:ST(p,'top 70%')})});
-$$('.awrap').forEach(w=>{gsap.fromTo(w.querySelector('.ashot'),{opacity:0,y:60,scale:.96},{opacity:1,y:0,scale:1,duration:1,ease:'power3.out',scrollTrigger:ST(w,'top 85%')});
-  gsap.fromTo($$('.acard',w),{opacity:0,y:30},{opacity:1,y:0,duration:.6,stagger:.08,ease:'power3.out',scrollTrigger:ST(w.querySelector('.agrid'),'top 92%')})});
-
-/* ---------- layer by layer (grida): the finished screen lifts apart, one layer per step ---------- */
-$$('.lyr').forEach(w=>{const st=w.querySelector('.lystack'),base=w.querySelector('.ly0'),ls=$$('.ly',w),steps=$$('.lysteps li',w),tags=$$('.lytag',w);
-  const on=k=>steps.forEach((s,i)=>s.classList.toggle('on',i<=k));on(-1);
-  const tl=gsap.timeline({scrollTrigger:{trigger:w,start:'top top',end:()=>'+='+innerHeight*2.2,pin:true,scrub:.7,invalidateOnRefresh:true,
-    onUpdate:s=>{const p=s.progress;on(p<.07?-1:p<.14?0:p<.24?1:p<.34?2:p<.44?3:4)}}});
-  const k=()=>innerWidth/1400;
-  tl.to(st,{scale:.9,duration:.6,ease:'power2.inOut'},0)
-    .to(base.querySelector('img'),{opacity:.38,filter:'saturate(.6)',duration:.6},.2)
-    .to(base.querySelector('.lytag'),{opacity:1,duration:.2},.4);
-  ls.forEach((l,i)=>{tl.to(l,{y:()=>-[46,38,34,30][i]*k(),scale:[1.08,1.14,1.3,1.2][i],boxShadow:'0 30px 60px rgba(1,23,34,.35)',duration:.6,ease:'power3.out'},.7+i*.5)
-    .to(l.querySelector('.lytag'),{opacity:1,duration:.2},.95+i*.5)});
-  tl.to({},{duration:.8});
-  tl.to(tags,{opacity:0,duration:.2},'>').to(ls,{y:0,scale:1,boxShadow:'0 0 0 rgba(0,0,0,0)',duration:.7,ease:'power2.inOut',stagger:.05},'<').to(base.querySelector('img'),{opacity:1,filter:'saturate(1)',duration:.5},'<')
-    .to(st,{scale:1,duration:.7,ease:'power2.inOut'},'<.1')});
-
-addEventListener('load',()=>ScrollTrigger.refresh());
+const refit=()=>{fitAll();fitCards();fitIv();ScrollTrigger.refresh()};addEventListener('load',refit);document.fonts&&document.fonts.ready.then(refit);
 })();
