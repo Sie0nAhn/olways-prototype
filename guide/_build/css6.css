@@ -270,3 +270,53 @@
 /* shutter + highlight */
 .hlx{background:linear-gradient(transparent 58%,rgba(31,172,244,.45) 58%) no-repeat 0 0/0% 100%}
 /*}U*/
+/*U{*/
+/* ---- v10: overview — cinematic ---- */
+#s02overview{position:relative;background:#011722;color:#fff}
+#s02overview .ovpin{position:sticky;top:0;height:100svh;overflow:hidden;display:grid;place-items:center}
+#s02overview .ovv{inset:0;width:100%;height:100%;filter:brightness(.5) saturate(.85)}
+#s02overview .ovc{position:relative;z-index:2;width:1100u;text-align:center;display:flex;flex-direction:column;align-items:center;gap:22u}
+.ovk{margin:0;font-family:var(--f-gsf);font-size:16u;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#71CBF8}
+.ovtitle{width:1000u}.ovtitle svg{display:block;width:100%;height:100%}.ovtitle svg path{fill:#fff}
+.ovsub{margin:0;font-size:24u;font-weight:600;color:rgba(255,255,255,.85)}
+#s02overview .ovs{position:relative;z-index:3;min-height:110svh;display:flex;flex-direction:column;justify-content:center;gap:28u;padding:0 90u;background:linear-gradient(rgba(1,23,34,0),rgba(1,23,34,.86) 26%,#011722)}
+.ovbig{margin:0;font-size:44u;font-weight:700;line-height:1.5;letter-spacing:-.025em;max-width:1180u}
+.oven{margin:0;font-family:var(--f-gsf);font-size:18u;line-height:1.6;color:rgba(255,255,255,.5);max-width:1120u}
+/* ---- voy-style statement screens ---- */
+.big{min-height:92svh;display:flex;flex-direction:column;justify-content:center;gap:26u;padding:0 90u;color:#fff;background:radial-gradient(120% 90% at 0% 100%,#1FACF4 0%,#0b5d88 34%,#03283A 70%,#011722 100%)}
+.big .bk{margin:0;font-family:var(--f-gsf);font-size:16u;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9ADAFA}
+.big .bs{margin:0;font-size:56u;font-weight:800;line-height:1.34;letter-spacing:-.03em;max-width:1180u}
+.big .be{margin:0;font-family:var(--f-gsf);font-size:24u;line-height:1.5;color:rgba(255,255,255,.55);max-width:1000u}.big .be b{color:#fff}
+.big.so{background:#F4F5F7;color:#14191C}.big.so .bk{color:#1FACF4}.big.so .be{color:#7b858e}.big.so .wr{opacity:.12}
+#s03problem{background:#F4F5F7}
+.phead{position:relative}
+/* ---- grida-style sticky stories ---- */
+.story{position:relative}
+.st-stage{height:100svh;padding:calc(var(--navh) + 14px) 40u 28px;display:grid;gap:36u;overflow:hidden}
+.story.side .st-stage{grid-template-columns:300u 1fr;align-items:center}
+.story.top .st-stage{grid-template-rows:auto minmax(0,1fr)}
+.st-nav{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4u}
+.story.top .st-nav{flex-direction:row;gap:14u}
+.st-nav li{display:grid;grid-template-columns:auto 1fr;gap:10u 12u;padding:14u 0 0;color:#a3adb6;transition:color .45s}
+.story.top .st-nav li{flex:1;min-width:0}
+.st-nav li.on,.st-nav li.done{color:#14191C}
+.st-nav li i{font-style:normal;font-family:var(--f-gsf);font-size:13u;font-weight:700;padding-top:3u}
+.st-nav li.on i{color:#1FACF4}
+.st-nav li span{font-size:19u;font-weight:700;line-height:1.4;letter-spacing:-.015em}
+.story.top .st-nav li span{font-size:14u;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sbar{grid-column:1/-1;display:block;height:2px;border-radius:2px;background:#dfe5ea;overflow:hidden}
+.sbar em{display:block;height:100%;background:#1FACF4;transform:scaleX(0);transform-origin:0 50%}
+.st-items{position:relative;height:100%;min-height:0}
+.st-item{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(48px) scale(.97);transition:opacity .55s ease,transform .9s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.st-item.on{opacity:1;transform:none;pointer-events:auto}
+.st-item.past{transform:translateY(-48px) scale(.97)}
+.pcw{--s:1.32;width:calc(var(--u)*var(--w)*var(--s));height:calc(var(--u)*var(--h)*var(--s))}
+.pcard{position:relative;width:calc(var(--u)*var(--w));height:calc(var(--u)*var(--h));transform:scale(var(--s));transform-origin:0 0}
+.pcard > .fe:first-child{box-shadow:0 30u 70u rgba(1,23,34,.12)!important}
+.iv .story .st-item{align-items:flex-start}
+.iv .story .ig{width:100%}
+.iv .ban{border-radius:0;box-shadow:none;margin:0 -40u;text-align:left}
+/*}U*/
+/*U{*/
+.iv .story .st-item{justify-content:flex-start;padding-top:8u}
+/*}U*/

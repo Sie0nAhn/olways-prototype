@@ -64,26 +64,56 @@ const G={};$$('[data-a][data-g]').forEach(el=>{(G[el.dataset.g]||(G[el.dataset.g
 Object.entries(G).forEach(([g,els])=>{const sec=els[0].closest('section');
   const trig=g.startsWith('hdr')||g==='ov'?els[0]:(document.getElementById('f'+g.replace(':','-'))||els[0]);
   const tl=gsap.timeline({paused:true});TL[g]=tl;
-  ScrollTrigger.create({trigger:trig,start:g==='ov'?'top 70%':'top 76%',onEnter:()=>run(g),onLeaveBack:()=>tl.reverse()});
+  if(g.startsWith('hdr')||!els[0].closest('.story,[data-manual]'))ScrollTrigger.create({trigger:trig,start:g==='ov'?'top 70%':'top 76%',onEnter:()=>run(g),onLeaveBack:()=>tl.reverse()});
   els.forEach(el=>{const a=el.dataset.a,t=+el.dataset.t,d=+(el.dataset.dur||0)||(a==='draw'?1:a.startsWith('bar')?.7:.6);
     const fr={...(FROM[a]||FROM.rise)};
     if(el.dataset.o){const k=innerWidth/1400,[ox,oy]=el.dataset.o.split(',').map(Number);fr.transformOrigin=`${ox*k}px ${oy*k}px`}const tt={opacity:1,x:0,y:0,scale:1,rotate:0,filter:'blur(0px)',duration:d,ease:EASE[a]||'power3.out'};
     if('clipPath' in fr){tt.clipPath='inset(-60px -60px -60px -60px)';fr.opacity=1}
     tl.fromTo(el,{...fr},tt,t)})});
 
-/* ---------- interview: one mark at a time, then quotes ---------- */
-$$('.iv .ig').forEach(g=>{const ih=g.querySelector('.ih'),box=g.querySelector('.cbox'),qc=g.querySelector('.qcard');
-  gsap.fromTo(ih.children,{opacity:0,y:24},{opacity:1,y:0,duration:.7,stagger:.1,ease:'power3.out',scrollTrigger:ST(ih,'top 90%')});
-  const ps=$$('.pc',box).sort((a,b)=>a.dataset.o-b.dataset.o);gsap.set(ps,{opacity:0});
-  const tl=gsap.timeline({scrollTrigger:{trigger:box,start:'top 68%',toggleActions:'play none none reverse'}});
-  tl.fromTo(box,{opacity:0,y:40},{opacity:1,y:0,duration:.6,ease:'power3.out'},0);let t=.55;
-  ps.forEach((p,i)=>{const last=i===ps.length-1,k=p.classList;
-    if(k.contains('barh')){tl.fromTo(p,{opacity:1,clipPath:'inset(-40px 100% -40px 0)'},{clipPath:'inset(-40px -40px -40px 0)',duration:last?.9:.7,ease:'power2.inOut'},t);t+=last?1:.8}
-    else if(k.contains('barv')){tl.fromTo(p,{opacity:1,clipPath:'inset(100% -40px 0 -40px)'},{clipPath:'inset(0% -40px 0 -40px)',duration:last?.85:.65,ease:'power2.inOut'},t);t+=last?.95:.75}
-    else{tl.fromTo(p,{opacity:0,scale:.2},{opacity:1,scale:1,duration:last?.9:.6,ease:last?'elastic.out(1,.6)':'back.out(2)'},t);t+=last?.9:.5}});
-  tl.fromTo(qc,{opacity:0,x:60},{opacity:1,x:0,duration:.8,ease:'power3.out'},.35);
-  tl.fromTo(qc.querySelectorAll('.qt'),{opacity:0,y:16},{opacity:1,y:0,duration:.5,stagger:.25,ease:'power2.out'},.7)});
-$$('.iv .ban').forEach(el=>gsap.fromTo(el,{opacity:0,scale:.85,filter:'blur(10px)'},{opacity:1,scale:1,filter:'blur(0px)',duration:1.1,ease:'expo.out',scrollTrigger:ST(el,'top 85%')}));
+/* ---------- overview: title rises out of a mask, video eases back as the statement scrolls over ---------- */
+$$('#s02overview').forEach(o=>{const t=o.querySelector('.ovtitle'),c=o.querySelector('.ovc'),v=o.querySelector('.ovv');
+  gsap.fromTo(t,{clipPath:'inset(0 0 100% 0)',y:60},{clipPath:'inset(0 0 -20% 0)',y:0,duration:1.4,ease:'expo.out',scrollTrigger:ST(o,'top 60%')});
+  gsap.fromTo([o.querySelector('.ovk'),o.querySelector('.ovsub')],{opacity:0,y:20},{opacity:1,y:0,duration:.9,stagger:.5,delay:.3,ease:'power3.out',scrollTrigger:ST(o,'top 60%')});
+  gsap.fromTo(v,{scale:1.18},{scale:1,ease:'none',scrollTrigger:{trigger:o,start:'top bottom',end:'bottom top',scrub:true}});
+  gsap.to(c,{opacity:0,scale:.92,filter:'blur(8px)',ease:'none',scrollTrigger:{trigger:o.querySelector('.ovs'),start:'top 90%',end:'top 30%',scrub:true}})});
+
+/* ---------- grida-style sticky story: one card per step, nav fills as you go ---------- */
+const story=(st,play)=>{const items=$$('.st-item',st),nav=$$('.st-nav li',st),n=items.length;let cur=-1,live=false;
+  const set=i=>{if(i===cur)return;cur=i;items.forEach((it,j)=>{it.classList.toggle('on',j===i);it.classList.toggle('past',j<i)});
+    nav.forEach((l,j)=>{l.classList.toggle('on',j===i);l.classList.toggle('done',j<i)});if(live)play(items[i])};
+  set(0);
+  ScrollTrigger.create({trigger:st,start:'top top',end:()=>'+='+innerHeight*.85*n,pin:true,pinSpacing:true,invalidateOnRefresh:true,
+    onEnter:()=>{if(!live){live=true;play(items[cur])}},
+    onUpdate:s=>{const f=s.progress*n;set(Math.min(n-1,Math.floor(f)));nav.forEach((l,j)=>{const e=l.querySelector('em');if(e)e.style.transform=`scaleX(${Math.max(0,Math.min(1,f-j))})`})}})};
+$$('#s03problem .story').forEach(st=>story(st,it=>{const tl=TL[it.dataset.g];tl&&tl.restart()}));
+/* journey: the line is drawn by your scroll — pinned, scrubbed */
+(()=>{const sec=$('#s05journey'),tl=TL['2616:37657'];if(!sec||!tl)return;
+  ScrollTrigger.create({trigger:sec,start:'top top',end:()=>'+='+innerHeight*1.6,pin:true,pinSpacing:true,scrub:.6,animation:tl})})();
+
+/* ---------- interview → top-tab story; each finding plays its chart, then its quotes ---------- */
+$$('.iv .wrap').forEach(w=>{const igs=$$('.ig',w),ban=w.querySelector('.ban');
+  const st=document.createElement('div');st.className='story top';
+  st.innerHTML='<div class="st-stage"><ol class="st-nav"></ol><div class="st-items"></div></div>';
+  const nav=st.querySelector('.st-nav'),box=st.querySelector('.st-items');
+  igs.forEach((g,k)=>{const li=document.createElement('li');const h=g.querySelector('.ih h3');
+    li.innerHTML=`<i>${String(k+1).padStart(2,'0')}</i><span></span><b class="sbar"><em></em></b>`;li.querySelector('span').textContent=h?h.textContent:'';nav.appendChild(li);
+    g.classList.add('st-item');box.appendChild(g);
+    const ih=g.querySelector('.ih'),cb=g.querySelector('.cbox'),qc=g.querySelector('.qcard');
+    const ps=$$('.pc',cb).sort((a,b)=>a.dataset.o-b.dataset.o);
+    const tl=gsap.timeline({paused:true});
+    tl.fromTo(ih.children,{opacity:0,y:20},{opacity:1,y:0,duration:.5,stagger:.08,ease:'power3.out'},0);
+    tl.fromTo(cb,{opacity:0,y:30},{opacity:1,y:0,duration:.5,ease:'power3.out'},.1);let t=.5;
+    ps.forEach((p,i)=>{const last=i===ps.length-1,c=p.classList;
+      if(c.contains('barh')){tl.fromTo(p,{opacity:1,clipPath:'inset(-40px calc(100% + 40px) -40px 0)'},{clipPath:'inset(-40px -40px -40px 0)',duration:last?.9:.7,ease:'power2.inOut'},t);t+=last?1:.8}
+      else if(c.contains('barv')){tl.fromTo(p,{opacity:1,clipPath:'inset(calc(100% + 40px) -40px 0 -40px)'},{clipPath:'inset(0% -40px 0 -40px)',duration:last?.85:.65,ease:'power2.inOut'},t);t+=last?.95:.75}
+      else{tl.fromTo(p,{opacity:0,scale:.2},{opacity:1,scale:1,duration:last?.9:.6,ease:last?'elastic.out(1,.6)':'back.out(2)'},t);t+=last?.9:.5}});
+    tl.fromTo(qc,{opacity:0,x:50},{opacity:1,x:0,duration:.7,ease:'power3.out'},t);
+    tl.fromTo(qc.querySelectorAll('.qt'),{opacity:0,y:14},{opacity:1,y:0,duration:.45,stagger:.2,ease:'power2.out'},t+.25);
+    g._tl=tl});
+  $$('.gg',w).forEach(e=>e.remove());w.insertBefore(st,w.firstChild);
+  if(ban){ban.classList.add('big');const bt=ban.querySelector('.bt');bt&&(bt.classList.add('bs'),bt.setAttribute('data-wr',''));w.appendChild(ban)}
+  story(st,it=>it._tl&&it._tl.restart())});
 /* headers */
 $$('.hh').forEach(h=>gsap.fromTo(h.children,{opacity:0,y:26},{opacity:1,y:0,duration:.8,stagger:.09,ease:'power3.out',scrollTrigger:ST(h,'top 85%')}));
 
@@ -168,7 +198,7 @@ $$('.hh .htitle, .fx .fsv').forEach(t=>gsap.fromTo(t,{clipPath:'inset(0 0 100% 0
 $$('.ups .sv, .lcap h3, .acard h4').forEach(e=>{e.classList.add('hlx');gsap.to(e,{backgroundSize:'100% 100%',duration:1.1,ease:'power2.inOut',delay:.3,scrollTrigger:ST(e,'top 80%')})});
 
 /* ---------- headers: words light up one by one as you scroll (scrubbed) ---------- */
-$$('.hh .hsub, .fx [data-wr]').forEach(el=>{if(el.dataset.done)return;el.dataset.done=1;
+$$('.hh .hsub, [data-wr]').forEach(el=>{if(el.dataset.done)return;el.dataset.done=1;
   const walk=n=>{[...n.childNodes].forEach(ch=>{if(ch.nodeType===3){const f=document.createDocumentFragment();
       ch.textContent.split(/(\s+)/).forEach(w=>{if(!w)return;if(/^\s+$/.test(w))f.appendChild(document.createTextNode(w));else{const s=document.createElement('span');s.className='wr';s.textContent=w;f.appendChild(s)}});
       ch.replaceWith(f)}else if(ch.nodeType===1)walk(ch)})};
@@ -191,14 +221,16 @@ $$('.awrap').forEach(w=>{gsap.fromTo(w.querySelector('.ashot'),{opacity:0,y:60,s
 $$('.lyr').forEach(w=>{const st=w.querySelector('.lystack'),base=w.querySelector('.ly0'),ls=$$('.ly',w),steps=$$('.lysteps li',w),tags=$$('.lytag',w);
   const on=k=>steps.forEach((s,i)=>s.classList.toggle('on',i<=k));on(-1);
   const tl=gsap.timeline({scrollTrigger:{trigger:w,start:'top top',end:()=>'+='+innerHeight*2.2,pin:true,scrub:.7,invalidateOnRefresh:true,
-    onUpdate:s=>{const p=s.progress;on(p<.08?-1:p<.18?0:p<.3?1:p<.42?2:p<.54?3:4)}}});
-  tl.to(st,{rotateX:52,rotateZ:-28,scale:.78,y:30,duration:1,ease:'power2.inOut'},0)
-    .to(base,{opacity:.55,duration:.6},.3)
-    .to(base.querySelector('.lytag'),{opacity:1,duration:.2},.5);
-  ls.forEach((l,i)=>{tl.to(l,{z:[60,105,140,85][i],duration:.6,ease:'power3.out'},.8+i*.5).to(l.querySelector('.lytag'),{opacity:1,duration:.2},1.05+i*.5)});
+    onUpdate:s=>{const p=s.progress;on(p<.07?-1:p<.14?0:p<.24?1:p<.34?2:p<.44?3:4)}}});
+  const k=()=>innerWidth/1400;
+  tl.to(st,{scale:.9,duration:.6,ease:'power2.inOut'},0)
+    .to(base.querySelector('img'),{opacity:.38,filter:'saturate(.6)',duration:.6},.2)
+    .to(base.querySelector('.lytag'),{opacity:1,duration:.2},.4);
+  ls.forEach((l,i)=>{tl.to(l,{y:()=>-[46,38,34,30][i]*k(),scale:[1.08,1.14,1.3,1.2][i],boxShadow:'0 30px 60px rgba(1,23,34,.35)',duration:.6,ease:'power3.out'},.7+i*.5)
+    .to(l.querySelector('.lytag'),{opacity:1,duration:.2},.95+i*.5)});
   tl.to({},{duration:.8});
-  tl.to(tags,{opacity:0,duration:.2},'>').to(ls,{z:0,duration:.7,ease:'power2.inOut',stagger:.05},'<').to(base,{opacity:1,duration:.5},'<')
-    .to(st,{rotateX:0,rotateZ:0,scale:1,y:0,duration:.9,ease:'power2.inOut'},'<.1')});
+  tl.to(tags,{opacity:0,duration:.2},'>').to(ls,{y:0,scale:1,boxShadow:'0 0 0 rgba(0,0,0,0)',duration:.7,ease:'power2.inOut',stagger:.05},'<').to(base.querySelector('img'),{opacity:1,filter:'saturate(1)',duration:.5},'<')
+    .to(st,{scale:1,duration:.7,ease:'power2.inOut'},'<.1')});
 
 addEventListener('load',()=>ScrollTrigger.refresh());
 })();

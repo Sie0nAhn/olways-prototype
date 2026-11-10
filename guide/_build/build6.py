@@ -64,51 +64,76 @@ def raster(key):
 
 # ------------------------------------------------------------------ 02 overview
 def overview():
-    S, h, nodes = render(EX('2616-37224'), skip=['2616:37225'])
-    sp = Spec(); sp.put([n['id'] for n in nodes if n['k'] in 'TD'], 'rise', .2, 'ov', .15)
-    inner = ('<video class="ovv" src="media/bg_street.mp4" muted playsinline loop preload="metadata"></video><div class="ovt"></div>'
-             + apply_spec(h, sp))
-    return section('02overview', 'fx', inner, S['h'])
+    # callmelord-style: full-bleed street video stays put, the title rises out of a mask, then the statement lights up word by word
+    from svgt import svg_title
+    sv, x, y, w, hh = svg_title('2616:37229', 'Know Before You Go: Hands-Free Access, Measured for You')
+    T = {n['id']: n['txt'] for n in parse(EX('2616-37224'))[1] if n['k'] in 'TD'}
+    inner = ('<div class="ovpin"><video class="ovv" src="media/bg_street.mp4" muted playsinline loop preload="metadata"></video><div class="ovt"></div>'
+             f'<div class="ovc"><p class="ovk">Overview</p><div class="ovtitle" style="aspect-ratio:{w:g}/{hh:g}">{sv}</div>'
+             f'<p class="ovsub">{E(T["2616:37230"])}</p></div></div>'
+             f'<div class="ovs"><p class="ovbig" data-wr>{E(T["2616:37233"])}</p><p class="oven">{E(T["2616:37232"])}</p></div>')
+    return section('02overview', 'ov2', inner)
 
 # ------------------------------------------------------------------ 03 problem
+def big(kicker, ko, en_html, cls=''):
+    """voy-style statement screen: one sentence, words light up as you scroll"""
+    return (f'<div class="big {cls}"><p class="bk">{E(kicker)}</p><p class="bs" data-wr>{E(ko)}</p><p class="be">{en_html}</p></div>')
+
 def problem():
     S, nodes = parse(EX('2616-37234')); byid = {n['id']: n for n in nodes}
     card2 = byid['2616:37269']; card4 = byid['2616:37337']
     shift = {n['id'] for n in nodes if inside(n, card2) and n['y'] >= 390 and n['id'] != card2['id']}
     card2['h'] = 387; card4['h'] = 457
-    # equal gap title→Q as the left card (86 vs 50)
     import render as R
     R_parse = R.parse
-    R.parse = lambda p: (S, nodes)
-    S2, h, _ = render(EX('2616-37234'), dy_fn=lambda n: 36 if n['id'] in shift else 0)
-    R.parse = R_parse
-    sp = Spec(); hdr_spec(nodes, sp, 300)
+    def part(keep, dx, dy):
+        R.parse = lambda p: (S, keep)
+        _, h, _ = render(EX('2616-37234'), dx_fn=lambda n: dx, dy_fn=lambda n: dy + (36 if n['id'] in shift else 0))
+        R.parse = R_parse
+        return h
     ids = lambda a, b: [n['id'] for n in nodes if a <= int(n['id'].split(':')[1]) <= b]
-    # one timeline per row: left card's chart first, then the right card's, then the insight under them
-    g = '2616:37248'; sp.put(g, 'rise', 0, g); sp.put(ids(37249, 37257), 'rise', .15, g, .05)
-    sp.put('2616:37269', 'rise', .2, g); sp.put(ids(37270, 37278), 'rise', .35, g, .05)
-    t = .8
-    for bar, txt, num in [('2616:37259', ['2616:37260', '2616:37261'], '2616:37262'), ('2616:37264', ['2616:37265', '2616:37266'], '2616:37267')]:
-        sp.put(bar, 'barh', t, g, dur=.7); sp.put(txt, 'fade', t + .5, g); sp.put(num, 'pop', t + .7, g); t += 1.1
-    sp.put('2616:37268', 'fade', t, g); t += .45
-    for c, tx in [('2616:37280', ['2616:37282', '2616:37283']), ('2616:37284', ['2616:37286', '2616:37287']), ('2616:37288', ['2616:37290', '2616:37291'])]:
-        sp.put(c, 'pop', t, g, dur=.6); sp.put(tx, 'fade', t + .45, g, .08); t += .8
-    sp.put(ids(37292, 37301), 'left', t, g, .07); sp.put('2616:37302', 'fade', t + .6, g); t += 1.3
-    def insight(card, g, t):
-        sp.put(card, 'dissolve', t, g, dur=1); sp.put([n['id'] for n in nodes if inside(n, byid[card]) and n['id'] != card], 'fade', t + .5, g, .12)
-    insight('2616:37303', g, t)
-    g = '2616:37311'; sp.put(g, 'rise', 0, g); sp.put(ids(37312, 37320), 'rise', .15, g, .05)
-    sp.put('2616:37337', 'rise', .2, g); sp.put(ids(37338, 37346), 'rise', .35, g, .05)
-    t = .8
-    for lab, col, tx in [('2616:37323', '2616:37324', ['2616:37325']), ('2616:37327', '2616:37328', ['2616:37329', '2616:37330']), ('2616:37332', '2616:37333', ['2616:37334', '2616:37335'])]:
-        sp.put(lab, 'fade', t, g); sp.put(col, 'barv', t + .1, g, dur=.7); sp.put(tx, 'fade', t + .65, g, .1); t += 1
-    sp.put('2616:37336', 'fade', t, g); t += .45
-    for lab, bar, val in [('2616:37349', '2616:37350', '2616:37351'), ('2616:37353', '2616:37354', '2616:37355'), ('2616:37357', '2616:37358', '2616:37359'), ('2616:37361', '2616:37362', '2616:37363')]:
-        sp.put(lab, 'fade', t, g); sp.put(bar, 'barv', t + .1, g, dur=.65); sp.put(val, 'pop', t + .6, g); t += .85
-    sp.put('2616:37364', 'fade', t, g); t += .7
-    insight('2616:37365', g, t)
-    insight('2616:37370', '2616:37370', 0)
-    return section('03problem', 'fx', apply_spec(h, sp), S['h'], f' style="background:{S["bg"]};height:{U(S["h"])}"')
+    # header
+    hk = [n for n in nodes if n['y'] < 300]
+    sp = Spec(); hdr_spec(hk, sp, 300)
+    head_html = f'<div class="fx phead" style="height:{U(300)}">{apply_spec(part(hk, 0, 0), sp)}</div>'
+    # cards: each its own timeline, played when the story reaches it
+    def card(cid, build):
+        c = byid[cid]; keep = [n for n in nodes if inside(n, c)]
+        sp = Spec(); g = cid; build(sp, g)
+        h = apply_spec(part(keep, -c['x'], -c['y']), sp)
+        return f'<div class="st-item" data-g="{g}"><div class="pcw" style="--w:{c["w"]};--h:{c["h"]}"><div class="pcard fx">{h}</div></div></div>'
+    def b1(sp, g):
+        sp.put(ids(37249, 37257), 'rise', 0, g, .05); t = .5
+        for bar, txt, num in [('2616:37259', ['2616:37260', '2616:37261'], '2616:37262'), ('2616:37264', ['2616:37265', '2616:37266'], '2616:37267')]:
+            sp.put(bar, 'barh', t, g, dur=.7); sp.put(txt, 'fade', t + .5, g); sp.put(num, 'pop', t + .7, g); t += 1.1
+        sp.put('2616:37268', 'fade', t, g)
+    def b2(sp, g):
+        sp.put(ids(37270, 37278), 'rise', 0, g, .05); t = .5
+        for c, tx in [('2616:37280', ['2616:37282', '2616:37283']), ('2616:37284', ['2616:37286', '2616:37287']), ('2616:37288', ['2616:37290', '2616:37291'])]:
+            sp.put(c, 'pop', t, g, dur=.6); sp.put(tx, 'fade', t + .45, g, .08); t += .8
+        sp.put(ids(37292, 37301), 'left', t, g, .07); sp.put('2616:37302', 'fade', t + .6, g)
+    def b3(sp, g):
+        sp.put(ids(37312, 37320), 'rise', 0, g, .05); t = .5
+        for lab, col, tx in [('2616:37323', '2616:37324', ['2616:37325']), ('2616:37327', '2616:37328', ['2616:37329', '2616:37330']), ('2616:37332', '2616:37333', ['2616:37334', '2616:37335'])]:
+            sp.put(lab, 'fade', t, g); sp.put(col, 'barv', t + .1, g, dur=.7); sp.put(tx, 'fade', t + .65, g, .1); t += 1
+        sp.put('2616:37336', 'fade', t, g)
+    def b4(sp, g):
+        sp.put(ids(37338, 37346), 'rise', 0, g, .05); t = .5
+        for lab, bar, val in [('2616:37349', '2616:37350', '2616:37351'), ('2616:37353', '2616:37354', '2616:37355'), ('2616:37357', '2616:37358', '2616:37359'), ('2616:37361', '2616:37362', '2616:37363')]:
+            sp.put(lab, 'fade', t, g); sp.put(bar, 'barv', t + .1, g, dur=.65); sp.put(val, 'pop', t + .6, g); t += .85
+        sp.put('2616:37364', 'fade', t, g)
+    T = {n['id']: n['txt'] for n in nodes if n['k'] in 'TD'}
+    def story(pairs):
+        nav = ''.join(f'<li><i>{k:02d}</i><span>{E(T[tid])}</span><b class="sbar"><em></em></b></li>' for k, (cid, tid, _) in pairs)
+        items = ''.join(card(cid, fn) for k, (cid, tid, fn) in pairs)
+        return f'<div class="story side"><div class="st-stage"><ol class="st-nav">{nav}</ol><div class="st-items">{items}</div></div></div>'
+    st1 = story([(1, ('2616:37248', '2616:37250', b1)), (2, ('2616:37269', '2616:37271', b2))])
+    st2 = story([(3, ('2616:37311', '2616:37313', b3)), (4, ('2616:37337', '2616:37339', b4))])
+    i1 = big('Insight 01', T['2616:37306'], 'Avoiding Trips Isn’t About Will — It’s About <b>Not Knowing</b> If You Can Get In.')
+    i2 = big('Insight 02', '공식 인증과 지도는 ‘있다’만 알려줘요. 지나갈 수 있는지는 가봐야 알 수 있어서, 이동 시간과 헛걸음이 쌓였어요.',
+             'Official Data Says “Accessible” — But It <b>Can’t Tell You</b> If Your Wheelchair Fits.')
+    so = big('So', '그래서 olways는 ‘갈 수 있는지’를 출발 전에 알려주는 것부터 시작해요', 'So olways starts by answering “Can I get there?” before you leave.', 'so')
+    return section('03problem', 'hx pr', head_html + st1 + i1 + st2 + i2 + so)
 
 def sec_bg(S): return f' style="background:{S["bg"]};height:{U(S["h"])}"'
 
@@ -168,7 +193,7 @@ def journey():
         h = h.replace(f'id="{fid(i)}"', f'id="{fid(i)}" data-tail="1"', 1)
     for i, (ox, oy) in ORIG.items():
         h = h.replace(f'id="{fid(i)}"', f'id="{fid(i)}" data-o="{ox:.1f},{oy:.1f}"', 1)
-    return section('05journey', 'fx', h, S['h'], sec_bg(S))
+    return section('05journey', 'fx', h, S['h'], sec_bg(S) + ' data-manual')
 
 # ------------------------------------------------------------------ 06 initial hypothesis
 def inithyp():
