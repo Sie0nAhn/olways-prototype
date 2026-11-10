@@ -176,14 +176,19 @@ const mkBig=b=>{const bs=b.querySelector('.bs');
       ch.replaceWith(f)}else if(ch.nodeType===1)walk(ch)})};walk(bs);
   const so=b.classList.contains('so'),mg=b.querySelector('.mg');
   const tl=gsap.timeline({scrollTrigger:{trigger:b,start:'top top',end:()=>'+='+innerHeight*(so?2:1.2),pin:true,pinSpacing:true,scrub:.6}});
-  if(so&&mg){const cards=[...mg.children],ps=$$('.mgl path',b),dot=b.querySelector('.mdot');
+  if(so&&mg){const cards=[...mg.children],ps=$$('.mgl path',b),dot=b.querySelector('.mdot'),gh=b.querySelector('.ghost');
     ps.forEach(p=>{const L=p.getTotalLength();p.style.strokeDasharray=L;p.style.strokeDashoffset=L});
-    gsap.set([b.querySelector('.bk'),b.querySelector('.be')],{opacity:0});
-    tl.fromTo(cards,{opacity:0,y:40},{opacity:1,y:0,stagger:.15,duration:.5,ease:'power3.out'},0)
-      .to(ps,{strokeDashoffset:0,duration:.45,ease:'power2.inOut'},.6)
-      .fromTo(dot,{scale:0,opacity:0},{scale:1,opacity:1,duration:.2,ease:'power3.out'},1.0)
-      .to(cards,{opacity:.45,duration:.3},1.05);
-    tl.addLabel('st',1.1)}
+    gsap.set([b.querySelector('.bk'),b.querySelector('.be'),bs],{opacity:0});
+    const fl=()=>{gsap.set(gh,{x:0,y:0,scale:1});const g=gh.getBoundingClientRect(),c=cards[1].getBoundingClientRect();return {x:c.left-g.left,y:c.top-g.top,s:c.width/g.width}};let F=fl();
+    ScrollTrigger.addEventListener('refreshInit',()=>{F=null});
+    const F_=()=>F||(F=fl());
+    tl.fromTo(gh,{opacity:1},{x:()=>F_().x,y:()=>F_().y,scale:()=>F_().s,transformOrigin:'0 0',opacity:0,duration:.8,ease:'power2.inOut'},0)
+      .fromTo(cards[1],{opacity:0},{opacity:1,duration:.3},.55)
+      .fromTo(cards[0],{opacity:0,y:60},{opacity:1,y:0,duration:.5,ease:'power3.out'},.35)
+      .to(ps,{strokeDashoffset:0,duration:.45,ease:'power2.inOut'},.95)
+      .fromTo(dot,{scale:0,opacity:0},{scale:1,opacity:1,duration:.2,ease:'power3.out'},1.35)
+      .to(cards,{opacity:.45,duration:.3},1.4);
+    tl.addLabel('st',1.45);tl.to(bs,{opacity:1,duration:.15},'st')}
   else tl.fromTo(b,{clipPath:'inset(18% 9% 18% 9% round 40px)'},{clipPath:'inset(0% 0% 0% 0% round 0px)',ease:'power2.inOut',duration:1});
   const T0=so?'st':.55,T1=so?'st+=.15':.7;tl
     .fromTo(b.querySelector('.bk'),{opacity:0,y:24},{opacity:1,y:0,duration:.25},T0)
@@ -216,9 +221,8 @@ $$('.hgrid').forEach(g=>{const tl=gsap.timeline({scrollTrigger:{trigger:g,start:
   tl.fromTo(g.parentElement.querySelector('.hfin'),{opacity:0,scale:.86,filter:'blur(10px)'},{opacity:1,scale:1,filter:'blur(0px)',duration:1,ease:'expo.out'},t+.1)});
 
 /* ---------- solution: today fails step by step, olways lands ---------- */
-$$('.so .scard').forEach((cd,ci)=>{const tl=gsap.timeline({scrollTrigger:{trigger:cd,start:'top 72%',toggleActions:'play none none reverse'}});soft(cd,tl);
-  tl.fromTo(cd,{opacity:0,y:60},{opacity:1,y:0,duration:.8,ease:'power3.out'},ci*.1);
-  let t=.6+ci*.1;
+$$('.so .scard').forEach((cd,ci)=>{const tl=gsap.timeline({paused:true});cd._tl=tl;
+  let t=.2;
   /* each lane is walked by a small wheelchair marker: today it reaches the step, bumps, and has to go home; olways goes straight through */
   cd.querySelectorAll('.lane').forEach(l=>{const ok=l.classList.contains('lo'),segs=[...l.querySelectorAll('.seg')],mk=l.querySelector('.mk'),em=l.querySelector('em');
     const trv=document.createElement('i');trv.className='trv'+(ok?' ok':'');trv.innerHTML='<b>♿</b>';l.appendChild(trv);
@@ -263,18 +267,32 @@ $$('#s04opp').forEach(sec=>{const tl=TL['2616:37385'],hero=document.getElementBy
   tl.eventCallback('onReverseComplete',()=>{ring.classList.remove('on');fl.forEach(f=>f.kill())})});
 /* ---------- chapter cards: where you are in the story, and the question the next part answers ---------- */
 const mkChap=sec=>{const ch=sec.querySelector('.ch'),arc=ch.querySelector('.arc');
-  const tl=gsap.timeline({scrollTrigger:{trigger:sec,start:'top top',end:()=>'+='+innerHeight*1.3,pin:true,pinSpacing:true,scrub:.8}});
-  tl.fromTo(arc,{yPercent:30,opacity:0},{yPercent:0,opacity:1,duration:.8,ease:'power2.out'},0)
+  const pc=edge(nbr(sec,-1),true),nc=edge(nbr(sec,1),false);
+  const tl=gsap.timeline({scrollTrigger:{trigger:sec,start:'top top',end:()=>'+='+innerHeight*1.6,pin:true,pinSpacing:true,scrub:.8}});
+  tl.fromTo(sec,{backgroundColor:pc},{backgroundColor:'#0A0D12',duration:.45,ease:'power1.inOut'},0)
+    .fromTo(arc,{yPercent:30,opacity:0},{yPercent:0,opacity:1,duration:.8,ease:'power2.out'},0)
     .fromTo(ch.querySelector('.ck'),{opacity:0,y:16},{opacity:1,y:0,duration:.3},.25)
     .fromTo(ch.querySelector('.cq span'),{yPercent:105},{yPercent:0,duration:.5,ease:'power3.out'},.35)
     .fromTo(ch.querySelector('.ce'),{opacity:0},{opacity:1,duration:.3},.65)
     .fromTo(ch.querySelectorAll('.cs li'),{opacity:0,y:18},{opacity:1,y:0,stagger:.1,duration:.3,ease:'power3.out'},.8)
     .fromTo(ch.querySelectorAll('.spine li'),{opacity:0},{opacity:1,stagger:.04,duration:.2},.8)
     .to({},{duration:.5})
-    .to(arc,{yPercent:-38,scale:1.25,duration:.7,ease:'power2.in'})
+    .to(arc,{yPercent:-60,scale:1.6,opacity:0,duration:.8,ease:'power2.in'})
+    .to(sec,{backgroundColor:nc,duration:.6,ease:'power1.inOut'},'<.25')
     .to([ch.querySelector('.ck'),ch.querySelector('.cq'),ch.querySelector('.ce'),ch.querySelector('.cs'),ch.querySelector('.spine')],{opacity:0,y:-40,stagger:.03,duration:.45,ease:'power2.in'},'<')};
+const edge=(el,last)=>{if(!el)return '#F4F5F7';const c=getComputedStyle(el);const m=(c.backgroundImage||'').match(/rgba?\([^)]+\)|#[0-9a-fA-F]{3,6}/g);
+  if(m&&m.length)return last?m[m.length-1]:m[0];return c.backgroundColor==='rgba(0, 0, 0, 0)'?'#F4F5F7':c.backgroundColor};
+const secOf=el=>el.closest('#main > section')||el;
+const nbr=(sec,d)=>{const all=$$('#main > section');const i=all.indexOf(sec);return all[i+d]};
+/* solution: one card at a time is in focus; its lanes play — today bumps and turns back, olways goes through */
+const mkSol=sx=>{const cards=$$('.scard',sx),head=sx.querySelector('.hh');
+  gsap.set(cards,{opacity:0,xPercent:40});
+  mkStep(sx,cards.length,(i,back)=>{const tl=gsap.timeline();
+    cards.forEach((c,j)=>tl.to(c,{opacity:j===i?1:0,xPercent:j===i?0:j<i?-60:60,scale:j===i?1:.92,filter:j===i?'blur(0px)':'blur(6px)',duration:.9,ease:'power3.inOut'},0));
+    const ct=cards[i]._tl;if(ct){ct.timeScale(1);ct.restart();tl.add(()=>{},'+=0')}
+    return {tl:{progress:()=>Math.min(tl.progress(),ct?ct.progress():1),isActive:()=>tl.isActive()||(ct&&ct.isActive()),play:()=>{tl.play();ct&&ct.play()},timeScale:v=>{tl.timeScale(v);ct&&ct.timeScale(v)}},dwell:400}},{per:.7})};
 /* pins are created in page order */
-$$('.chap:not(#sc4), .story, .big, .pinfit, #s05journey').forEach(el=>{if(el.classList.contains('chap'))return mkChap(el);
+$$('.chap:not(#sc4), .story, .big, .pinfit, #s05journey, .so2').forEach(el=>{if(el.classList.contains('chap'))return mkChap(el);if(el.classList.contains('so2'))return mkSol(el);
   if(el.classList.contains('story'))mkStory(el);else if(el.classList.contains('big'))mkBig(el);else if(el.id==='s05journey')mkJourney(el);else mkFit(el)});
 /* usability test setup cards */
 $$('.ut .usetup .ucard').forEach((c,i)=>{const tl=gsap.fromTo(c,{opacity:0,y:40},{opacity:1,y:0,duration:.8,ease:'power3.out',delay:i*.08,scrollTrigger:ST(c,'top 90%')});soft(c,tl)});
@@ -367,6 +385,10 @@ $$('.hh .hsub, [data-wr]').forEach(el=>{if(el.dataset.done||el.closest('.big,.st
   walk(el);gsap.to(el.querySelectorAll('.wr'),{opacity:1,stagger:.1,ease:'none',scrollTrigger:{trigger:el,start:'top 82%',end:'top 42%',scrub:.4}})});
 
 $$('#sc4').forEach(mkChap);
+ScrollTrigger.getAll().filter(t=>t.pin).forEach(t=>{const el=t.pin,sp=el.parentElement;
+  const inner=el.querySelector(':scope > .fit, :scope > .st-stage, :scope > .tstage, :scope > .sow');if(!inner||!sp||!sp.classList.contains('pin-spacer'))return;
+  gsap.fromTo(inner,{scale:.93,opacity:.3,y:70},{scale:1,opacity:1,y:0,ease:'none',scrollTrigger:{trigger:sp,start:'top bottom',end:'top top',scrub:true}});
+  gsap.fromTo(inner,{scale:1,opacity:1,y:0},{scale:.94,opacity:.2,y:-60,ease:'none',immediateRender:false,scrollTrigger:{trigger:sp,start:'bottom bottom',end:'bottom top',scrub:true}})});
 const seam=()=>$$('.pin-spacer').forEach(sp=>{const el=sp.firstElementChild;if(!el)return;const c=getComputedStyle(el.tagName==='SECTION'?el:el.closest('section')||el);sp.style.backgroundColor=c.backgroundColor;sp.style.backgroundImage=c.backgroundImage});
 const refit=()=>{seam();fitAll();fitCards();fitIv();ScrollTrigger.refresh()};addEventListener('load',refit);document.fonts&&document.fonts.ready.then(refit);
 })();

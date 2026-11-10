@@ -104,7 +104,8 @@ def big(kicker, ko, en_html, cls='', marks=()):
         cards = ('<div class="mg"><div class="mi"><i>Insight 01</i><p>외출 포기는 의지가 아니라<br><b>갈 수 있는지 몰라서</b>예요</p></div>'
                  '<div class="mi"><i>Insight 02</i><p>공식 정보는<br><b>‘있다’만</b> 알려줘요</p></div></div>'
                  '<svg class="mgl" viewBox="0 0 820 80" preserveAspectRatio="none" aria-hidden="true"><path d="M205 0 V30 Q205 42 217 42 H398 Q410 42 410 54 V80"/><path d="M615 0 V30 Q615 42 603 42 H422 Q410 42 410 54 V80"/></svg><i class="mdot"></i>')
-        return (f'<div class="big so"><div class="sow"><p class="bk">{E(kicker)}</p>{cards}<p class="bs" data-wr>{HL(ko, marks)}</p><p class="be">{en_html}</p></div></div>')
+        ghost = '<p class="ghost">공식 인증과 지도는 ‘있다’만 알려줘요. 지나갈 수 있는지는 가봐야 알 수 있어서, 이동 시간과 헛걸음이 쌓였어요.</p>'
+        return (f'<div class="big so">{ghost}<div class="sow"><p class="bk">{E(kicker)}</p>{cards}<p class="bs" data-wr>{HL(ko, marks)}</p><p class="be">{en_html}</p></div></div>')
     return (f'<div class="big {cls}"><p class="bk">{E(kicker)}</p><p class="bs" data-wr>{HL(ko, marks)}</p><p class="be">{en_html}</p></div>')
 
 def widen3(h):
@@ -179,8 +180,9 @@ def problem():
         return (f'<div class="story side{" hd" if (first or top) else ""}"><div class="st-stage">{top}<div class="st-side"><p class="st-k">{kick}</p><p class="st-h">{head}</p><ol class="st-nav">{nav}</ol></div>'
                 f'<div class="st-items">{items}</div></div></div>')
     st1 = story([(1, ('2616:37248', '2616:37250', b1)), (2, ('2616:37269', '2616:37271', b2))], 'Problem · 01–02', '나가지 않는 게 아니라,<br>나갈 수 없어요', True)
-    h2 = ('<header class="hh sh"><span class="htag">01  ·  PROBLEM  ·  03–04</span>'
+    h2 = ('<header class="hh sh"><span class="htag">01  ·  PROBLEM  ·  03–04</span><p class="sht">Accessible on paper, unknown at the door</p>'
           '<h2 class="hsub">공식 정보는 ‘있다’만 알려줄 뿐, <b class="hl sky">‘지나갈 수 있는지’</b>는 알려주지 않아요</h2>'
+          '<div class="hbody"><p>베리어프리 인증 · 지도 · 시설 정보는 있어도, 내 휠체어로 지나갈 수 있는지는 가봐야 알 수 있어요.</p></div>'
           '<div class="hbody"><p class="en">Official data says “accessible” — it can’t tell you whether your wheelchair gets through.</p></div></header>')
     st2 = story([(3, ('2616:37311', '2616:37313', b3)), (4, ('2616:37337', '2616:37339', b4))], 'Problem · 03–04', '공식 정보로는<br>알 수 없어요', top=h2)
     i1 = big('Insight 01', T['2616:37306'], 'Avoiding Trips Isn’t About Will — It’s About <b>Not Knowing</b> If You Can Get In.', '', [('s', '미리 알 수 없어서예요')])
@@ -365,7 +367,7 @@ def solution():
               [('en', 'Know whether you can get in from home — and see danger coming before it’s in front of you.'),
                ('ko', '맨눈으로는 입구 앞에서, 눈앞에서야 알던 것을 olways는 한발 먼저 알려줘요.'),
                ('en', 'What you used to find out at the door, or right in front of you, olways tells you one step earlier.')], dark=True)
-    return section('09solution', 'hx so', hd + h)
+    return section('09solution', 'hx so', f'<div class="sx so2"><div class="fit">{hd}{h}</div></div>')
 
 # ------------------------------------------------------------------ 08 usability test
 def ut():

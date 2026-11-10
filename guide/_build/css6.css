@@ -646,3 +646,24 @@ section,.fit,.st-item{--k:14u;--b:17u;--en:14u;--ct:19u;--cb:16u}
 .ux .xz{align-items:stretch}.ux .xzk{text-align:left}
 .ux .xwm{max-width:340u;margin:0 auto}
 /*}U*/
+/* ===================== v16 ===================== */
+/*U{*/
+.hh.sh .htag{color:#097BB5;background:#fff}
+.sht{margin:10u 0 0;font-family:var(--f-gsf);font-size:36u;font-weight:600;line-height:1.15;letter-spacing:-.03em;color:#097BB5}
+.hh.sh .hsub{font-size:24u;margin-top:10u}
+.hh.sh .hbody p{font-size:15.5u}
+/* So continues the Insight screen: same light corner, the Insight sentence settles into its card */
+.big.so{background:radial-gradient(120% 90% at 0% 0%,#1FACF4 0%,#0b5d88 34%,#03283A 70%,#011722 100%)}
+.big.so .ghost{position:absolute;left:90u;right:90u;top:40%;margin:0;font-size:52u;font-weight:600;line-height:1.34;letter-spacing:-.03em;color:#fff;pointer-events:none;z-index:2}
+/* solution: one card in focus */
+.so2 .fit{padding:0 40u;box-sizing:border-box}
+.so2 .hh{padding-top:0!important}
+/*}U*/
+/*U{*/
+.so2 .srow{display:grid!important;grid-template-columns:980u!important;justify-content:center;margin-top:28u}
+.so2 .scard{grid-area:1/1;transform-origin:50% 50%}
+.so2 .scard .st{font-size:30u}
+/*}U*/
+/*U{*/
+.so2 .lanes{display:flex;flex-direction:column;gap:26u}
+/*}U*/
