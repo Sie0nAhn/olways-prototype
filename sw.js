@@ -1,5 +1,5 @@
 /* 올웨이즈 offline cache: everything is stored once, then served from the iPad itself (with byte-range support for video) */
-const V='olw-f58bdd168c';
+const V='olw-f64993ce10';
 const MEM=new Map();
 self.addEventListener('install',e=>{self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil((async()=>{for(const k of await caches.keys())if(k!==V)await caches.delete(k);await self.clients.claim()})())});
