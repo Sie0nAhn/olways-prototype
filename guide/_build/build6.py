@@ -137,7 +137,7 @@ def opp():
     return section('04opp', 'fx', apply_spec(h, sp), S['h'], sec_bg(S))
 
 # ------------------------------------------------------------------ 05 journey
-TAILS = []
+TAILS = []; ORIG = {}
 def journey():
     S, h, nodes = render(EX('2616-37609')); byid = {n['id']: n for n in nodes}
     sp = Spec(); hdr_spec(nodes, sp, 300)
@@ -158,12 +158,16 @@ def journey():
         tail = [n for n in nodes if n['k'] == 'B' and n.get('name') == 'Rectangle' and n['w'] < 20 and abs(n['y'] - (b['y'] + b['h'])) < 14 and b['x'] < n['x'] < b['x'] + b['w']]
         dot = min(dots, key=lambda d: abs(d['x'] + 9 - (b['x'] + b['w'] / 2)))
         tt = at(dot['x'] + 9) + .1
-        sp.put(b['id'], 'bubble', tt, g, dur=.6); sp.put([x['id'] for x in tail], 'tail', tt + .12, g, dur=.35)
+        sp.put(b['id'], 'bubble', tt, g, dur=.55); sp.put([x['id'] for x in tail], 'tail', tt, g, dur=.55)
         TAILS.extend(x['id'] for x in tail)
-        sp.put([n['id'] for n in nodes if n['k'] == 'T' and inside(n, b)], 'fade', tt + .2, g, .06)
+        ORIG[b['id']] = (dot['x'] + 9 - b['x'], dot['y'] + 9 - b['y'])  # grow out of the dot below
+        for x in tail: ORIG[x['id']] = (dot['x'] + 9 - x['x'], dot['y'] + 9 - x['y'])
+        sp.put([n['id'] for n in nodes if n['k'] == 'T' and inside(n, b)], 'fade', tt + .4, g, .06)
     h = apply_spec(h, sp)
     for i in TAILS:  # Figma tails are 12px squares rotated 45° — draw the diamond (pointed tip), not the bounding box
         h = h.replace(f'id="{fid(i)}"', f'id="{fid(i)}" data-tail="1"', 1)
+    for i, (ox, oy) in ORIG.items():
+        h = h.replace(f'id="{fid(i)}"', f'id="{fid(i)}" data-o="{ox:.1f},{oy:.1f}"', 1)
     return section('05journey', 'fx', h, S['h'], sec_bg(S))
 
 # ------------------------------------------------------------------ 06 initial hypothesis
@@ -190,16 +194,21 @@ def flow():
     S2, h, _ = render(EX('2616-38522'), dx_fn=mv)
     sp = Spec(); hdr_spec(nodes, sp, 280)
     g = acr['id']; sp.put(g, 'rise', 0, g)
-    seq = [(['2616:38534', '2616:38535'], 'pop', .4), (['2616:38554'], 'draw', .7), (['2616:38536', '2616:38537'], 'pop', .95),
-           (['2616:38555'], 'draw', 1.25), (['2616:38538', '2616:38539'], 'pop', 1.5),
-           (['2616:38556', '2616:38557'], 'draw', 1.85), (['2616:38542', '2616:38543'], 'pop', 2.1),
-           (['2616:38558', '2616:38559'], 'drawdown', 1.85), (['2616:38540', '2616:38541'], 'pop', 2.15), (['2616:38560'], 'drawrev', 2.45),
-           (['2616:38561', '2616:38562', '2616:38563'], 'draw', 2.45), (['2616:38544', '2616:38545'], 'pop', 2.75), (['2616:38546', '2616:38547'], 'pop', 2.9),
-           (['2616:38548', '2616:38549'], 'pop', 3.05), (['2616:38568', '2616:38569'], 'pop', 3.25),
-           (['2616:38564', '2616:38565', '2616:38566'], 'draw', 3.4), (['2616:38550', '2616:38551'], 'pop', 3.7),
-           (['2616:38567'], 'drawdown', 3.95), (['2616:38552', '2616:38553'], 'pop', 4.25)]
+    # strictly in flow order, one step at a time: start → check → pass? (no → 대안 → back) → yes → type → A/B/C → hazard → arrive
+    steps = [(['2616:38534', '2616:38535'], 'pop'), (['2616:38554'], 'draw'), (['2616:38536', '2616:38537'], 'pop'),
+             (['2616:38555'], 'draw'), (['2616:38538', '2616:38539'], 'pop'),
+             (['2616:38558', '2616:38559'], 'drawdown'), (['2616:38540', '2616:38541'], 'pop'), (['2616:38560'], 'drawrev'),
+             (['2616:38556', '2616:38557'], 'draw'), (['2616:38542', '2616:38543'], 'pop'),
+             (['2616:38561'], 'draw'), (['2616:38544', '2616:38545'], 'pop'), (['2616:38568', '2616:38569'], 'pop'),
+             (['2616:38562'], 'draw'), (['2616:38546', '2616:38547'], 'pop'),
+             (['2616:38563'], 'draw'), (['2616:38548', '2616:38549'], 'pop'),
+             (['2616:38564'], 'draw'), (['2616:38550', '2616:38551'], 'pop'),
+             (['2616:38565', '2616:38566', '2616:38567'], 'draw'), (['2616:38552', '2616:38553'], 'pop')]
+    seq, t = [], .45
+    for ids, a in steps:
+        seq.append((ids, a, t)); t += .32 if a.startswith('draw') else .38
     for ids, a, t in seq: sp.put(ids, a, t, g, dur=(.35 if a.startswith('draw') else None))
-    sp.put(['2616:38571', '2616:38572'], 'rise', 4.6, g, .12)
+    sp.put(['2616:38571', '2616:38572'], 'rise', t + .2, g, .12)
     return section('10flow', 'fx', apply_spec(h, sp), S['h'], sec_bg(S))
 
 # ------------------------------------------------------------------ 15 data loop
@@ -315,11 +324,11 @@ def ut():
         if it['why']:
             a, b, c = it['why']
             why = (f'<div class="why"><div class="wd"><div class="wm"><i class="x">✕</i></div><span class="wa">→</span><div class="wm r"><i class="o">✓</i></div>'
-                   f'<span class="wl r">As Is · 왼쪽</span><span></span><span class="wl b">To Be · 오른쪽</span></div>'
+                   f'<span class="wl wlr">As Is · 왼쪽</span><span></span><span class="wl wlb">To Be · 오른쪽</span></div>'
                    f'<div><p class="wk">{E(a)}</p><p class="wt">{E(b)}</p><p class="we">{E(c)}</p></div></div>')
         dots = ''.join(f'<button class="ud" data-i="{k}" aria-label="{k+1}단계">{["As Is 1차","As Is 1·2차","As Is ↔ To Be"][k]}</button>' for k in range(3))
-        out += (f'<article class="ui"><div class="upin">{hdr}<div class="utrack">{cards}</div><div class="usteps">{dots}</div></div>'
-                f'{why}{ps}<div class="uqs">{qs}</div></article>')
+        out += (f'<article class="ui"><div class="upin">{hdr}<div class="utrack">{cards}</div><div class="usteps">{dots}</div>{ps}</div>'
+                f'{why}<div class="uqs">{qs}</div></article>')
     return section('11iter', 'hx ut', hd + setup + f'<div class="uwrap">{out}</div>')
 
 # ------------------------------------------------------------------ 09 lens
@@ -339,13 +348,22 @@ def lens():
     def cap(i, cls=''):
         a, b, c, d = caps[i]
         return f'<div class="lcap {cls}"><p class="lk">{E(a)}</p><h3>{E(b)}</h3><p class="lb">{E(c)}</p><p class="le">{E(d)}</p></div>'
-    def vid(i): v = vids[i]; return f'<div class="lvid"><video src="media/{v}.mp4" poster="media/{v}.jpg" muted playsinline loop preload="metadata"></video><span class="live">PROTOTYPE · S{i}</span></div>'
+    def vid(i): v = vids[i]; return f'<div class="lvid"><video src="media/{v}.mp4" poster="media/{v}.jpg" muted playsinline loop preload="metadata"></video><span class="live">PROTOTYPE · S{i + 1}</span></div>'
     split = lambda i, rev: f'<div class="lsplit{" rev" if rev else ""}" data-i="{i}">{vid(i)}{cap(i)}</div>'
     full = lambda i: f'<div class="lfull" data-i="{i}"><div class="lstick">{vid(i)}</div><div class="lover">{cap(i, "ov")}</div></div>'
-    panels = ''.join(f'<div class="hp">{vid(i)}{cap(i, "hc")}</div>' for i in (1, 3))
+    panels = ''.join(f'<div class="hp">{vid(i)}{cap(i, "hc")}</div>' for i in (3, 4))
     dots = ''.join(f'<i data-i="{k}"></i>' for k in range(2))
-    track = f'<div class="hwrap"><p class="hkick">출발 전부터 입구 앞까지 · 옆으로 넘겨 보기</p><div class="htrack">{panels}</div><div class="hdots">{dots}</div></div>'
-    inner = f'<div class="lhead fx" style="height:{U(560)}">{apply_spec(h, sp)}</div>' + split(0, False) + track + full(2) + split(4, True)
+    track = f'<div class="hwrap"><p class="hkick">건물 입구에서 도착 후까지 · 옆으로 넘겨 보기</p><div class="htrack">{panels}</div><div class="hdots">{dots}</div></div>'
+    # triptych opener: the moving scene starts full-bleed, then shrinks to the centre while 'before' and 'at the door' slide in
+    def tp(i, cls):
+        v = vids[i]; lab = caps[i][0]
+        media = (f'<video src="media/{v}.mp4" poster="media/{v}.jpg" muted playsinline loop preload="metadata"></video>' if cls == 'c'
+                 else f'<img src="media/{v}.jpg" alt="" loading="lazy">')
+        return f'<figure class="tp tp-{cls}"><div class="tpm">{media}</div><figcaption>{E(lab)}</figcaption></figure>'
+    trip = (f'<div class="trip"><div class="tstage"><p class="tkick">한 번의 외출 · 세 장면</p>'
+            f'<div class="trow">{tp(1, "l")}{tp(2, "c")}{tp(3, "r")}</div></div></div>')
+    inner = (f'<div class="lhead fx" style="height:{U(560)}">{apply_spec(h, sp)}</div>' + trip
+             + split(0, False) + split(1, True) + full(2) + track)
     return section('12lens', 'hx ln', inner)
 
 # ------------------------------------------------------------------ 09 anatomy + pass

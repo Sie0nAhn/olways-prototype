@@ -51,17 +51,23 @@ $$('.rs:not(#s01cover)').forEach(sec=>{const m=sec.dataset.anim;$$('.b',sec).for
   gsap.fromTo(el,fr,{clipPath:'inset(0 0% 0 0%)',opacity:1,y:0,rotateY:0,scale:1,filter:'blur(0px)',duration:1.1,ease:'power3.out',delay:(i%3)*.08,scrollTrigger:ST(el,'top 92%')})})});
 
 /* ---------- Figma-rendered sections: one timeline per group, each mark at its time ---------- */
-const FROM={rise:{opacity:0,y:30},fade:{opacity:0},left:{opacity:0,x:-30},drop:{opacity:0,y:-26},pop:{opacity:0,scale:.3},bubble:{opacity:0,scale:.92,y:16},tail:{opacity:0,y:-6},
+const FROM={rise:{opacity:0,y:30},fade:{opacity:0},left:{opacity:0,x:-30},drop:{opacity:0,y:-26},pop:{opacity:0,scale:.3},bubble:{opacity:0,scale:.04},tail:{opacity:0,scale:.04},
   dissolve:{opacity:0,scale:.86,filter:'blur(10px)'},herop:{opacity:0,scale:.2},
-  barh:{clipPath:'inset(-60px 100% -60px -60px)'},barv:{clipPath:'inset(100% -60px -60px -60px)'},draw:{clipPath:'inset(-20px 100% -20px -20px)'},
+  barh:{clipPath:'inset(-60px calc(100% + 60px) -60px -60px)'},barv:{clipPath:'inset(calc(100% + 60px) -60px -60px -60px)'},draw:{clipPath:'inset(-20px 100% -20px -20px)'},
   drawdown:{clipPath:'inset(-20px -20px 100% -20px)'},drawrev:{clipPath:'inset(-20px -20px -20px 100%)'},ring:{opacity:0,rotate:-140,scale:.6}};
-const EASE={pop:'back.out(2)',bubble:'power3.out',tail:'power2.out',herop:'elastic.out(1,.55)',barh:'power2.inOut',barv:'power2.inOut',draw:'none',drawdown:'none',drawrev:'none',ring:'power3.out',dissolve:'expo.out'};
+const EASE={pop:'back.out(2)',bubble:'back.out(1.4)',tail:'back.out(1.4)',herop:'elastic.out(1,.55)',barh:'power2.inOut',barv:'power2.inOut',draw:'none',drawdown:'none',drawrev:'none',ring:'power3.out',dissolve:'expo.out'};
+/* timelines that must wait for another to finish (e.g. Problem row 2 waits for Insight 01) */
+const TL={},AFTER={'2616:37311':'2616:37248','2616:37370':'2616:37311'};
+const run=g=>{const tl=TL[g],p=AFTER[g],pt=p&&TL[p];
+  if(pt&&pt.progress()<1){if(!pt.isActive())pt.play();pt.eventCallback('onComplete',()=>tl.play())}else tl.play()};
 const G={};$$('[data-a][data-g]').forEach(el=>{(G[el.dataset.g]||(G[el.dataset.g]=[])).push(el)});
 Object.entries(G).forEach(([g,els])=>{const sec=els[0].closest('section');
   const trig=g.startsWith('hdr')||g==='ov'?els[0]:(document.getElementById('f'+g.replace(':','-'))||els[0]);
-  const tl=gsap.timeline({scrollTrigger:{trigger:trig,start:g==='ov'?'top 70%':'top 76%',toggleActions:'play none none reverse'}});
+  const tl=gsap.timeline({paused:true});TL[g]=tl;
+  ScrollTrigger.create({trigger:trig,start:g==='ov'?'top 70%':'top 76%',onEnter:()=>run(g),onLeaveBack:()=>tl.reverse()});
   els.forEach(el=>{const a=el.dataset.a,t=+el.dataset.t,d=+(el.dataset.dur||0)||(a==='draw'?1:a.startsWith('bar')?.7:.6);
-    const fr=FROM[a]||FROM.rise;const tt={opacity:1,x:0,y:0,scale:1,rotate:0,filter:'blur(0px)',duration:d,ease:EASE[a]||'power3.out'};
+    const fr={...(FROM[a]||FROM.rise)};
+    if(el.dataset.o){const k=innerWidth/1400,[ox,oy]=el.dataset.o.split(',').map(Number);fr.transformOrigin=`${ox*k}px ${oy*k}px`}const tt={opacity:1,x:0,y:0,scale:1,rotate:0,filter:'blur(0px)',duration:d,ease:EASE[a]||'power3.out'};
     if('clipPath' in fr){tt.clipPath='inset(-60px -60px -60px -60px)';fr.opacity=1}
     tl.fromTo(el,{...fr},tt,t)})});
 
@@ -131,6 +137,17 @@ $$('.ut .ui').forEach(ui=>{
   addEventListener('keydown',e=>{if(['ArrowDown','PageDown',' '].includes(e.key))step(1,e);else if(['ArrowUp','PageUp'].includes(e.key))step(-1,e)});
   dots.forEach((d,k)=>d.onclick=()=>go(k))});
 
+/* ---------- triptych opener: full-bleed scene shrinks into the centre, siblings slide in ---------- */
+$$('.trip').forEach(t=>{const c=t.querySelector('.tp-c .tpm'),l=t.querySelector('.tp-l'),r=t.querySelector('.tp-r'),caps=$$('figcaption',t),k=t.querySelector('.tkick');
+  const R=()=>{const tr=c.style.transform;c.style.transform='none';const b=c.getBoundingClientRect(),sb=t.querySelector('.tstage').getBoundingClientRect();c.style.transform=tr;return {b,sb}};
+  const S=()=>{const {b}=R();return Math.max(innerWidth/b.width,innerHeight/b.height)*1.02};
+  const cy=()=>{const {b,sb}=R();return (sb.top+sb.height/2)-(b.top+b.height/2)};
+  const tl=gsap.timeline({scrollTrigger:{trigger:t,start:'top top',end:()=>'+='+innerHeight*1.3,pin:true,scrub:.7,invalidateOnRefresh:true}});
+  tl.fromTo(c,{scale:S,y:cy,borderRadius:0},{scale:1,y:0,borderRadius:()=>getComputedStyle(c).borderTopLeftRadius||'18px',ease:'power2.inOut',duration:1},0)
+    .fromTo(l,{xPercent:-130,opacity:0},{xPercent:0,opacity:1,ease:'power3.out',duration:.6},.45)
+    .fromTo(r,{xPercent:130,opacity:0},{xPercent:0,opacity:1,ease:'power3.out',duration:.6},.45)
+    .fromTo([k,...caps],{opacity:0,y:18},{opacity:1,y:0,stagger:.06,duration:.3},.85)});
+
 /* ---------- through the lens ---------- */
 $$('.lsplit').forEach(s=>{const v=s.querySelector('.lvid'),c=s.querySelector('.lcap'),rev=s.classList.contains('rev');
   gsap.fromTo(v,{scale:.8,x:rev?120:-120,opacity:0},{scale:1,x:0,opacity:1,ease:'none',scrollTrigger:{trigger:s,start:'top 95%',end:'top 35%',scrub:.6}});
@@ -142,6 +159,13 @@ $$('.hwrap').forEach(w=>{const tr=w.querySelector('.htrack'),dots=$$('.hdots i',
   dots[0]&&dots[0].classList.add('on');
   gsap.to(tr,{x:()=>-dist(),ease:'none',scrollTrigger:{trigger:w,start:'top top',end:()=>'+='+Math.max(innerHeight*.8,dist()*1.2),pin:true,scrub:.6,invalidateOnRefresh:true,
         onUpdate:s=>{const i=Math.round(s.progress*(ps.length-1));dots.forEach((d,j)=>d.classList.toggle('on',j===i))}}})});
+
+/* ---------- headers: words light up one by one as you scroll (scrubbed) ---------- */
+$$('.hh .hsub, .fx [data-wr]').forEach(el=>{if(el.dataset.done)return;el.dataset.done=1;
+  const walk=n=>{[...n.childNodes].forEach(ch=>{if(ch.nodeType===3){const f=document.createDocumentFragment();
+      ch.textContent.split(/(\s+)/).forEach(w=>{if(!w)return;if(/^\s+$/.test(w))f.appendChild(document.createTextNode(w));else{const s=document.createElement('span');s.className='wr';s.textContent=w;f.appendChild(s)}});
+      ch.replaceWith(f)}else if(ch.nodeType===1)walk(ch)})};
+  walk(el);gsap.to(el.querySelectorAll('.wr'),{opacity:1,stagger:.1,ease:'none',scrollTrigger:{trigger:el,start:'top 82%',end:'top 42%',scrub:.4}})});
 
 /* ---------- anatomy: the field-of-view map lands on the real screen ---------- */
 $$('.fovpin').forEach(p=>{const shot=p.querySelector('.fovshot'),img=shot.querySelector('img'),z=$$('.fovz .z,.fovz .hz',shot),txt=p.querySelector('.fovt');
