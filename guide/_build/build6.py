@@ -84,28 +84,30 @@ def problem():
     R.parse = R_parse
     sp = Spec(); hdr_spec(nodes, sp, 300)
     ids = lambda a, b: [n['id'] for n in nodes if a <= int(n['id'].split(':')[1]) <= b]
+    # one timeline per row: left card's chart first, then the right card's, then the insight under them
     g = '2616:37248'; sp.put(g, 'rise', 0, g); sp.put(ids(37249, 37257), 'rise', .15, g, .05)
-    t = .6
+    sp.put('2616:37269', 'rise', .2, g); sp.put(ids(37270, 37278), 'rise', .35, g, .05)
+    t = .8
     for bar, txt, num in [('2616:37259', ['2616:37260', '2616:37261'], '2616:37262'), ('2616:37264', ['2616:37265', '2616:37266'], '2616:37267')]:
         sp.put(bar, 'barh', t, g, dur=.7); sp.put(txt, 'fade', t + .5, g); sp.put(num, 'pop', t + .7, g); t += 1.1
-    sp.put('2616:37268', 'fade', t, g)
-    g = '2616:37269'; sp.put(g, 'rise', 0, g); sp.put(ids(37270, 37278), 'rise', .15, g, .05)
-    t = .7
+    sp.put('2616:37268', 'fade', t, g); t += .45
     for c, tx in [('2616:37280', ['2616:37282', '2616:37283']), ('2616:37284', ['2616:37286', '2616:37287']), ('2616:37288', ['2616:37290', '2616:37291'])]:
         sp.put(c, 'pop', t, g, dur=.6); sp.put(tx, 'fade', t + .45, g, .08); t += .8
-    sp.put(ids(37292, 37301), 'left', t, g, .07); sp.put('2616:37302', 'fade', t + .6, g)
-    for card in ('2616:37303', '2616:37365', '2616:37370'):
-        sp.put(card, 'dissolve', 0, card, dur=1); sp.put([n['id'] for n in nodes if inside(n, byid[card]) and n['id'] != card], 'fade', .5, card, .12)
+    sp.put(ids(37292, 37301), 'left', t, g, .07); sp.put('2616:37302', 'fade', t + .6, g); t += 1.3
+    def insight(card, g, t):
+        sp.put(card, 'dissolve', t, g, dur=1); sp.put([n['id'] for n in nodes if inside(n, byid[card]) and n['id'] != card], 'fade', t + .5, g, .12)
+    insight('2616:37303', g, t)
     g = '2616:37311'; sp.put(g, 'rise', 0, g); sp.put(ids(37312, 37320), 'rise', .15, g, .05)
-    t = .7
+    sp.put('2616:37337', 'rise', .2, g); sp.put(ids(37338, 37346), 'rise', .35, g, .05)
+    t = .8
     for lab, col, tx in [('2616:37323', '2616:37324', ['2616:37325']), ('2616:37327', '2616:37328', ['2616:37329', '2616:37330']), ('2616:37332', '2616:37333', ['2616:37334', '2616:37335'])]:
         sp.put(lab, 'fade', t, g); sp.put(col, 'barv', t + .1, g, dur=.7); sp.put(tx, 'fade', t + .65, g, .1); t += 1
-    sp.put('2616:37336', 'fade', t, g)
-    g = '2616:37337'; sp.put(g, 'rise', 0, g); sp.put(ids(37338, 37346), 'rise', .15, g, .05)
-    t = .7
+    sp.put('2616:37336', 'fade', t, g); t += .45
     for lab, bar, val in [('2616:37349', '2616:37350', '2616:37351'), ('2616:37353', '2616:37354', '2616:37355'), ('2616:37357', '2616:37358', '2616:37359'), ('2616:37361', '2616:37362', '2616:37363')]:
         sp.put(lab, 'fade', t, g); sp.put(bar, 'barv', t + .1, g, dur=.65); sp.put(val, 'pop', t + .6, g); t += .85
-    sp.put('2616:37364', 'fade', t, g)
+    sp.put('2616:37364', 'fade', t, g); t += .7
+    insight('2616:37365', g, t)
+    insight('2616:37370', '2616:37370', 0)
     return section('03problem', 'fx', apply_spec(h, sp), S['h'], f' style="background:{S["bg"]};height:{U(S["h"])}"')
 
 def sec_bg(S): return f' style="background:{S["bg"]};height:{U(S["h"])}"'
@@ -135,6 +137,7 @@ def opp():
     return section('04opp', 'fx', apply_spec(h, sp), S['h'], sec_bg(S))
 
 # ------------------------------------------------------------------ 05 journey
+TAILS = []
 def journey():
     S, h, nodes = render(EX('2616-37609')); byid = {n['id']: n for n in nodes}
     sp = Spec(); hdr_spec(nodes, sp, 300)
@@ -155,9 +158,13 @@ def journey():
         tail = [n for n in nodes if n['k'] == 'B' and n.get('name') == 'Rectangle' and n['w'] < 20 and abs(n['y'] - (b['y'] + b['h'])) < 14 and b['x'] < n['x'] < b['x'] + b['w']]
         dot = min(dots, key=lambda d: abs(d['x'] + 9 - (b['x'] + b['w'] / 2)))
         tt = at(dot['x'] + 9) + .1
-        sp.put(b['id'], 'bubble', tt, g, dur=.5); sp.put([x['id'] for x in tail], 'fade', tt + .1, g)
+        sp.put(b['id'], 'bubble', tt, g, dur=.6); sp.put([x['id'] for x in tail], 'tail', tt + .12, g, dur=.35)
+        TAILS.extend(x['id'] for x in tail)
         sp.put([n['id'] for n in nodes if n['k'] == 'T' and inside(n, b)], 'fade', tt + .2, g, .06)
-    return section('05journey', 'fx', apply_spec(h, sp), S['h'], sec_bg(S))
+    h = apply_spec(h, sp)
+    for i in TAILS:  # Figma tails are 12px squares rotated 45° — draw the diamond (pointed tip), not the bounding box
+        h = h.replace(f'id="{fid(i)}"', f'id="{fid(i)}" data-tail="1"', 1)
+    return section('05journey', 'fx', h, S['h'], sec_bg(S))
 
 # ------------------------------------------------------------------ 06 initial hypothesis
 def inithyp():
@@ -208,14 +215,20 @@ def loop():
     t = 1.0
     for node in ('2616:39512', '2616:39515', '2616:39518', '2616:39521'):
         sp.put([node] + [n['id'] for n in nodes if inside(n, byid[node]) and n['id'] != node], 'pop', t, g, .06); t += .35
-    g2 = '2616:39524'; sp.put(g2, 'rise', 0, g2)
+    t += .2; sp.put('2616:39524', 'rise', t, g); t += .4
     rows = ['2616:39525', '2616:39531', '2616:39537', '2616:39543', '2616:39549']
     for k, r in enumerate(rows):
-        sp.put([n['id'] for n in nodes if inside(n, byid[r]) and n['id'] != r and n['k'] != 'G'], 'left', .3 + k * .22, g2, .05)
+        sp.put([n['id'] for n in nodes if inside(n, byid[r]) and n['id'] != r and n['k'] != 'G'], 'left', t + k * .3, g, .05)
     return section('15loop', 'fx', apply_spec(h, sp), S['h'], sec_bg(S))
 
 # ------------------------------------------------------------------ hand-built headers
+TITLE_NODE = {'t_iv': ('2616:37830', 'Getting there starts before leaving'), 't_hy': ('2616:38100', '12 interviews rewrote our hypotheses'),
+              't_so': ('2616:38290', 'Before you see it.'), 't_ut': ('2616:38579', 'Usability test'), 't_an': ('2616:38908', 'Six things, nothing more')}
 def title_img(sec, box, color, name):
+    from svgt import svg_title
+    if name in TITLE_NODE:
+        nid, lab = TITLE_NODE[name]; sv, x, y, w, h = svg_title(nid, lab)
+        return f'<span class="htitle hsv" style="width:{U(w)};height:{U(h)}">{sv}</span>'
     fn, b = matte(sec, dict(x=box[0], y=box[1], w=box[2], h=box[3], id=name), fg=color, pad=6, name=name)
     return f'<img class="htitle" src="{fn}" alt="" style="width:{U(b[2])};height:{U(b[3])}">'
 
@@ -282,11 +295,11 @@ def ut():
         if it['n'] == 3:
             cmp = ('<div class="u3"><figure class="u3a"><span class="vl">As Is · 1차</span><div class="u3w"><img src="s/ut3a.webp" alt="As Is 1차 화면" loading="lazy">'
                    '<i class="zr" style="left:89.6%;top:80%;width:6.5%;height:19%"></i></div>'
-                   '<div class="u3z"><img src="s/ut3az.webp" alt="배터리 퍼센트 확대"><p><b>% 게이지</b>남은 거리를 머릿속으로 계산해야 했어요</p></div></figure>'
+                   '<div class="u3z"><img src="s/ut3az.webp" alt="상태 위젯 확대 — 배터리 % 게이지"><p><b>상태 위젯 · % 게이지</b>남은 거리를 머릿속으로 계산해야 했어요</p></div></figure>'
                    '<span class="u3arr" aria-hidden="true">→</span>'
                    '<figure class="u3b"><span class="vl tb">To Be · 3차</span><div class="u3w"><img src="s/ut3c.webp" alt="To Be 3차 화면" loading="lazy">'
-                   '<i class="zr ok" style="left:73.8%;top:64.9%;width:22.7%;height:33.6%"></i></div>'
-                   '<div class="u3z ok"><img src="s/ut3cz.webp" alt="주행 가능 거리 카드 확대"><p><b>주행 가능 5km</b>가까운 충전기는 AR 핀으로 띄웠어요</p></div></figure></div>')
+                   '<i class="zr ok" style="left:85.1%;top:4.6%;width:11.8%;height:7.6%"></i></div>'
+                   '<div class="u3z ok"><img src="s/ut3cz.webp" alt="상단 상태 위젯 확대 — 시간과 휠체어 주행 가능 120분"><p><b>상태 위젯 · 휠체어 120분</b>배터리를 % 대신 남은 주행 시간으로 보여줘, 계산 없이 바로 읽혀요</p></div></figure></div>')
             out += f'<article class="ui u3x">{hdr}{cmp}{ps}<div class="uqs">{qs}</div></article>'
             continue
         cards = ''
@@ -305,7 +318,7 @@ def ut():
                    f'<span class="wl r">As Is · 왼쪽</span><span></span><span class="wl b">To Be · 오른쪽</span></div>'
                    f'<div><p class="wk">{E(a)}</p><p class="wt">{E(b)}</p><p class="we">{E(c)}</p></div></div>')
         dots = ''.join(f'<button class="ud" data-i="{k}" aria-label="{k+1}단계">{["As Is 1차","As Is 1·2차","As Is ↔ To Be"][k]}</button>' for k in range(3))
-        out += (f'<article class="ui">{hdr}<div class="upin"><div class="utrack">{cards}</div><div class="usteps">{dots}</div></div>'
+        out += (f'<article class="ui"><div class="upin">{hdr}<div class="utrack">{cards}</div><div class="usteps">{dots}</div></div>'
                 f'{why}{ps}<div class="uqs">{qs}</div></article>')
     return section('11iter', 'hx ut', hd + setup + f'<div class="uwrap">{out}</div>')
 
@@ -349,9 +362,13 @@ def anatomy():
     for k, base in enumerate([39077, 39084, 39091, 39098, 39105, 39112]):
         g = lambda o: E(t[f'2616:{base+o}'])
         cards += f'<div class="acard" data-i="{k}"><p class="ak"><b>{g(0)}</b>{g(1)}</p><h4>{g(2)}</h4><p>{g(4)}</p></div>'
-    fov = ('<div class="fovz"><div class="z fz-t"><b>수평선 위</b><i>Keep clear</i></div><div class="z fz-l"><b>좌측 패널</b><i>5–30%</i></div>'
-           '<div class="z fz-r"><b>우측 패널</b><i>70–95% · 상태 · 내비</i></div><div class="z fz-c"><b>중앙 — 위험 · 경로만</b><i>시선 수평선 37–40%</i></div>'
-           '<div class="z fz-b"><b>하단 · 음성</b></div><i class="hz"></i></div>')
+    # zones sized to the real panels in the final screen (measured on the 1120×630 export)
+    fov = ('<div class="fovz">'
+           '<div class="z fz-s"><span class="zl bl"><b>우측 상단 · 상태</b><i>시간 · 주행 가능 시간</i></span></div>'
+           '<div class="z fz-n"><span class="zl"><b>우측 하단 · 내비</b><i>시야 70–95% · 경로 카드</i></span></div>'
+           '<div class="z fz-c ctr"><span class="zl"><b>중앙 — 위험 · 경로만</b><i>시선 수평선 37–40%</i></span></div>'
+           '<div class="z fz-v"><span class="zl"><b>하단 · 음성</b></span></div>'
+           '<i class="hz"><span>시선 수평선</span></i></div>')
     fovtxt = (f'<div class="fovt"><p class="fk">{E(t["2616:39119"])}</p><h3>{E(t["2616:39120"])}</h3>'
               f'<p class="fdirs"><span>{E(t["2616:39122"])}</span><span>{E(t["2616:39166"])}</span><span>{E(t["2616:39167"])}</span></p>'
               f'<p class="fb">{E(t["2616:39168"])}</p><p class="fs2">{E(t["2616:39169"])}</p></div>')

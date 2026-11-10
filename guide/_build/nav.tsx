@@ -9,8 +9,9 @@ import './components/soap-bubble/soap-bubble.css';
 
 // Approved catalog defaults: Light glass on light pages, Rainbow glass on dark pages.
 const LIGHT = { glass: 0.95, iridescence: 0.5, filmScale: 4.85, oilOpacity: 1, oilCoverage: 0.73, oilEdge: 18, oilEdgeFade: 2.33, clearCenter: 0.57, thickness: 480, drainage: 0.35, swirl: 0.5, reflectivity: 1.3, refraction: 0.15, dispersion: 1, bevel: 14 };
-const DARK = { ...LIGHT, iridescence: 2, oilCoverage: 1, oilEdgeFade: 1, clearCenter: 0.73 };
-const WINDOW = { windowLength: 1.3, windowMargin: 0.85, windowBend: 0.75, windowSize: 0.75, windowWidth: 0.8, windowGradient: 0.96, windowHead: 0.7, windowTail: 0.6, glintSize: 1.65, glintIntensity: 0, glintDistance: -0.45, glintHeight: 0.65, windowIntensity: 0.85, windowTwin: false };
+const SOFT = { iridescence: 0.18, oilOpacity: 0.3, oilCoverage: 0.35, oilEdgeFade: 3, clearCenter: 0.88, reflectivity: 0.55, dispersion: 0.35, refraction: 0.08, swirl: 0.25 };
+const DARK = { ...LIGHT, ...SOFT, iridescence: 0.28 };
+const WINDOW = { windowLength: 1.3, windowMargin: 0.85, windowBend: 0.75, windowSize: 0.75, windowWidth: 0.8, windowGradient: 0.96, windowHead: 0.7, windowTail: 0.6, glintSize: 1.65, glintIntensity: 0, glintDistance: -0.45, glintHeight: 0.65, windowIntensity: 0.4, windowTwin: false };
 
 type State = { groups: string[]; active: number; now: string; idx: string; dark: boolean; prog: number; hidden: boolean };
 type Api = { onGroup: (i: number) => void; onLogo: () => void; onNext: () => void };
@@ -24,7 +25,7 @@ function Nav({ api, logo }: { api: Api; logo: string }) {
     const b = bar.current?.querySelectorAll<HTMLButtonElement>('.gl')[s.active];
     if (b) setInd({ left: b.offsetLeft, width: b.offsetWidth });
   }, [s.active, s.groups.length]);
-  const m = { ...(s.dark ? DARK : LIGHT), ...WINDOW, bottomShadeColor: s.dark ? '#0b2a3a' : '#ffffff' };
+  const m = { ...(s.dark ? DARK : { ...LIGHT, ...SOFT }), ...WINDOW, bottomShadeColor: s.dark ? '#0b2a3a' : '#ffffff' };
   return (
     <SoapBubbleMaterial {...m}>
       <div className={`sbnav${s.dark ? ' dk' : ''}${s.hidden ? ' hide' : ''}`}>

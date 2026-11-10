@@ -51,11 +51,11 @@ $$('.rs:not(#s01cover)').forEach(sec=>{const m=sec.dataset.anim;$$('.b',sec).for
   gsap.fromTo(el,fr,{clipPath:'inset(0 0% 0 0%)',opacity:1,y:0,rotateY:0,scale:1,filter:'blur(0px)',duration:1.1,ease:'power3.out',delay:(i%3)*.08,scrollTrigger:ST(el,'top 92%')})})});
 
 /* ---------- Figma-rendered sections: one timeline per group, each mark at its time ---------- */
-const FROM={rise:{opacity:0,y:30},fade:{opacity:0},left:{opacity:0,x:-30},drop:{opacity:0,y:-26},pop:{opacity:0,scale:.3},bubble:{opacity:0,scale:.6,y:12},
+const FROM={rise:{opacity:0,y:30},fade:{opacity:0},left:{opacity:0,x:-30},drop:{opacity:0,y:-26},pop:{opacity:0,scale:.3},bubble:{opacity:0,scale:.92,y:16},tail:{opacity:0,y:-6},
   dissolve:{opacity:0,scale:.86,filter:'blur(10px)'},herop:{opacity:0,scale:.2},
   barh:{clipPath:'inset(-60px 100% -60px -60px)'},barv:{clipPath:'inset(100% -60px -60px -60px)'},draw:{clipPath:'inset(-20px 100% -20px -20px)'},
   drawdown:{clipPath:'inset(-20px -20px 100% -20px)'},drawrev:{clipPath:'inset(-20px -20px -20px 100%)'},ring:{opacity:0,rotate:-140,scale:.6}};
-const EASE={pop:'back.out(2)',bubble:'back.out(1.8)',herop:'elastic.out(1,.55)',barh:'power2.inOut',barv:'power2.inOut',draw:'none',drawdown:'none',drawrev:'none',ring:'power3.out',dissolve:'expo.out'};
+const EASE={pop:'back.out(2)',bubble:'power3.out',tail:'power2.out',herop:'elastic.out(1,.55)',barh:'power2.inOut',barv:'power2.inOut',draw:'none',drawdown:'none',drawrev:'none',ring:'power3.out',dissolve:'expo.out'};
 const G={};$$('[data-a][data-g]').forEach(el=>{(G[el.dataset.g]||(G[el.dataset.g]=[])).push(el)});
 Object.entries(G).forEach(([g,els])=>{const sec=els[0].closest('section');
   const trig=g.startsWith('hdr')||g==='ov'?els[0]:(document.getElementById('f'+g.replace(':','-'))||els[0]);
@@ -107,18 +107,29 @@ $$('.ut .ui').forEach(ui=>{
   $$('.why,.ups,.uq,.u3',ui).forEach(el=>gsap.fromTo(el,{opacity:0,y:40},{opacity:1,y:0,duration:.8,ease:'power3.out',scrollTrigger:ST(el,'top 90%')}));
   const pin=ui.querySelector('.upin');if(!pin)return;
   const tr=pin.querySelector('.utrack'),cs=$$('.uc',tr),dots=$$('.ud',pin);
-  const X=()=>{const vw=innerWidth,a=cs[0],b=cs[1],c=cs[2];const off=e=>e.offsetLeft,w=e=>e.offsetWidth;
-    return [vw/2-(off(a)+w(a)/2), vw/2-(off(a)+(off(b)+w(b)-off(a))/2), vw/2-(off(b)+(off(c)+w(c)-off(b))/2)]};
+  const X=()=>{const vw=innerWidth,u=vw/1400,a=cs[0],b=cs[1],c=cs[2];const off=e=>e.offsetLeft,w=e=>e.offsetWidth;
+    return [vw/2-(off(a)+w(a)/2), vw/2-(off(a)+(off(b)+w(b)-off(a))/2), (vw-40*u)-(off(c)+w(c))]};
   let xs=X();addEventListener('resize',()=>{xs=X()});
   const st={i:-1};
   const set=i=>{if(i===st.i)return;st.i=i;dots.forEach((d,j)=>d.classList.toggle('on',j===i));
     cs.forEach((c,j)=>c.classList.toggle('dim',i===0?j!==0:i===1?j===2:j===0));
-    gsap.to(tr,{x:xs[i],duration:.9,ease:'power3.inOut',overwrite:true});gsap.to(cs[0],{scale:i===0?1.16:1,duration:.9,ease:'power3.inOut'})};
-  const trg=ScrollTrigger.create({trigger:pin,start:'top top',end:()=>'+='+innerHeight*1.8,pin:true,pinSpacing:true,invalidateOnRefresh:true,
-    onUpdate:s=>set(s.progress<.33?0:s.progress<.72?1:2),onRefresh:()=>{xs=X();const i=st.i;st.i=-1;set(Math.max(0,i))}});
-  gsap.set(tr,{x:xs[0]});gsap.set(cs[0],{scale:1.16,transformOrigin:'50% 0'});set(0);
-  const tl={scrollTrigger:trg};
-  dots.forEach((d,k)=>d.onclick=()=>{const s=tl.scrollTrigger;window.scrollTo({top:s.start+(s.end-s.start)*k/2,behavior:'smooth'})})});
+    gsap.to(tr,{x:xs[i],duration:.9,ease:'power3.inOut',overwrite:true})};
+  const P=[0,.5,.98];
+  const trg=ScrollTrigger.create({trigger:pin,start:'top top',end:()=>'+='+innerHeight*1.5,pin:true,pinSpacing:true,invalidateOnRefresh:true,
+    onUpdate:s=>set(s.progress<.3?0:s.progress<.75?1:2),onRefresh:()=>{xs=X();const i=st.i;st.i=-1;set(Math.max(0,i))}});
+  gsap.set(tr,{x:xs[0]});set(0);
+  /* while pinned, one gesture = one step; the page itself does not move on until To Be is on screen */
+  let cool=0;const inPin=()=>scrollY>=trg.start-4&&scrollY<=trg.end+4;
+  const go=k=>{cool=performance.now()+750;window.scrollTo({top:trg.start+(trg.end-trg.start)*P[k],behavior:'instant'});set(k)};
+  const step=(dir,e)=>{if(!inPin())return;const i=st.i;
+    if(dir>0&&i<2){e.cancelable&&e.preventDefault();if(performance.now()>cool)go(i+1)}
+    else if(dir<0&&i>0){e.cancelable&&e.preventDefault();if(performance.now()>cool)go(i-1)}
+    else if(performance.now()<cool){e.cancelable&&e.preventDefault()}};
+  addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>2)step(Math.sign(e.deltaY),e)},{passive:false});
+  let ty=0;addEventListener('touchstart',e=>{ty=e.touches[0].clientY},{passive:true});
+  addEventListener('touchmove',e=>{const dy=ty-e.touches[0].clientY;if(Math.abs(dy)>14){step(Math.sign(dy),e);ty=e.touches[0].clientY}},{passive:false});
+  addEventListener('keydown',e=>{if(['ArrowDown','PageDown',' '].includes(e.key))step(1,e);else if(['ArrowUp','PageUp'].includes(e.key))step(-1,e)});
+  dots.forEach((d,k)=>d.onclick=()=>go(k))});
 
 /* ---------- through the lens ---------- */
 $$('.lsplit').forEach(s=>{const v=s.querySelector('.lvid'),c=s.querySelector('.lcap'),rev=s.classList.contains('rev');
@@ -140,7 +151,6 @@ $$('.fovpin').forEach(p=>{const shot=p.querySelector('.fovshot'),img=shot.queryS
   tl.fromTo(img,{opacity:0},{opacity:1,duration:.6},0)
     .fromTo(shot,{scale:560/1320},{scale:1,duration:1,ease:'power2.inOut'},0)
     .to(txt,{opacity:0,x:-80,duration:.5},0)
-    .fromTo(z,{opacity:1},{opacity:.62,duration:.4},.6)
     .to({}, {duration:.4});
   gsap.fromTo([...txt.children],{opacity:0,y:24},{opacity:1,y:0,stagger:.08,duration:.7,ease:'power3.out',scrollTrigger:ST(p,'top 70%')})});
 $$('.awrap').forEach(w=>{gsap.fromTo(w.querySelector('.ashot'),{opacity:0,y:60,scale:.96},{opacity:1,y:0,scale:1,duration:1,ease:'power3.out',scrollTrigger:ST(w,'top 85%')});

@@ -145,6 +145,7 @@ def img_html(fn, box, dx=0, dy=0, cls='', idn='', style=''):
     x, y, w, h = box
     return f'<img class="fe fi {cls}" {idn} src="{fn}" alt="" style="left:{U(x+dx)};top:{U(y+dy)};width:{U(w)};height:{U(h)};{style}">'
 
+from svgt import svg_title
 def render(path, skip=(), dx_fn=None, dy_fn=None, cls_fn=None, matte_bg=None):
     """returns (S, html, nodes). dx_fn(n)->dx shift; cls_fn(n)->extra classes"""
     S, nodes = parse(path); sec = S['id']; out = []
@@ -159,6 +160,9 @@ def render(path, skip=(), dx_fn=None, dy_fn=None, cls_fn=None, matte_bg=None):
             out.append(f'<div class="fe fb {c}" {idn} data-d="{n["d"]}" style="{pos(n,dx,dy)}{st}"></div>')
         elif n['k'] == 'T':
             out.append(text_html(n, dx, dy, c))
+        elif n['k'] == 'D' and svg_title(n['id']):
+            sv, x, y, w, h = svg_title(n['id'], n.get('txt', '').replace('⏎', ' '))
+            out.append(f'<div class="fe fd fsv {c}" {idn} style="left:{U(x+dx)};top:{U(y+dy)};width:{U(w)};height:{U(h)}">{sv}</div>')
         elif n['k'] == 'D':
             fn, box = matte(sec, n, fg=n['col'].split(' ')[0])
             out.append(img_html(fn, box, dx, dy, 'fd ' + c, idn))
