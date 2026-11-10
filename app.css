@@ -27,3 +27,4 @@ html.wide .screen-root>.relative.size-full>.absolute.inset-0.overflow-hidden{ove
 html.wide [data-name^="음성 UI"]{overflow:visible!important}
 html.wide .overflow-clip.w-\[1920px\]{overflow:visible!important}
 html.wide .absolute.left-0.w-\[1920px\].mix-blend-plus-lighter{scale:1.2417 1;transform-origin:50% 50%}
+[data-node-id="1560:3802"],[data-node-id="1560:3813"],[data-node-id="1560:3824"]{translate:0 -8px}
