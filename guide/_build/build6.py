@@ -417,8 +417,7 @@ def solution():
     hd = head('06  ·  SOLUTION', title_img('2616:38285', (559.5, 151, 282.5, 33), '#71cbf8', 't_so'),
               '‘갈 수 있는지’는 집에서, ‘위험한지’는 보기 전에 알려줘요',
               [('en', 'Know whether you can get in from home — and see danger coming before it’s in front of you.'),
-               ('ko', '맨눈으로는 입구 앞에서, 눈앞에서야 알던 것을 olways는 한발 먼저 알려줘요.'),
-               ('en', 'What you used to find out at the door, or right in front of you, olways tells you one step earlier.')], dark=True)
+], dark=True)
     return section('09solution', 'hx so', f'<div class="sx so2"><div class="fit">{hd}{h}</div></div>')
 
 # ------------------------------------------------------------------ 08 usability test
