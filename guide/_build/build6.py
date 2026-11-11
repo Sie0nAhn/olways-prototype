@@ -657,5 +657,10 @@ if __name__ == '__main__':
     snap = lambda m: f'{m.group(1)}calc(var(--u)*{tier(m.group(2)):g})'
     out = re.sub(r'(font-size:\s*)calc\(var\(--u\)\*([\d.]+)\)', snap, out)
     out = re.sub(r'(font:[^;{}]*?\s)calc\(var\(--u\)\*([\d.]+)\)(?=/)', snap, out)
+    # one voice: sentences end in -요, labels end as nouns
+    for x_, y_ in [('것이다.', '거예요.'), ('것이다', '거예요'), ('이어진다.', '이어져요.'), ('놓친다.', '놓쳐요.'), ('쌓인다.', '쌓여요.'),
+                   ('보여준다.', '보여줘요.'), ('보조한다.', '보조해요.'), ('알려준다.', '알려줘요.'),
+                   ('1곳 이상 방문했다', '1곳 이상 방문'), ('한 곳도 가지 못했다', '한 곳도 못 감')]:
+        out = out.replace(x_, y_)
     open(OUT + 'index.html', 'w', encoding='utf-8').write(out)
     print(len(out))
