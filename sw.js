@@ -1,5 +1,5 @@
 /* 올웨이즈 offline cache: 저장된 파일은 iPad 안에서 바로 제공 (영상은 byte-range 지원), 아직 안 받은 파일은 네트워크로 */
-const V='olw-9b6f00f09b';
+const V='olw-6aa33c8ae7';
 const STORE='olw-store';
 const MEM=new Map();
 self.addEventListener('install',e=>{self.skipWaiting()});
