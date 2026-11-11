@@ -128,6 +128,27 @@ def widen3(h):
             h = re.sub(r'id="f2616-%d"[^>]*?style="[^"]*"' % i, fix, h, count=1)
     return h
 
+def center_bubbles(h):
+    """bubble chart: each label + number pair is stacked and centred in its circle"""
+    G = lambda st, k: float(re.search(k + r':calc\(var\(--u\)\*(-?[\d.]+)\)', st).group(1))
+    def box(i):
+        m = re.search(r'<[^>]*id="f2616-%d"[^>]*style="([^"]*)"' % i, h); return m.group(1)
+    for c, lab, num in ((37280, 37282, 37283), (37284, 37286, 37287), (37288, 37290, 37291)):
+        cs, ls, ns = box(c), box(lab), box(num)
+        cx, cy, cw = G(cs, 'left'), G(cs, 'top'), G(cs, 'width')
+        fs = 12; lh = fs * 1.3 * 2
+        nw, nh = G(ns, 'width'), G(ns, 'height')
+        pad = (nh - (24 if cw < 150 else 48)) / 2          # the number raster carries a soft margin
+        tot = lh + 6 + nh - 2 * pad
+        top = cy + cw / 2 - tot / 2
+        def put(i, st):
+            nonlocal_h[0] = re.sub(r'(<[^>]*id="f2616-%d"[^>]*style=")[^"]*' % i, lambda m: m.group(1) + st, nonlocal_h[0], count=1)
+        nonlocal_h = [h]
+        put(lab, re.sub(r'left:[^;]*;top:[^;]*;width:[^;]*;', f'left:calc(var(--u)*{cx:.2f});top:calc(var(--u)*{top:.2f});width:calc(var(--u)*{cw:.2f});', ls, count=1))
+        put(num, re.sub(r'left:[^;]*;top:[^;]*;', f'left:calc(var(--u)*{cx + cw / 2 - nw / 2:.2f});top:calc(var(--u)*{top + lh + 6 - pad:.2f});', ns, count=1))
+        h = nonlocal_h[0]
+    return h
+
 SHORT = {'2616:37248': ('58%', '새로운 곳, 한 곳도 못 가요'), '2616:37269': ('53%', '가장 큰 벽은 탑승'),
          '2616:37311': ('3%', '인증된 길 · 정류장은 3%뿐'), '2616:37337': ('3.3×', '환승은 3.3배 더 걸려요')}
 def problem():
@@ -153,6 +174,7 @@ def problem():
         c = byid[cid]; keep = [n for n in nodes if inside(n, c)]
         sp = Spec(); g = cid; build(sp, g)
         h = apply_spec(part(keep, -c['x'], -c['y']), sp)
+        if cid == '2616:37269': h = center_bubbles(h)
         if cid == '2616:37311':
             h = widen3(h)
             # the 3% label: English and Korean on separate lines, lifted so it clears the short bar

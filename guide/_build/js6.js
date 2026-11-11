@@ -1,5 +1,10 @@
 (()=>{
 const $=s=>document.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const U0=()=>(innerWidth-200)/1320;
+(()=>{const FULL='#s01cover,#s02overview,#s17thanks,.chap';
+  $$('#main > section').forEach(sec=>{if(sec.matches(FULL)){sec.classList.add('fullu');return}
+    let run=null;[...sec.children].forEach(ch=>{if(ch.matches('.big, script, style')){run=null;return}
+      if(!run){run=document.createElement('div');run.className='sw';ch.before(run)}run.appendChild(ch)})})})();
 const secs=$$('#main > section');
 const topOf=el=>el.getBoundingClientRect().top+scrollY;
 const to=el=>{window.__jump&&window.__jump();window.scrollTo({top:topOf(el),behavior:'smooth'})};
@@ -62,7 +67,7 @@ Object.entries(G).forEach(([g,els])=>{const sec=els[0].closest('section');
     else ScrollTrigger.create({trigger:trig,start:'top 92%',end:()=>g.startsWith('hdr')?'top 45%':'center 50%',scrub:.6,animation:tl,invalidateOnRefresh:true})}
   els.forEach(el=>{const a=el.dataset.a,t=+el.dataset.t,d=+(el.dataset.dur||0)||(a==='draw'?1:a.startsWith('bar')?.7:.6);
     const fr={...(FROM[a]||FROM.rise)};
-    if(el.dataset.o){const k=innerWidth/1400,[ox,oy]=el.dataset.o.split(',').map(Number);fr.transformOrigin=`${ox*k}px ${oy*k}px`}const tt={opacity:1,x:0,y:0,scale:1,rotate:0,filter:'blur(0px)',duration:d,ease:EASE[a]||'power3.out'};
+    if(el.dataset.o){const k=U0(),[ox,oy]=el.dataset.o.split(',').map(Number);fr.transformOrigin=`${ox*k}px ${oy*k}px`}const tt={opacity:1,x:0,y:0,scale:1,rotate:0,filter:'blur(0px)',duration:d,ease:EASE[a]||'power3.out'};
     if('clipPath' in fr){tt.clipPath='inset(-60px -60px -60px -60px)';fr.opacity=1}
     if(['bubble','tail','btxt'].includes(a)&&el.closest('[data-manual]')){(BUB[t]||(BUB[t]=[])).push(el);return}
     tl.fromTo(el,{...fr},tt,t)});
@@ -85,12 +90,12 @@ const normCards=()=>{const cs=$$('.pcard');if(!cs.length)return;const P=34,SB=14
   m.forEach(({c,bg,u,src,t,h,sh})=>{c.closest('.pcw').style.setProperty('--h',H);bg.style.height=`calc(var(--u)*${H})`;
     const room=H-P-(sh?sh+SB+20:P);c.style.setProperty('--dy',(P+(room-P-h)/2-t).toFixed(2));
     src.forEach(e=>e.style.translate=`0 calc(var(--u)*${(H-SB-sh-e.offsetTop/u).toFixed(2)})`)})};
-const fitCards=()=>$$('.pcw').forEach(c=>{const box=c.closest('.st-items').getBoundingClientRect(),u=innerWidth/1400;
+const fitCards=()=>$$('.pcw').forEach(c=>{const box=c.closest('.st-items').getBoundingClientRect(),u=U0();
   c.style.setProperty('--s',Math.min(box.width/(+c.style.getPropertyValue('--w')*u),box.height/(+c.style.getPropertyValue('--h')*u)).toFixed(3))});
 /* all five interview items share one scale, so their headings and quotes stay the same size */
 const fitIv=()=>{const its=$$('.iv .st-item');its.forEach(it=>it.style.removeProperty('--u'));let k=1;
   its.forEach(it=>{const h=it.scrollHeight,H=it.clientHeight;if(h>H)k=Math.min(k,H/h)});
-  its.forEach(it=>{if(k<1)it.style.setProperty('--u',`calc(100vw / 1400 * ${k.toFixed(4)})`)})};
+  its.forEach(it=>{if(k<1)it.style.setProperty('--u',`calc((100vw - 200px) / 1320 * ${k.toFixed(4)})`)})};
 fitCards();addEventListener('resize',fitCards);
 const IVS=['확신 없으면 출발하지 않아요','방송보다, 다가오는 위험','보기 전에 먼저 짚어줘요','배터리로 어디까지 갈까','쓸 수 있는 화장실은 4곳 중 1곳'];
 /* ---------- interview → top-tab story; each finding plays its chart, then its quotes ---------- */
@@ -128,7 +133,7 @@ const fresh=tl=>{if(tl){tl.timeScale(1);tl.restart()}};
 /* one-screen sections: the header keeps the page's type size; only the figure below it is scaled to fit the screen,
    and a full-width card in the figure is stretched back to the page margins */
 const TOPV=e=>{const m=(e.getAttribute('style')||'').match(/top:calc\(var\(--u\)\*(-?[\d.]+)\)/);return m?+m[1]:0};
-const fitPin=f=>{const u0=innerWidth/1400,avail=innerHeight-64-14;f.style.removeProperty('--u');
+const fitPin=f=>{const u0=U0(),avail=innerHeight-64-60;f.style.removeProperty('--u');
   if(f.classList.contains('fx')){const fh=+f.style.getPropertyValue('--fh');let fb=f.querySelector(':scope>.fbody');
     if(!fb){fb=document.createElement('div');fb.className='fbody';
       [...f.children].forEach(e=>{if(!(e.dataset.g||'').startsWith('hdr')&&TOPV(e)>=300)fb.appendChild(e)});f.appendChild(fb)}
@@ -142,10 +147,10 @@ const fitPin=f=>{const u0=innerWidth/1400,avail=innerHeight-64-14;f.style.remove
   const kids=[...f.children],head=kids[0],body=kids.slice(1);body.forEach(b=>b.style.removeProperty('--u'));
   const hh=head.getBoundingClientRect().height,bh=body.reduce((a,b)=>a+b.getBoundingClientRect().height,0);
   const mt=head.classList.contains('fx')?-84*u0:0;f.style.marginTop=mt+'px';
-  const k=Math.min(1,(avail-hh-mt)/Math.max(1,bh));body.forEach(b=>b.style.setProperty('--u',`calc(100vw / 1400 * ${k.toFixed(4)})`))};
-const fitAll=()=>$$('.fit').forEach(f=>{if(f.closest('.pinfit'))return fitPin(f);f.style.removeProperty('--u');const u=innerWidth/1400,nav=64;
+  const k=Math.min(1,(avail-hh-mt)/Math.max(1,bh));body.forEach(b=>b.style.setProperty('--u',`calc((100vw - 200px) / 1320 * ${k.toFixed(4)})`))};
+const fitAll=()=>$$('.fit').forEach(f=>{if(f.closest('.pinfit'))return fitPin(f);f.style.removeProperty('--u');const u=U0(),nav=64;
   const h=f.style.getPropertyValue('--fh')?(+f.style.getPropertyValue('--fh'))*u:f.scrollHeight;
-  const s=Math.min(1,(innerHeight-nav-16)/h);f.style.setProperty('--u',`calc(100vw / 1400 * ${s.toFixed(4)})`)});
+  const s=Math.min(1,(innerHeight-nav-60)/h);f.style.setProperty('--u',`calc((100vw - 200px) / 1320 * ${s.toFixed(4)})`)});
 fitAll();normCards();fitCards();fitIv();addEventListener('resize',()=>{fitAll();normCards();fitCards();fitIv()});
 /* stepped scene: pinned for one screen, one gesture = one step, each step must finish before the next */
 const mkStep=(el,n,show,o={})=>{let cur=-1,live=false,cool=0;const st={dl:[],tl:[]};
@@ -440,7 +445,7 @@ $$('.trip').forEach(t=>{const c=t.querySelector('.tp-c .tpm'),l=t.querySelector(
   const S=()=>{const {b}=R();return Math.min(innerWidth/b.width,innerHeight/b.height)};
   const cy=()=>{const {b,sb}=R();return (sb.top+sb.height/2)-(b.top+b.height/2)};
   const tl=gsap.timeline({scrollTrigger:{trigger:t,start:'top top',end:()=>'+='+innerHeight*1.3,pin:true,scrub:.7,invalidateOnRefresh:true}});
-  tl.fromTo(c,{scale:S,y:cy,borderRadius:0},{scale:1,y:0,borderRadius:()=>(22*innerWidth/1400)+'px',ease:'power2.inOut',duration:1},0)
+  tl.fromTo(c,{scale:S,y:cy,borderRadius:0},{scale:1,y:0,borderRadius:()=>(22*U0())+'px',ease:'power2.inOut',duration:1},0)
     .fromTo(l,{xPercent:-130,opacity:0},{xPercent:0,opacity:1,ease:'power3.out',duration:.6},.45)
     .fromTo(r,{xPercent:130,opacity:0},{xPercent:0,opacity:1,ease:'power3.out',duration:.6},.45)
     .fromTo([k,...caps],{opacity:0,y:18},{opacity:1,y:0,stagger:.06,duration:.3},.85)});
@@ -463,7 +468,12 @@ const mkShot=sx=>{const sh=sx.querySelector('.ashot'),sp=sh.querySelector('.spot
     .fromTo(cr,{opacity:0,x:40},{opacity:1,x:0,stagger:.06,duration:.4,ease:'power3.out'},.3);
   bd.forEach((b,k)=>{if(k)tl.to(sp,{'--sx':b.style.left,'--sy':b.style.top,duration:.7,ease:'power2.inOut'});marks.push(tl.duration()-(k?.35:0));
     tl.fromTo(b,{scale:1},{scale:1.35,duration:.25,yoyo:true,repeat:1,ease:'power2.out'},'>-.1').to({},{duration:.9})});
-  scrubScene(sx,tl,marks,k=>{sp.classList.add('on');bd.forEach((x,j)=>x.classList.toggle('on',j===k));cr.forEach((c,j)=>{c.classList.toggle('on',j===k);c.classList.toggle('seen',j<k)})},.3);
+  /* the explanation lives in one caption under the screen, so the card list never changes height */
+  const cap=document.createElement('div');cap.className='adesc';sh.after(cap);let cur=-1;
+  const show=k=>{if(k===cur)return;cur=k;const c=cr[k];if(!c)return;const ps=c.querySelectorAll('p'),txt=ps[ps.length-1];
+    cap.innerHTML=`<p class="ak">${(c.querySelector('p')||{}).innerHTML||''}</p><h4>${(c.querySelector('h4')||{}).innerHTML||''}</h4><p>${txt?txt.innerHTML:''}</p>`;
+    gsap.fromTo(cap.children,{opacity:0,y:12},{opacity:1,y:0,stagger:.05,duration:.4,ease:'power2.out',overwrite:true})};
+  scrubScene(sx,tl,marks,k=>{sp.classList.add('on');bd.forEach((x,j)=>x.classList.toggle('on',j===k));cr.forEach((c,j)=>{c.classList.toggle('on',j===k);c.classList.toggle('seen',j<k)});show(k)},.3);
   $$('.bdg,.acard',sx).forEach(b=>b.onclick=()=>sx._go&&sx._go(+b.dataset.i))};
 /* field-of-view: reasoning first, then the lens grows to the whole screen while its zones stay drawn */
 const mkFov=sx=>{const z=$$('.fovz .z',sx),hz=sx.querySelector('.hz'),shot=sx.querySelector('.fovshot'),t=sx.querySelector('.fovt'),fit=sx.querySelector('.fit');
