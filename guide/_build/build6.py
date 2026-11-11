@@ -568,6 +568,17 @@ if __name__ == '__main__':
         if not plain or re.fullmatch(r'[A-Z0-9 ·&—\-–:/.()%×+]+', plain) or len(plain) < 6: return tag
         return re.sub(r'font-size:calc\(var\(--u\)\*([\d.]+)\)', lambda q: f'font-size:calc(var(--u)*{float(q.group(1)) + (1.5 if float(q.group(1)) < 15 else 0):.2f})', tag, count=1)
     secs = [x if 'id="s10flow"' in x else re.sub(r'(<p class="fe ft[^"]*"[^>]*>)(.*?)</p>', bump_el, x, flags=re.S) for x in secs]
+    # Problem charts share one small-type pair: labels 12, values / chart text 14
+    def pmap(x):
+        def tag(m):
+            t = m.group(0)
+            if 'data-g="hdr' in t: return t
+            def fs(q):
+                v = float(q.group(1)); v = 12 if v < 12.5 else 14 if v < 15.9 else v
+                return f'font-size:calc(var(--u)*{v:g})'
+            return re.sub(r'font-size:calc\(var\(--u\)\*([\d.]+)\)', fs, t)
+        return re.sub(r'<[^>]*class="fe[^"]*"[^>]*>', tag, x) if 'id="s03problem"' in x else x
+    secs = [pmap(x) for x in secs]
     def fig_tag(m):
         t = m.group(0)
         if 'data-g="hdr' in t and t.startswith('<p'):

@@ -772,3 +772,32 @@ section,.fit,.st-item{--k:14u;--b:17u;--en:14u;--ct:24u;--cb:17u;--pad:20u 24u;-
 .ux .xg{grid-template-columns:minmax(0,860fr) minmax(0,476fr)}
 .ux .xzi img{max-width:100%;object-fit:contain}
 /*}U*/
+/* ===================== v22 ===================== */
+/*U{*/
+.pcard > .fe:not(:first-child){translate:0 calc(var(--u)*var(--dy,0))}
+.fbody{pointer-events:auto}
+/* interview: heading and quote beside the chart, centred, so the item needs less height */
+.iv .ig{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:24u;row-gap:16u;max-width:1320u;margin:0 auto;width:100%;align-content:center}
+.iv .ig .ih{grid-column:2;grid-row:1}
+.iv .ig .row{display:contents}
+.iv .ig .cbox{grid-column:1;grid-row:1/3}
+.iv .ig .qcard{grid-column:2;grid-row:2;align-self:stretch}
+.iv .st-items{display:flex;align-items:center}
+.story.top .st-nav li,.story.top .st-nav li span,.story.top .st-nav li strong{font-size:17u}
+/* solution: the back-home label sits under the dashed line again (it is no longer clipped) */
+.trl span{left:8u!important;top:4u!important;font-size:14u}
+/*}U*/
+/*U{*/
+.story.scr .st-item{transform:none;opacity:1}
+/*}U*/
+/*U{*/
+.iv .qt .ko{font-size:25u!important;line-height:1.5}
+.iv .qt .en{font-size:16u!important}
+.iv .who{font-size:15u}
+.iv .ig .ih h3{font-size:28u!important}
+/*}U*/
+/*U{*/
+.iv .qt .ko{font-size:22u!important}
+.iv .qt .en{font-size:15u!important}
+.iv .qcard{gap:12u}
+/*}U*/

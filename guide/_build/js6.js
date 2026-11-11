@@ -75,6 +75,11 @@ $$('#s02overview').forEach(o=>{const t=o.querySelector('.ovtitle'),c=o.querySele
   gsap.fromTo(v,{scale:1.18},{scale:1,ease:'none',scrollTrigger:{trigger:o,start:'top bottom',end:'bottom top',scrub:true}});
   gsap.to(c,{opacity:0,scale:.92,filter:'blur(8px)',ease:'none',scrollTrigger:{trigger:o.querySelector('.ovs'),start:'top 90%',end:'top 30%',scrub:true}})});
 
+/* Problem cards: the same white box for all four, the figure centred in it with equal top / bottom padding */
+const normCards=()=>{const cs=$$('.pcard');if(!cs.length)return;const P=34;const m=cs.map(c=>{const bg=c.firstElementChild,u=bg.offsetWidth/652||1;
+    let t=1e9,b=-1e9;[...c.children].slice(1).forEach(e=>{if(!e.offsetHeight)return;t=Math.min(t,e.offsetTop);b=Math.max(b,e.offsetTop+e.offsetHeight)});return {c,bg,u,t:t/u,h:(b-t)/u}});
+  const H=Math.max(...m.map(x=>x.h))+2*P;
+  m.forEach(({c,bg,t,h})=>{c.closest('.pcw').style.setProperty('--h',H);bg.style.height=`calc(var(--u)*${H})`;c.style.setProperty('--dy',(P+(H-2*P-h)/2-t).toFixed(2))})};
 const fitCards=()=>$$('.pcw').forEach(c=>{const box=c.closest('.st-items').getBoundingClientRect(),u=innerWidth/1400;
   c.style.setProperty('--s',Math.min(box.width/(+c.style.getPropertyValue('--w')*u),box.height/(+c.style.getPropertyValue('--h')*u)).toFixed(3))});
 /* all five interview items share one scale, so their headings and quotes stay the same size */
@@ -115,10 +120,28 @@ const stop=e=>{e.cancelable&&e.preventDefault()};
 const done=tl=>!tl||tl.progress()>=1;
 const hurry=tl=>{if(!tl||tl.progress()>=1)return;if(!tl.isActive())tl.play();tl.timeScale(3.2)};
 const fresh=tl=>{if(tl){tl.timeScale(1);tl.restart()}};
-const fitAll=()=>$$('.fit').forEach(f=>{f.style.removeProperty('--u');const u=innerWidth/1400,nav=64;
+/* one-screen sections: the header keeps the page's type size; only the figure below it is scaled to fit the screen,
+   and a full-width card in the figure is stretched back to the page margins */
+const TOPV=e=>{const m=(e.getAttribute('style')||'').match(/top:calc\(var\(--u\)\*(-?[\d.]+)\)/);return m?+m[1]:0};
+const fitPin=f=>{const u0=innerWidth/1400,avail=innerHeight-64-14;f.style.removeProperty('--u');
+  if(f.classList.contains('fx')){const fh=+f.style.getPropertyValue('--fh');let fb=f.querySelector(':scope>.fbody');
+    if(!fb){fb=document.createElement('div');fb.className='fbody';
+      [...f.children].forEach(e=>{if(!(e.dataset.g||'').startsWith('hdr')&&TOPV(e)>=300)fb.appendChild(e)});f.appendChild(fb)}
+    const y0=Math.min(...[...fb.children].map(TOPV)),bh=fh-y0,head=(300-84)*u0;
+    const k=Math.min(1,(avail-head-10)/(bh*u0)),u1=u0*k;
+    f.style.marginTop=(-84*u0)+'px';f.style.height=(300*u0+bh*u1+10)+'px';
+    Object.assign(fb.style,{position:'absolute',left:(1400*(u0-u1)/2)+'px',top:(300*u0+10-y0*u1)+'px',width:(1400*u1)+'px',height:(fh*u1)+'px'});
+    fb.style.setProperty('--u',u1+'px');
+    [...fb.children].forEach(e=>{const st=e.getAttribute('style')||'';if(/left:calc\(var\(--u\)\*40(\.00)?\)/.test(st)&&/width:calc\(var\(--u\)\*1320(\.00)?\)/.test(st)){
+      const W=1320*u0/u1;e.style.left=`calc(var(--u)*${40-(W-1320)/2})`;e.style.width=`calc(var(--u)*${W})`}});return}
+  const kids=[...f.children],head=kids[0],body=kids.slice(1);body.forEach(b=>b.style.removeProperty('--u'));
+  const hh=head.getBoundingClientRect().height,bh=body.reduce((a,b)=>a+b.getBoundingClientRect().height,0);
+  const mt=head.classList.contains('fx')?-84*u0:0;f.style.marginTop=mt+'px';
+  const k=Math.min(1,(avail-hh-mt)/Math.max(1,bh));body.forEach(b=>b.style.setProperty('--u',`calc(100vw / 1400 * ${k.toFixed(4)})`))};
+const fitAll=()=>$$('.fit').forEach(f=>{if(f.closest('.pinfit'))return fitPin(f);f.style.removeProperty('--u');const u=innerWidth/1400,nav=64;
   const h=f.style.getPropertyValue('--fh')?(+f.style.getPropertyValue('--fh'))*u:f.scrollHeight;
   const s=Math.min(1,(innerHeight-nav-16)/h);f.style.setProperty('--u',`calc(100vw / 1400 * ${s.toFixed(4)})`)});
-fitAll();fitIv();addEventListener('resize',()=>{fitAll();fitCards();fitIv()});
+fitAll();normCards();fitCards();fitIv();addEventListener('resize',()=>{fitAll();normCards();fitCards();fitIv()});
 /* stepped scene: pinned for one screen, one gesture = one step, each step must finish before the next */
 const mkStep=(el,n,show,o={})=>{let cur=-1,live=false,cool=0;const st={dl:[],tl:[]};
   {const sec=el.closest('section');if(sec&&sec!==el){const cs=getComputedStyle(sec);if(getComputedStyle(el).backgroundColor==='rgba(0, 0, 0, 0)'){el.style.backgroundColor=cs.backgroundColor==='rgba(0, 0, 0, 0)'?'#F4F5F7':cs.backgroundColor;if(cs.backgroundImage!=='none')el.style.backgroundImage=cs.backgroundImage}}}
@@ -325,7 +348,7 @@ $$('.so .scard').forEach((cd,ci)=>{const tl=gsap.timeline({paused:true});cd._tl=
       tl.fromTo(mk,{opacity:0,scale:0},{opacity:1,scale:1,duration:.45,ease:'expo.out'},t);
       tl.to(segs,{x:3,duration:.06,repeat:5,yoyo:true,ease:'none'},t+.05);
       tl.to(trv,{'--bad':1,duration:.2},t);t+=.5;
-      tl.fromTo(back,{opacity:1,clipPath:'inset(0 0 0 100%)',left:()=>X(segs[0])+'px',width:()=>(X(last)+W(last)-X(segs[0]))+'px'},{clipPath:'inset(0 0 0 0%)',duration:1.1,ease:'power1.inOut'},t);
+      tl.fromTo(back,{opacity:1,clipPath:'inset(-30px 0 -40px 100%)',left:()=>X(segs[0])+'px',width:()=>(X(last)+W(last)-X(segs[0]))+'px'},{clipPath:'inset(-30px 0 -40px 0%)',duration:1.1,ease:'power1.inOut'},t);
       tl.to(trv,{x:()=>X(segs[0])-10,duration:1.1,ease:'power1.inOut'},t);
       tl.fromTo(em,{opacity:0,x:-8},{opacity:1,x:0,duration:.35},t+.6);t+=1.3}
     else{
@@ -380,7 +403,7 @@ const mkSol=sx=>{const cards=$$('.scard',sx);
   ScrollTrigger.create({trigger:sx,start:'top top',end:()=>'+='+innerHeight*Math.max(2,tl.duration()*.3),pin:true,pinSpacing:true,scrub:.6,animation:tl,invalidateOnRefresh:true})};
 /* data loop: a light keeps travelling round the ring once it is drawn */
 $$('#s15loop').forEach(sec=>{const ring=sec.querySelector('[data-a="ring"]');if(!ring)return;const orb=document.createElement('i');orb.className='orb';ring.parentElement.appendChild(orb);
-  const put=()=>{orb.style.left=ring.offsetLeft+'px';orb.style.top=ring.offsetTop+'px';orb.style.width=ring.offsetWidth+'px';orb.style.height=ring.offsetHeight+'px'};put();addEventListener('resize',put);addEventListener('load',put);
+  const put=()=>{if(orb.parentElement!==ring.parentElement)ring.parentElement.appendChild(orb);orb.style.left=ring.offsetLeft+'px';orb.style.top=ring.offsetTop+'px';orb.style.width=ring.offsetWidth+'px';orb.style.height=ring.offsetHeight+'px'};put();addEventListener('resize',put);addEventListener('load',put);
   (sec._tls||(sec._tls=[])).push(gsap.timeline({paused:true}).fromTo(orb,{opacity:0},{opacity:1,duration:.5},1.6))});
 /* pins are created in page order */
 $$('.chap:not(#sc4), .story, .big, .pinfit:not(#s15loop), #s05journey, .so2').forEach(el=>{if(el.classList.contains('chap'))return mkChap(el);if(el.classList.contains('so')&&el.classList.contains('big'))return mkSo(el);if(el.classList.contains('so2'))return mkSol(el);
@@ -487,5 +510,5 @@ ScrollTrigger.getAll().filter(t=>t.pin).forEach(t=>{const el=t.pin,sp=el.parentE
   gsap.fromTo(inner,{scale:.93,opacity:.3,y:70},{scale:1,opacity:1,y:0,ease:'none',scrollTrigger:{trigger:sp,start:'top bottom',end:'top top',scrub:true}});
   gsap.fromTo(inner,{scale:1,opacity:1,y:0},{scale:.94,opacity:.2,y:-60,ease:'none',immediateRender:false,scrollTrigger:{trigger:sp,start:'bottom bottom',end:'bottom top',scrub:true}})});
 const seam=()=>$$('.pin-spacer').forEach(sp=>{const el=sp.firstElementChild;if(!el)return;const c=getComputedStyle(el.tagName==='SECTION'?el:el.closest('section')||el);sp.style.backgroundColor=c.backgroundColor;sp.style.backgroundImage=c.backgroundImage});
-const refit=()=>{seam();fitAll();fitCards();fitIv();ScrollTrigger.refresh()};addEventListener('load',refit);document.fonts&&document.fonts.ready.then(refit);
+const refit=()=>{seam();fitAll();normCards();fitCards();fitIv();ScrollTrigger.refresh()};addEventListener('load',refit);document.fonts&&document.fonts.ready.then(refit);
 })();
