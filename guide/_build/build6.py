@@ -321,7 +321,7 @@ def loop():
     rows = ['2616:39525', '2616:39531', '2616:39537', '2616:39543', '2616:39549']
     for k, r in enumerate(rows):
         sp.put([n['id'] for n in nodes if inside(n, byid[r]) and n['id'] != r and n['k'] != 'G'], 'left', t + k * .3, g, .05)
-    return section('15loop', 'fx', apply_spec(h, sp), S['h'], sec_bg(S))
+    return pinfit('15loop', '', apply_spec(h, sp), S)
 
 # ------------------------------------------------------------------ hand-built headers
 TITLE_NODE = {'t_iv': ('2616:37830', 'Getting there starts before leaving'), 't_hy': ('2616:38100', '12 interviews rewrote our hypotheses'),

@@ -686,3 +686,14 @@ section,.fit,.st-item{--k:14u;--b:17u;--en:14u;--ct:19u;--cb:16u}
 .ksl{position:absolute;left:0;right:0;top:calc(46% + 150u);margin:0;text-align:center;font-size:34u;font-weight:700;letter-spacing:-.02em;color:#14191C;z-index:4;pointer-events:none}
 .xf,.lxm{will-change:transform,opacity}
 /*}U*/
+/* ===================== v19 ===================== */
+/*U{*/
+.orb{position:absolute;border-radius:50%;pointer-events:none;animation:orbit 5s linear infinite;z-index:3}
+.orb::before{content:"";position:absolute;inset:-2px;border-radius:50%;background:conic-gradient(from 0deg,rgba(113,203,248,0) 0 62%,rgba(113,203,248,.95) 100%);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 5px),#000 calc(100% - 4px));mask:radial-gradient(farthest-side,transparent calc(100% - 5px),#000 calc(100% - 4px))}
+.orb::after{content:"";position:absolute;left:50%;top:-7px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(113,203,248,.35),0 0 22px 6px #71CBF8}
+@keyframes orbit{to{transform:rotate(360deg)}}
+.rip{position:absolute;width:0;height:0;pointer-events:none;z-index:2}
+.rip::before,.rip::after{content:"";position:absolute;left:-30u;top:-30u;width:60u;height:60u;border-radius:50%;border:2px solid #1FACF4;opacity:0}
+.rip.go::before{animation:oping 1s ease-out 1}.rip.go::after{animation:oping 1s ease-out .25s 1}
+#s16concl,#s17thanks{overflow:visible}
+/*}U*/

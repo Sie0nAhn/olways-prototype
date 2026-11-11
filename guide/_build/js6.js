@@ -36,7 +36,7 @@ gsap.from('#s01cover .cv',{scale:1.18,duration:2.2,ease:'power2.out'});
 gsap.from('#s01cover .b',{y:60,opacity:0,duration:1.3,ease:'power3.out',stagger:.18,delay:.3});
 gsap.to('#s01cover .cv',{yPercent:12,scale:1.06,ease:'none',scrollTrigger:{trigger:'#s01cover',start:'top top',end:'bottom top',scrub:true}});
 /* remaining raster sections */
-$$('.rs:not(#s01cover)').forEach(sec=>{const m=sec.dataset.anim;$$('.b',sec).forEach((el,i)=>{
+$$('.rs:not(#s01cover):not(#s16concl):not(#s17thanks)').forEach(sec=>{const m=sec.dataset.anim;$$('.b',sec).forEach((el,i)=>{
   const fr=el.classList.contains('title')?{clipPath:'inset(0 50% 0 50%)',opacity:0}:el.classList.contains('dissolve')||m==='dissolve'?{opacity:0,scale:.85,filter:'blur(10px)'}:
     m==='flip'?{rotateY:-60,opacity:0,transformPerspective:1000,transformOrigin:'0% 50%'}:{y:60,opacity:0};
   gsap.fromTo(el,fr,{clipPath:'inset(0 0% 0 0%)',opacity:1,y:0,rotateY:0,scale:1,filter:'blur(0px)',duration:1.1,ease:'power3.out',delay:(i%3)*.08,scrollTrigger:ST(el,'top 92%')})})});
@@ -266,7 +266,10 @@ const mkJourney=sec=>{const tl=TL['2616:37657'];if(!tl)return;
   const groups=Object.entries(BUB).map(([t,els])=>{const w=document.createElement('div');w.className='bgrp';sec.appendChild(w);els.forEach(e=>{w.appendChild(e);gsap.set(e,{opacity:1,clearProps:'transform,clipPath'})});
     gsap.set(w,{opacity:0,y:26});return {t:+t,w,on:false}});
   /* bubbles follow the drawn line itself (the scrubbed time), so they never appear before the line reaches their dot */
+  const dots=$$('[data-a="pop"]',sec);groups.forEach(g=>{const d=dots.slice().sort((a,b)=>Math.abs(+a.dataset.t-g.t)-Math.abs(+b.dataset.t-g.t))[0];if(!d)return;
+    const r=document.createElement('i');r.className='rip';sec.appendChild(r);g.rip=r;g.dot=d});
   tl.eventCallback('onUpdate',()=>{const now=tl.time();groups.forEach(g=>{const want=now>=g.t;if(want!==g.on){g.on=want;
+      if(want&&g.rip){g.rip.style.left=(g.dot.offsetLeft+g.dot.offsetWidth/2)+'px';g.rip.style.top=(g.dot.offsetTop+g.dot.offsetHeight/2)+'px';g.rip.classList.remove('go');void g.rip.offsetWidth;g.rip.classList.add('go')}
       gsap.to(g.w,want?{opacity:1,y:0,duration:.6,ease:'power3.out',overwrite:true}:{opacity:0,y:18,duration:.25,ease:'power2.in',overwrite:true})}})});
   ScrollTrigger.create({trigger:sec,start:'top top',end:()=>'+='+innerHeight*1.6,pin:true,pinSpacing:true,scrub:.5,animation:tl})};
 
@@ -351,11 +354,16 @@ const mkSol=sx=>{const cards=$$('.scard',sx);
     tl.fromTo(c,{opacity:0,xPercent:60,scale:.92,filter:'blur(6px)'},{opacity:1,xPercent:0,scale:1,filter:'blur(0px)',duration:.8,ease:'power2.inOut'},i?'<':0);
     if(c._tl){c._tl.paused(false);tl.add(c._tl.progress(0),'>')}tl.to({},{duration:.5})});
   ScrollTrigger.create({trigger:sx,start:'top top',end:()=>'+='+innerHeight*Math.max(2,tl.duration()*.3),pin:true,pinSpacing:true,scrub:.6,animation:tl,invalidateOnRefresh:true})};
+/* data loop: a light keeps travelling round the ring once it is drawn */
+$$('#s15loop').forEach(sec=>{const ring=sec.querySelector('[data-a="ring"]');if(!ring)return;const orb=document.createElement('i');orb.className='orb';ring.parentElement.appendChild(orb);
+  const put=()=>{orb.style.left=ring.offsetLeft+'px';orb.style.top=ring.offsetTop+'px';orb.style.width=ring.offsetWidth+'px';orb.style.height=ring.offsetHeight+'px'};put();addEventListener('resize',put);addEventListener('load',put);
+  (sec._tls||(sec._tls=[])).push(gsap.timeline({paused:true}).fromTo(orb,{opacity:0},{opacity:1,duration:.5},1.6))});
 /* pins are created in page order */
-$$('.chap:not(#sc4), .story, .big, .pinfit, #s05journey, .so2').forEach(el=>{if(el.classList.contains('chap'))return mkChap(el);if(el.classList.contains('so')&&el.classList.contains('big'))return mkSo(el);if(el.classList.contains('so2'))return mkSol(el);
+$$('.chap:not(#sc4), .story, .big, .pinfit:not(#s15loop), #s05journey, .so2').forEach(el=>{if(el.classList.contains('chap'))return mkChap(el);if(el.classList.contains('so')&&el.classList.contains('big'))return mkSo(el);if(el.classList.contains('so2'))return mkSol(el);
   if(el.classList.contains('story'))mkStory(el);else if(el.classList.contains('big'))mkBig(el);else if(el.id==='s05journey')mkJourney(el);else mkFit(el)});
 /* usability test setup cards */
-$$('.ut .usetup .ucard').forEach((c,i)=>{const tl=gsap.fromTo(c,{opacity:0,y:40},{opacity:1,y:0,duration:.8,ease:'power3.out',delay:i*.08,scrollTrigger:ST(c,'top 90%')});soft(c,tl)});
+/* usability-test setup cards tip up into place like cards being dealt */
+$$('.ut .usetup').forEach(u=>gsap.fromTo($$('.ucard',u),{opacity:0,y:120,rotateX:-50,scale:.86,transformPerspective:900,transformOrigin:'50% 100%',filter:'blur(8px)'},{opacity:1,y:0,rotateX:0,scale:1,filter:'blur(0px)',stagger:.18,ease:'power2.out',scrollTrigger:{trigger:u,start:'top 96%',end:'top 38%',scrub:.6}}));
 /* ---- usability test: the screen slides to the next version, the changed spot is circled, then its close-up opens ---- */
 $$('.ux').forEach(ux=>{const figs=$$('.xf',ux),zs=$$('.xz',ux),tabs=$$('.xt',ux),bar=ux.querySelector('.xbar em'),n=figs.length;
   const intro=[ux.querySelector('.xh'),ux.querySelector('.xtabs'),ux.querySelector('.xps'),...$$('.xq',ux),...$$('.xside>.xwhy',ux)].filter(Boolean);
@@ -444,6 +452,12 @@ $$('.hh .hsub, [data-wr]').forEach(el=>{if(el.dataset.done||el.closest('.big,.st
   walk(el);gsap.to(el.querySelectorAll('.wr'),{opacity:1,stagger:.1,ease:'none',scrollTrigger:{trigger:el,start:'top 82%',end:'top 42%',scrub:.4}})});
 
 $$('#sc4').forEach(mkChap);
+$$('#s15loop').forEach(mkFit);
+$$('#s16concl, #s17thanks').forEach(sec=>{const bs=$$('.b',sec),th=sec.id==='s17thanks';
+  const tl=gsap.timeline({scrollTrigger:th?{trigger:sec,start:'top 95%',end:'bottom bottom',scrub:.7}:{trigger:sec,start:'center center',end:()=>'+='+innerHeight*1.4,pin:true,pinSpacing:true,scrub:.7}});
+  if(th)tl.fromTo(bs,{opacity:0,scale:2.4,filter:'blur(18px)'},{opacity:1,scale:1,filter:'blur(0px)',stagger:.15,duration:1,ease:'power3.out'},0);
+  else tl.fromTo(bs,{opacity:0,y:140,rotateX:-60,scale:.8,transformPerspective:900,transformOrigin:'50% 100%',filter:'blur(10px)'},{opacity:1,y:0,rotateX:0,scale:1,filter:'blur(0px)',stagger:.14,duration:.7,ease:'power3.out'},0);
+  tl.to({},{duration:.5})});
 ScrollTrigger.getAll().filter(t=>t.pin).forEach(t=>{const el=t.pin,sp=el.parentElement;
   const inner=el.querySelector(':scope > .fit, :scope > .st-stage, :scope > .tstage, :scope > .sow');if(!inner||!sp||!sp.classList.contains('pin-spacer'))return;
   gsap.fromTo(inner,{scale:.93,opacity:.3,y:70},{scale:1,opacity:1,y:0,ease:'none',scrollTrigger:{trigger:sp,start:'top bottom',end:'top top',scrub:true}});
