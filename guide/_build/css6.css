@@ -667,3 +667,14 @@ section,.fit,.st-item{--k:14u;--b:17u;--en:14u;--ct:19u;--cb:16u}
 /*U{*/
 .so2 .lanes{display:flex;flex-direction:column;gap:26u}
 /*}U*/
+/* ===================== v17 ===================== */
+/*U{*/
+.hh .hsub .hl{font-size:inherit;font-weight:800}
+.big.so .ghost{position:absolute;inset:0;top:0;left:0;right:0;display:flex;flex-direction:column;justify-content:center;gap:26u;padding:0 90u;font-size:inherit;z-index:2;pointer-events:none}
+.big.so .ghost .bs{font-size:56u;font-weight:600;max-width:1180u;text-align:left}
+.big.so .ghost .wr{opacity:.14}
+.big.so .ghost .bk{margin:0}
+/*}U*/
+/*U{*/
+.big.so .ghost .be{text-align:left}
+/*}U*/

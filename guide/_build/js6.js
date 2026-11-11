@@ -55,7 +55,11 @@ const BUB={};const G={};$$('[data-a][data-g]').forEach(el=>{(G[el.dataset.g]||(G
 Object.entries(G).forEach(([g,els])=>{const sec=els[0].closest('section');
   const trig=g.startsWith('hdr')||g==='ov'?els[0]:(document.getElementById('f'+g.replace(':','-'))||els[0]);
   const tl=gsap.timeline({paused:true});TL[g]=tl;
-  if(g.startsWith('hdr')||!els[0].closest('.story,[data-manual]'))ScrollTrigger.create({trigger:trig,start:g==='ov'?'top 70%':'top 76%',onEnter:()=>run(g),onLeaveBack:()=>tl.reverse()});
+  /* everything that animates in place follows the scroll (scrubbed) instead of playing on its own */
+  const inPin=els[0].closest('.pinfit'),inStory=els[0].closest('.story,[data-manual],.sx');
+  if(!inPin&&(!inStory||g.startsWith('hdr'))){
+    if(inStory)ScrollTrigger.create({trigger:trig,start:'top 76%',onEnter:()=>run(g),onLeaveBack:()=>tl.reverse()});
+    else ScrollTrigger.create({trigger:trig,start:'top 92%',end:()=>g.startsWith('hdr')?'top 45%':'center 50%',scrub:.6,animation:tl,invalidateOnRefresh:true})}
   els.forEach(el=>{const a=el.dataset.a,t=+el.dataset.t,d=+(el.dataset.dur||0)||(a==='draw'?1:a.startsWith('bar')?.7:.6);
     const fr={...(FROM[a]||FROM.rise)};
     if(el.dataset.o){const k=innerWidth/1400,[ox,oy]=el.dataset.o.split(',').map(Number);fr.transformOrigin=`${ox*k}px ${oy*k}px`}const tt={opacity:1,x:0,y:0,scale:1,rotate:0,filter:'blur(0px)',duration:d,ease:EASE[a]||'power3.out'};
@@ -170,6 +174,40 @@ const mkStory=st=>{const items=$$('.st-item',st);storyNav(st,0);
   mkStep(st,items.length,i=>{storyNav(st,i);count($$('.st-nav li',st)[i]&&$$('.st-nav li',st)[i].querySelector('strong'));const it=items[i],tl=it._tl||TL[it.dataset.g];fresh(tl);return {tl,dwell:500}},{per:.6});
   $$('.st-nav li',st).forEach((l,k)=>l.onclick=()=>st._go&&st._go(k))};
 /* ---- insight statements: card opens to the full screen, then the words light up (scrubbed) ---- */
+const splitW=n=>{[...n.childNodes].forEach(ch=>{if(ch.nodeType===3){const f=document.createDocumentFragment();
+    ch.textContent.split(/(\s+)/).forEach(w=>{if(!w)return;if(/^\s+$/.test(w))f.appendChild(document.createTextNode(w));else{const s=document.createElement('span');s.className='wr';s.textContent=w;f.appendChild(s)}});
+    ch.replaceWith(f)}else if(ch.nodeType===1)splitW(ch)})};
+/* So: Insight 02 is read in full, then the sentence itself shrinks into its card; Insight 01 comes back down from where it was;
+   their lines meet in one point and that point opens into the "So" */
+const mkSo=b=>{const gh=b.querySelector('.ghost'),gs=gh.querySelector('.bs'),sow=b.querySelector('.sow'),bs=sow.querySelector('.bs');
+  splitW(gs);splitW(bs);
+  const cards=$$('.mi',b),ps=$$('.mgl path',b),dot=b.querySelector('.mdot');
+  ps.forEach(p=>{const L=p.getTotalLength();p.style.strokeDasharray=L;p.style.strokeDashoffset=L});
+  gsap.set([sow.querySelector('.bk'),sow.querySelector('.be'),bs,...cards],{opacity:0});
+  let F=null;const fl=()=>{const o=gsap.getProperty(gh,'x'),oy=gsap.getProperty(gh,'y'),os=gsap.getProperty(gh,'scale');gsap.set(gh,{x:0,y:0,scale:1});
+    const g=gs.getBoundingClientRect(),c=cards[1].querySelector('p').getBoundingClientRect();gsap.set(gh,{x:o,y:oy,scale:os});return F={x:c.left-g.left,y:c.top-g.top,s:c.width/g.width}};
+  const Fx=()=>(F||fl());ScrollTrigger.addEventListener('refreshInit',()=>{F=null});
+  const tl=gsap.timeline({scrollTrigger:{trigger:b,start:'top top',end:()=>'+='+innerHeight*3,pin:true,pinSpacing:true,scrub:.7}});
+  tl.fromTo(b,{clipPath:'inset(18% 9% 18% 9% round 40px)'},{clipPath:'inset(0% 0% 0% 0% round 0px)',ease:'power2.inOut',duration:1},0)
+    .fromTo(gh.querySelector('.bk'),{opacity:0,y:24},{opacity:1,y:0,duration:.25},.55)
+    .to(gs.querySelectorAll('.wr'),{opacity:1,stagger:.05,duration:.2,ease:'none'},.7)
+    .fromTo(gh.querySelector('.be'),{opacity:0,y:20},{opacity:1,y:0,duration:.3},'>-.1')
+    .to({},{duration:.5})
+    .addLabel('fly')
+    .to([gh.querySelector('.bk'),gh.querySelector('.be')],{opacity:0,duration:.3},'fly')
+    .to(gh,{x:()=>Fx().x,y:()=>Fx().y,scale:()=>Fx().s,transformOrigin:()=>gs.offsetLeft+'px '+gs.offsetTop+'px',duration:1.1,ease:'power3.inOut'},'fly')
+    .to(gh,{opacity:0,duration:.35},'fly+=.8')
+    .fromTo(cards[1],{opacity:0},{opacity:1,duration:.35},'fly+=.75')
+    .fromTo(cards[0],{opacity:0,y:()=>-innerHeight*.55,scale:1.3,filter:'blur(8px)'},{opacity:1,y:0,scale:1,filter:'blur(0px)',duration:1,ease:'power3.out'},'fly+=.3')
+    .fromTo(cards[0].querySelector('i'),{opacity:0},{opacity:1,duration:.2},'fly+=1')
+    .to(ps,{strokeDashoffset:0,duration:.6,ease:'power2.inOut'},'fly+=1.3')
+    .fromTo(dot,{scale:0,opacity:0},{scale:1,opacity:1,duration:.25,ease:'power3.out'},'>-.05')
+    .to(cards,{opacity:.5,duration:.4},'<')
+    .fromTo(sow.querySelector('.bk'),{opacity:0,y:16},{opacity:1,y:0,duration:.3},'<')
+    .to(bs,{opacity:1,duration:.05},'<')
+    .to(bs.querySelectorAll('.wr'),{opacity:1,stagger:.05,duration:.2,ease:'none'},'>')
+    .fromTo(sow.querySelector('.be'),{opacity:0,y:16},{opacity:1,y:0,duration:.3},'>-.1')
+    .to({},{duration:.4})};
 const mkBig=b=>{const bs=b.querySelector('.bs');
   const walk=n=>{[...n.childNodes].forEach(ch=>{if(ch.nodeType===3){const f=document.createDocumentFragment();
       ch.textContent.split(/(\s+)/).forEach(w=>{if(!w)return;if(/^\s+$/.test(w))f.appendChild(document.createTextNode(w));else{const s=document.createElement('span');s.className='wr';s.textContent=w;f.appendChild(s)}});
@@ -197,10 +235,10 @@ const mkBig=b=>{const bs=b.querySelector('.bs');
     .fromTo(b.querySelector('.be'),{opacity:0,y:20},{opacity:1,y:0,duration:.3},'>-.1')
     .to({},{duration:.4})};
 /* ---- one-screen figures (positioning map, hypotheses): play, hold until drawn ---- */
-const mkFit=sec=>{const tls=sec._tls||[];const all=gsap.timeline({paused:true});
-  mkStep(sec,1,()=>{tls.forEach(t=>{t.timeScale(1);if(t.progress()<1)t.play()});
-    const tl={progress:()=>Math.min(...tls.map(t=>t.progress()),1),isActive:()=>tls.some(t=>t.isActive()),play:()=>tls.forEach(t=>t.play()),timeScale:v=>tls.forEach(t=>t.timeScale(v))};
-    return {tl,dwell:300}},{per:.35})};
+/* one-screen figures are scrubbed: the drawing follows the scroll, and the page cannot pass it before it is drawn */
+const mkFit=sec=>{const tls=sec._tls||[];const all=gsap.timeline();tls.forEach(t=>{t.paused(false);all.add(t.progress(0),0)});
+  all.to({},{duration:.6});
+  ScrollTrigger.create({trigger:sec,start:'top top',end:()=>'+='+innerHeight*Math.max(1.2,all.duration()*.32),pin:true,pinSpacing:true,scrub:.6,animation:all,invalidateOnRefresh:true})};
 /* ---- journey: the line follows the scroll; each speech bubble rises whole when the line reaches its dot ---- */
 const mkJourney=sec=>{const tl=TL['2616:37657'];if(!tl)return;
   const groups=Object.entries(BUB).map(([t,els])=>{const w=document.createElement('div');w.className='bgrp';sec.appendChild(w);els.forEach(e=>{w.appendChild(e);gsap.set(e,{opacity:1,clearProps:'transform,clipPath'})});
@@ -211,10 +249,10 @@ const mkJourney=sec=>{const tl=TL['2616:37657'];if(!tl)return;
   ScrollTrigger.create({trigger:sec,start:'top top',end:()=>'+='+innerHeight*1.6,pin:true,pinSpacing:true,scrub:.5,animation:tl})};
 
 /* headers */
-$$('.hh').forEach(h=>!h.closest('.st-top')&&gsap.fromTo(h.children,{opacity:0,y:26},{opacity:1,y:0,duration:.8,stagger:.09,ease:'power3.out',scrollTrigger:ST(h,'top 85%')}));
+$$('.hh').forEach(h=>!h.closest('.st-top')&&gsap.fromTo(h.children,{opacity:0,y:40},{opacity:1,y:0,stagger:.12,ease:'none',scrollTrigger:{trigger:h,start:'top 95%',end:'top 45%',scrub:.6}}));
 
 /* ---------- hypothesis: column by column, left to right ---------- */
-$$('.hgrid').forEach(g=>{const tl=gsap.timeline({scrollTrigger:{trigger:g,start:'top 70%',toggleActions:'play none none reverse'}});const sc=g.closest('section');(sc._tls||(sc._tls=[])).push(tl);let t=0;
+$$('.hgrid').forEach(g=>{const tl=gsap.timeline({paused:true});const sc=g.closest('section');(sc._tls||(sc._tls=[])).push(tl);let t=0;
   for(let c=0;c<5;c++){const els=$$(`[data-c="${c}"]`,g);
     if(c%2){tl.fromTo(els,{opacity:0,x:-14},{opacity:1,x:0,duration:.25,stagger:.05,ease:'power2.out'},t);t+=.2+.05*els.length}
     else{tl.fromTo(els,{opacity:0,scale:.88,x:-24},{opacity:1,scale:1,x:0,duration:.45,stagger:.12,ease:'expo.out'},t);t+=.3+.12*els.length}}
@@ -285,14 +323,14 @@ const edge=(el,last)=>{if(!el)return '#F4F5F7';const c=getComputedStyle(el);cons
 const secOf=el=>el.closest('#main > section')||el;
 const nbr=(sec,d)=>{const all=$$('#main > section');const i=all.indexOf(sec);return all[i+d]};
 /* solution: one card at a time is in focus; its lanes play — today bumps and turns back, olways goes through */
-const mkSol=sx=>{const cards=$$('.scard',sx),head=sx.querySelector('.hh');
-  gsap.set(cards,{opacity:0,xPercent:40});
-  mkStep(sx,cards.length,(i,back)=>{const tl=gsap.timeline();
-    cards.forEach((c,j)=>tl.to(c,{opacity:j===i?1:0,xPercent:j===i?0:j<i?-60:60,scale:j===i?1:.92,filter:j===i?'blur(0px)':'blur(6px)',duration:.9,ease:'power3.inOut'},0));
-    const ct=cards[i]._tl;if(ct){ct.timeScale(1);ct.restart();tl.add(()=>{},'+=0')}
-    return {tl:{progress:()=>Math.min(tl.progress(),ct?ct.progress():1),isActive:()=>tl.isActive()||(ct&&ct.isActive()),play:()=>{tl.play();ct&&ct.play()},timeScale:v=>{tl.timeScale(v);ct&&ct.timeScale(v)}},dwell:400}},{per:.7})};
+const mkSol=sx=>{const cards=$$('.scard',sx);
+  const tl=gsap.timeline();
+  cards.forEach((c,i)=>{if(i)tl.to(cards[i-1],{opacity:0,xPercent:-60,scale:.92,filter:'blur(6px)',duration:.8,ease:'power2.inOut'});
+    tl.fromTo(c,{opacity:0,xPercent:60,scale:.92,filter:'blur(6px)'},{opacity:1,xPercent:0,scale:1,filter:'blur(0px)',duration:.8,ease:'power2.inOut'},i?'<':0);
+    if(c._tl){c._tl.paused(false);tl.add(c._tl.progress(0),'>')}tl.to({},{duration:.5})});
+  ScrollTrigger.create({trigger:sx,start:'top top',end:()=>'+='+innerHeight*Math.max(2,tl.duration()*.3),pin:true,pinSpacing:true,scrub:.6,animation:tl,invalidateOnRefresh:true})};
 /* pins are created in page order */
-$$('.chap:not(#sc4), .story, .big, .pinfit, #s05journey, .so2').forEach(el=>{if(el.classList.contains('chap'))return mkChap(el);if(el.classList.contains('so2'))return mkSol(el);
+$$('.chap:not(#sc4), .story, .big, .pinfit, #s05journey, .so2').forEach(el=>{if(el.classList.contains('chap'))return mkChap(el);if(el.classList.contains('so')&&el.classList.contains('big'))return mkSo(el);if(el.classList.contains('so2'))return mkSol(el);
   if(el.classList.contains('story'))mkStory(el);else if(el.classList.contains('big'))mkBig(el);else if(el.id==='s05journey')mkJourney(el);else mkFit(el)});
 /* usability test setup cards */
 $$('.ut .usetup .ucard').forEach((c,i)=>{const tl=gsap.fromTo(c,{opacity:0,y:40},{opacity:1,y:0,duration:.8,ease:'power3.out',delay:i*.08,scrollTrigger:ST(c,'top 90%')});soft(c,tl)});
@@ -364,7 +402,7 @@ $$('.sx.an2').forEach(sx=>{const z=$$('.fovz .z',sx),hz=sx.querySelector('.hz'),
 
 /* ---- remaining in-place animations become soft scenes ---- */
 Object.entries(TL).forEach(([g,tl])=>{const el=document.getElementById('f'+g.replace(':','-'))||$(`[data-g="${g}"]`);
-  if(!el||el.closest('.story,.sx,.pinfit,[data-manual],.big'))return;
+  return;
   const sec=el.closest('section'),els=$$(`[data-g="${g}"]`,sec);
   /* the group's box: from its first to its last mark */
   const box=document.createElement('i');box.className='gbox';sec.appendChild(box);
@@ -375,7 +413,7 @@ Object.entries(TL).forEach(([g,tl])=>{const el=document.getElementById('f'+g.rep
 $$('.lsplit .lvid, .hp .lvid').forEach(v=>{const m=v.querySelector('video');
   gsap.fromTo(v,{clipPath:'inset(0% 50% 0% 50% round 20px)'},{clipPath:'inset(0% 0% 0% 0% round 20px)',ease:'power3.inOut',duration:1.2,scrollTrigger:ST(v,'top 80%')});
   m&&gsap.fromTo(m,{scale:1.25},{scale:1,ease:'power3.out',duration:1.6,scrollTrigger:ST(v,'top 80%')})});
-$$('.hh .htitle, .fx .fsv').forEach(t=>!t.closest('.st-top')&&gsap.fromTo(t,{clipPath:'inset(0 0 100% 0)',y:30},{clipPath:'inset(0 0 -10% 0)',y:0,duration:1,ease:'expo.out',scrollTrigger:ST(t,'top 88%')}));
+$$('.hh .htitle, .fx .fsv').forEach(t=>!t.closest('.st-top')&&gsap.fromTo(t,{clipPath:'inset(0 0 100% 0)',y:40},{clipPath:'inset(0 0 -10% 0)',y:0,ease:'none',scrollTrigger:{trigger:t,start:'top 96%',end:'top 60%',scrub:.6}}));
 
 /* ---------- headers: words light up one by one as you scroll (scrubbed) ---------- */
 $$('.hh .hsub, [data-wr]').forEach(el=>{if(el.dataset.done||el.closest('.big,.st-top'))return;el.dataset.done=1;

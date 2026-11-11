@@ -104,7 +104,8 @@ def big(kicker, ko, en_html, cls='', marks=()):
         cards = ('<div class="mg"><div class="mi"><i>Insight 01</i><p>외출 포기는 의지가 아니라<br><b>갈 수 있는지 몰라서</b>예요</p></div>'
                  '<div class="mi"><i>Insight 02</i><p>공식 정보는<br><b>‘있다’만</b> 알려줘요</p></div></div>'
                  '<svg class="mgl" viewBox="0 0 820 80" preserveAspectRatio="none" aria-hidden="true"><path d="M205 0 V30 Q205 42 217 42 H398 Q410 42 410 54 V80"/><path d="M615 0 V30 Q615 42 603 42 H422 Q410 42 410 54 V80"/></svg><i class="mdot"></i>')
-        ghost = '<p class="ghost">공식 인증과 지도는 ‘있다’만 알려줘요. 지나갈 수 있는지는 가봐야 알 수 있어서, 이동 시간과 헛걸음이 쌓였어요.</p>'
+        ghost = ('<div class="ghost"><p class="bk">Insight 02</p><p class="bs gs">공식 인증과 지도는 ‘있다’만 알려줘요. <b class="hl sky">지나갈 수 있는지는 가봐야</b> 알 수 있어서, 이동 시간과 헛걸음이 쌓였어요.</p>'
+                 '<p class="be">Official Data Says “Accessible” — But It <b>Can’t Tell You</b> If Your Wheelchair Fits.</p></div>')
         return (f'<div class="big so">{ghost}<div class="sow"><p class="bk">{E(kicker)}</p>{cards}<p class="bs" data-wr>{HL(ko, marks)}</p><p class="be">{en_html}</p></div></div>')
     return (f'<div class="big {cls}"><p class="bk">{E(kicker)}</p><p class="bs" data-wr>{HL(ko, marks)}</p><p class="be">{en_html}</p></div>')
 
@@ -189,7 +190,7 @@ def problem():
     i2 = big('Insight 02', '공식 인증과 지도는 ‘있다’만 알려줘요. 지나갈 수 있는지는 가봐야 알 수 있어서, 이동 시간과 헛걸음이 쌓였어요.',
              'Official Data Says “Accessible” — But It <b>Can’t Tell You</b> If Your Wheelchair Fits.', '', [('s', '지나갈 수 있는지는 가봐야')])
     so = big('So', '그래서 olways는 ‘갈 수 있는지’를 출발 전에 알려주는 것부터 시작해요', 'So olways starts by answering <b>“Can I get there?”</b> before you leave.', 'so', [('s', '‘갈 수 있는지’'), ('s', '출발 전에')])
-    return section('03problem', 'hx pr', st1 + i1 + st2 + i2 + so)
+    return section('03problem', 'hx pr', st1 + i1 + st2 + so)
 
 def pinfit(key, cls, inner, S=None):
     """one screen: content is scaled to fit the iPad viewport, pinned until its animation has finished"""
