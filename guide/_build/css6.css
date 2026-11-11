@@ -860,3 +860,22 @@ section,.fit,.st-item{--k:14u;--b:17u;--en:14u;--ct:24u;--cb:17u;--pad:20u 24u;-
 .story.side .st-nav li:not(.on) span{color:rgba(20,25,28,.4)!important}
 .story.side .st-nav li.on strong{color:#1FACF4}
 /*}U*/
+/*U{*/
+/* lens walkthrough: screen on the left; on the right a quiet trip index on top and the current scene's note below */
+.lx .fit{display:grid;grid-template-columns:minmax(0,1fr) 340u;grid-template-rows:auto minmax(0,1fr);column-gap:44u;align-items:stretch}
+.lx .lxg{display:contents}
+.lx .lxv{grid-column:1;grid-row:1/3;align-self:center}
+.lx .lxm{border-radius:22u}
+.lx .lxrail{grid-column:2;grid-row:1;margin:0;display:flex;flex-direction:column;gap:0;border-top:1px solid rgba(20,25,28,.1)}
+.lx .lxrail li{display:grid;grid-template-columns:34u 1fr;align-items:center;padding:12u 0;border-bottom:1px solid rgba(20,25,28,.1);position:relative;column-gap:0}
+.lx .lxrail i{font-size:14u}
+.lx .lxrail b{font-size:17u;font-weight:700}
+.lx .lxrail span{display:none}
+.lx .lxrail s{position:absolute;left:0;right:0;bottom:-1px;height:2px;margin:0;background:none}
+.lx .lxrail li.on{color:#14191C}.lx .lxrail li.on b{color:#14191C}
+.lx .lxcs{grid-column:2;grid-row:2;align-self:end}
+.lx .lxc .lk{font-size:14u}
+.lx .lxc h3{font-size:24u;margin:12u 0 14u}
+.lx .lxc .lb{font-size:17u;line-height:1.65}
+.lx .lxc .le{font-size:14u}
+/*}U*/
