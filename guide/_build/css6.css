@@ -845,3 +845,4 @@ section,.fit,.st-item{--k:14u;--b:17u;--en:14u;--ct:24u;--cb:17u;--pad:20u 24u;-
 .ux,.lx,.sx{padding:calc(var(--navh) + 30px) 0 30px!important}
 #s02overview .ovs{padding-left:100px!important;padding-right:100px!important}
 .rs > .sw{position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%)}
+.rip{display:none!important}
