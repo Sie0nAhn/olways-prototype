@@ -600,6 +600,18 @@ if __name__ == '__main__':
            '08hyp': hyp, '09solution': solution, '10flow': flow, '11iter': ut, '12lens': lens, '13anat': anatomy, '14pass': passj, '15loop': loop}
     secs = [chapter(k) if k in CHAPS else GEN[k]() if k in GEN else raster(k) for k in ORDER]
     clean_curve()
+    # bubble numbers were cut from the Figma composite and carry a sliver of the label above: keep only the numeral band
+    for f in ('2616-37283', '2616-37287', '2616-37291'):
+        fp = OUT + 'm/' + f + '.png'; a_ = np.asarray(Image.open(fp).convert('RGBA')).copy()
+        rows = (a_[..., 3] > 60).sum(1) > 0; best, cur, start = (0, 0), 0, 0
+        for i, r in enumerate(rows):
+            if r:
+                if cur == 0: start = i
+                cur += 1
+                if cur > best[1] - best[0]: best = (start, i + 1)
+            else: cur = 0
+        a_[:max(0, best[0] - 2), :, 3] = 0; a_[best[1] + 2:, :, 3] = 0
+        Image.fromarray(a_, 'RGBA').save(fp)
     # small Figma text is hard to read on an iPad: everything under 15 grows by 1.5 design units
     def bump_el(m):
         tag, txt = m.group(0), m.group(2)

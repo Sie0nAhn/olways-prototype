@@ -1081,6 +1081,20 @@ section,.fit,.st-item{--k:calc(var(--u)*14);--b:calc(var(--u)*17);--en:calc(var(
 .rs > .sw{position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%)}
 .rip{display:none!important}
 
+/* interview: the section frame already holds the 100px margin, the stage adds none */
+.iv .story .st-stage{padding-left:0!important;padding-right:0!important}
+.iv .ig{max-width:none}
+/* problem: the card is the thing to read; the left rail is a quiet index of where you are */
+.story.side .st-k{font-size:calc(var(--u)*14)}
+.story.side .st-h{font-size:calc(var(--u)*24);line-height:1.4;margin-top:calc(var(--u)*8)}
+.story.side .st-nav{margin-top:calc(var(--u)*28);gap:calc(var(--u)*14)}
+.story.side .st-nav li strong{font-size:calc(var(--u)*36)!important;line-height:1.1}
+.story.side .st-nav li span{font-size:calc(var(--u)*14)!important}
+.story.side .st-nav li:not(.on) strong{color:rgba(20,25,28,.28)!important}
+.story.side .st-nav li:not(.on) span{color:rgba(20,25,28,.4)!important}
+.story.side .st-nav li.on strong{color:#1FACF4}
+
+
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important}}
 </style>
 </head>

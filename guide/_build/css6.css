@@ -846,3 +846,17 @@ section,.fit,.st-item{--k:14u;--b:17u;--en:14u;--ct:24u;--cb:17u;--pad:20u 24u;-
 #s02overview .ovs{padding-left:100px!important;padding-right:100px!important}
 .rs > .sw{position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%)}
 .rip{display:none!important}
+/*U{*/
+/* interview: the section frame already holds the 100px margin, the stage adds none */
+.iv .story .st-stage{padding-left:0!important;padding-right:0!important}
+.iv .ig{max-width:none}
+/* problem: the card is the thing to read; the left rail is a quiet index of where you are */
+.story.side .st-k{font-size:14u}
+.story.side .st-h{font-size:24u;line-height:1.4;margin-top:8u}
+.story.side .st-nav{margin-top:28u;gap:14u}
+.story.side .st-nav li strong{font-size:32u!important;line-height:1.1}
+.story.side .st-nav li span{font-size:15u!important}
+.story.side .st-nav li:not(.on) strong{color:rgba(20,25,28,.28)!important}
+.story.side .st-nav li:not(.on) span{color:rgba(20,25,28,.4)!important}
+.story.side .st-nav li.on strong{color:#1FACF4}
+/*}U*/
