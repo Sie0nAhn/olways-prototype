@@ -912,6 +912,14 @@ section,.fit,.st-item{--k:calc(var(--u)*14);--b:calc(var(--u)*17);--en:calc(var(
 
 .big.so .ghost .be{text-align:left}
 
+/* ===================== v18 — everything follows the scroll ===================== */
+
+.story.scr .st-item{transition:none!important;pointer-events:auto}
+.kst{position:absolute;left:50%;top:46%;width:0;height:0;z-index:4;pointer-events:none}
+.kst b{position:absolute;left:0;top:0;transform:translate(-50%,-50%);white-space:nowrap;font-family:var(--f-gsf);font-size:calc(var(--u)*300);font-weight:700;line-height:1;letter-spacing:-.05em;color:#1FACF4}
+.ksl{position:absolute;left:0;right:0;top:calc(46% + calc(var(--u)*150));margin:0;text-align:center;font-size:calc(var(--u)*34);font-weight:700;letter-spacing:-.02em;color:#14191C;z-index:4;pointer-events:none}
+.xf,.lxm{will-change:transform,opacity}
+
 
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important}}
 </style>
@@ -1528,14 +1536,36 @@ addEventListener('scroll',()=>{const y=scrollY;
   py=y},{passive:true});
 
 /* ---- problem / interview stories ---- */
-const storyNav=(st,i)=>{$$('.st-item',st).forEach((it,j)=>{it.classList.toggle('on',j===i);it.classList.toggle('past',j<i)});
-  $$('.st-nav li',st).forEach((l,j)=>{l.classList.toggle('on',j===i);l.classList.toggle('done',j<i);const e=l.querySelector('em');if(e)e.style.transform=`scaleX(${j<=i?1:0})`})};
-const count=el=>{if(!el)return;const m=(el.dataset.v||(el.dataset.v=el.textContent)).match(/^([\d.]+)(.*)$/);if(!m)return;const to=+m[1],dp=(m[1].split('.')[1]||'').length,o={v:0};
-  gsap.to(o,{v:to,duration:.9,ease:'power2.out',onUpdate:()=>{el.textContent=o.v.toFixed(dp)+m[2]}})};
-const mkStory=st=>{const items=$$('.st-item',st);storyNav(st,0);
-  mkStep(st,items.length,i=>{storyNav(st,i);count($$('.st-nav li',st)[i]&&$$('.st-nav li',st)[i].querySelector('strong'));const it=items[i],tl=it._tl||TL[it.dataset.g];fresh(tl);return {tl,dwell:500}},{per:.6});
-  $$('.st-nav li',st).forEach((l,k)=>l.onclick=()=>st._go&&st._go(k))};
-/* ---- insight statements: card opens to the full screen, then the words light up (scrubbed) ---- */
+/* ---- helper: a pinned scene whose whole sequence is driven by the scroll; marks say which step is on screen ---- */
+const scrubScene=(el,tl,marks,onStep,len=.3)=>{let cur=-1;
+  const upd=()=>{const now=tl.time();let k=0;marks.forEach((m,j)=>{if(now>=m-.02)k=j});if(k!==cur){cur=k;onStep&&onStep(k)}};
+  tl.eventCallback('onUpdate',upd);
+  const trg=ScrollTrigger.create({trigger:el,start:'top top',end:()=>'+='+innerHeight*Math.max(1.5,tl.duration()*len),pin:true,pinSpacing:true,scrub:.7,animation:tl,invalidateOnRefresh:true});
+  el._go=k=>{window.__jump&&window.__jump();scrollTo({top:trg.start+(trg.end-trg.start)*Math.min(1,(marks[k]+.9)/tl.duration()),behavior:'smooth'})};
+  onStep&&onStep(0);return trg};
+const nest=(tl,t,pos)=>{if(!t)return;t.paused(false);tl.add(t.progress(0),pos)};
+/* ---- problem / interview stories: each number lands big, then shrinks into the rail while its chart draws ---- */
+const storyNav=(st,i)=>{$$('.st-nav li',st).forEach((l,j)=>{l.classList.toggle('on',j===i);l.classList.toggle('done',j<i);const e=l.querySelector('em');if(e)e.style.transform=`scaleX(${j<=i?1:0})`})};
+const mkStory=st=>{st.classList.add('scr');const items=$$('.st-item',st),lis=$$('.st-nav li',st),stage=st.querySelector('.st-stage'),box=st.querySelector('.st-items');
+  const tl=gsap.timeline(),marks=[];gsap.set(items,{autoAlpha:0});
+  items.forEach((it,i)=>{const t=it._tl||(it.querySelector('.ig')||{})._tl||TL[it.dataset.g],strong=lis[i]&&lis[i].querySelector('strong');marks.push(tl.duration());
+    if(strong){const txt=strong.textContent,m=txt.match(/^([\d.]+)(.*)$/),dp=m?(m[1].split('.')[1]||'').length:0;
+      const k=document.createElement('div');k.className='kst';k.innerHTML=`<b>${txt}</b>`;const lab=document.createElement('p');lab.className='ksl';lab.textContent=lis[i].querySelector('span').textContent;
+      box.appendChild(k);box.appendChild(lab);const b=k.firstChild,o={v:0};
+      const F=()=>{const s=strong.getBoundingClientRect(),g=box.getBoundingClientRect();return {x:s.left+s.width/2-(g.left+g.width/2),y:s.top+s.height/2-(g.top+g.height/2),s:s.height/Math.max(1,k.firstChild.offsetHeight)}};
+      gsap.set([k,lab],{autoAlpha:0});gsap.set(strong,{opacity:0});
+      tl.fromTo(k,{autoAlpha:0,scale:.55,x:0,y:0,filter:'blur(14px)'},{autoAlpha:1,scale:1,filter:'blur(0px)',duration:.6,ease:'power3.out'})
+        .fromTo(o,{v:0},{v:m?+m[1]:0,duration:.6,ease:'power2.out',onUpdate:()=>{if(m)b.textContent=o.v.toFixed(dp)+m[2]}},'<')
+        .fromTo(lab,{autoAlpha:0,y:30},{autoAlpha:1,y:0,duration:.4,ease:'power3.out'},'<.25')
+        .to({},{duration:.35})
+        .to(lab,{autoAlpha:0,y:-20,duration:.3,ease:'power2.in'})
+        .to(k,{x:()=>F().x,y:()=>F().y,scale:()=>F().s,duration:.8,ease:'power3.inOut'},'<')
+        .to(k,{autoAlpha:0,duration:.2},'>-.15').to(strong,{opacity:1,duration:.2},'<')}
+    tl.fromTo(it,{autoAlpha:0,yPercent:30,scale:.9,filter:'blur(8px)'},{autoAlpha:1,yPercent:0,scale:1,filter:'blur(0px)',duration:.8,ease:'power3.out'},strong?'>-.75':'>');
+    nest(tl,t,'>-.3');tl.to({},{duration:.7});
+    if(i<items.length-1)tl.to(it,{autoAlpha:0,yPercent:-26,scale:.92,filter:'blur(8px)',duration:.6,ease:'power2.in'})});
+  scrubScene(st,tl,marks,i=>storyNav(st,i),.28);
+  lis.forEach((l,k)=>l.onclick=()=>st._go&&st._go(k))};
 const splitW=n=>{[...n.childNodes].forEach(ch=>{if(ch.nodeType===3){const f=document.createDocumentFragment();
     ch.textContent.split(/(\s+)/).forEach(w=>{if(!w)return;if(/^\s+$/.test(w))f.appendChild(document.createTextNode(w));else{const s=document.createElement('span');s.className='wr';s.textContent=w;f.appendChild(s)}});
     ch.replaceWith(f)}else if(ch.nodeType===1)splitW(ch)})};
@@ -1696,19 +1726,21 @@ $$('.chap:not(#sc4), .story, .big, .pinfit, #s05journey, .so2').forEach(el=>{if(
   if(el.classList.contains('story'))mkStory(el);else if(el.classList.contains('big'))mkBig(el);else if(el.id==='s05journey')mkJourney(el);else mkFit(el)});
 /* usability test setup cards */
 $$('.ut .usetup .ucard').forEach((c,i)=>{const tl=gsap.fromTo(c,{opacity:0,y:40},{opacity:1,y:0,duration:.8,ease:'power3.out',delay:i*.08,scrollTrigger:ST(c,'top 90%')});soft(c,tl)});
-/* ---- usability test: one screen per round — header, problem → fix, why and quotes stay beside the images; one gesture = next version ---- */
-$$('.ux').forEach(ux=>{const figs=$$('.xf',ux),zs=$$('.xz',ux),tabs=$$('.xt',ux),bar=ux.querySelector('.xbar em'),n=figs.length;let shown=-1;
-  const intro=[ux.querySelector('.xh'),ux.querySelector('.xtabs'),ux.querySelector('.xps'),...$$('.xq',ux),...$$('.xside>.xwhy',ux)];
-  gsap.set([...figs,...zs],{autoAlpha:0});gsap.set(intro,{opacity:0,y:24});
-  mkStep(ux,n,(i,back)=>{const tl=gsap.timeline();
-    if(shown<0)tl.to(intro,{opacity:1,y:0,stagger:.08,duration:.55,ease:'power3.out'},0);
-    tabs.forEach((t,j)=>{t.classList.toggle('on',j===i);t.classList.toggle('done',j<i)});
-    gsap.to(bar,{scaleX:(i+1)/n,duration:.6,ease:'power3.inOut'});
-    const sw=(arr,dx)=>arr.forEach((f,j)=>{if(j===i)tl.fromTo(f,{autoAlpha:0,x:back?-dx:dx},{autoAlpha:1,x:0,duration:.7,ease:'power3.out'},shown<0?.2:.15);
-      else if(j===shown)tl.to(f,{autoAlpha:0,x:j<i?-dx:dx,duration:.4,ease:'power2.in'},0)});
-    sw(figs,70);sw(zs,30);
-    const z=zs[i];if(z)tl.fromTo(z.querySelectorAll('li'),{opacity:0,y:12},{opacity:1,y:0,stagger:.12,duration:.4},'>-.2');
-    shown=i;return {tl,dwell:700}},{per:.5});
+/* ---- usability test: the screen slides to the next version, the changed spot is circled, then its close-up opens ---- */
+$$('.ux').forEach(ux=>{const figs=$$('.xf',ux),zs=$$('.xz',ux),tabs=$$('.xt',ux),bar=ux.querySelector('.xbar em'),n=figs.length;
+  const intro=[ux.querySelector('.xh'),ux.querySelector('.xtabs'),ux.querySelector('.xps'),...$$('.xq',ux),...$$('.xside>.xwhy',ux)].filter(Boolean);
+  gsap.set([...figs,...zs],{autoAlpha:0});const tl=gsap.timeline(),marks=[];
+  tl.fromTo(intro,{opacity:0,y:36},{opacity:1,y:0,stagger:.08,duration:.5,ease:'power3.out'},0);
+  figs.forEach((f,i)=>{const z=zs.find(x=>x.dataset.i===f.dataset.i),zr=f.querySelector('.zr'),img=f.querySelector('.xi img');
+    if(i){const pf=figs[i-1],pz=zs.find(x=>x.dataset.i===pf.dataset.i);
+      tl.to(pf,{autoAlpha:0,xPercent:-18,scale:.94,filter:'blur(6px)',duration:.6,ease:'power2.inOut'});if(pz)tl.to(pz,{autoAlpha:0,y:-24,duration:.4,ease:'power2.in'},'<')}
+    marks.push(tl.duration()-(i?.3:0));
+    tl.fromTo(f,{autoAlpha:0,xPercent:i?22:0,y:i?0:50,scale:1.05,filter:'blur(8px)'},{autoAlpha:1,xPercent:0,y:0,scale:1,filter:'blur(0px)',duration:.8,ease:'power3.out'},i?'<.15':.2)
+      .to(bar,{scaleX:(i+1)/n,duration:.6,ease:'power2.inOut'},'<');
+    if(zr)tl.fromTo(zr,{opacity:0,scale:2.2},{opacity:1,scale:1,duration:.5,ease:'power3.out'},'>-.1').fromTo(img,{scale:1},{scale:1.06,transformOrigin:()=>`${parseFloat(zr.style.left)+parseFloat(zr.style.width)/2}% ${parseFloat(zr.style.top)+parseFloat(zr.style.height)/2}%`,duration:.9,ease:'power2.inOut'},'<');
+    if(z)tl.fromTo(z,{autoAlpha:0,y:40},{autoAlpha:1,y:0,duration:.5,ease:'power3.out'},'>-.6').fromTo(z.querySelectorAll('li'),{opacity:0,x:24},{opacity:1,x:0,stagger:.15,duration:.4,ease:'power3.out'},'>-.2');
+    tl.to({},{duration:.8})});
+  scrubScene(ux,tl,marks,i=>tabs.forEach((t,j)=>{t.classList.toggle('on',j===i);t.classList.toggle('done',j<i)}),.3);
   tabs.forEach((t,k)=>t.onclick=()=>ux._go&&ux._go(k))});
 
 /* ---------- triptych opener ---------- */
@@ -1722,45 +1754,42 @@ $$('.trip').forEach(t=>{const c=t.querySelector('.tp-c .tpm'),l=t.querySelector(
     .fromTo(l,{xPercent:-130,opacity:0},{xPercent:0,opacity:1,ease:'power3.out',duration:.6},.45)
     .fromTo(r,{xPercent:130,opacity:0},{xPercent:0,opacity:1,ease:'power3.out',duration:.6},.45)
     .fromTo([k,...caps],{opacity:0,y:18},{opacity:1,y:0,stagger:.06,duration:.3},.85)});
-/* ---- lens: S1 → S5 on one stage; the rail fills as the trip goes on ---- */
-$$('.lx').forEach(lx=>{const ms=$$('.lxm',lx),cs=$$('.lxc',lx),rail=$$('.lxrail li',lx);let shown=-1;
-  gsap.set([...ms,...cs],{autoAlpha:0});
-  mkStep(lx,ms.length,(i,back)=>{const tl=gsap.timeline();
-    rail.forEach((l,j)=>{l.classList.toggle('on',j===i);l.classList.toggle('done',j<i);gsap.to(l.querySelector('em'),{scaleX:j<i?1:j===i?1:0,duration:j===i?2:.4,ease:j===i?'none':'power2.out',overwrite:true})});
-    if(shown>=0&&shown!==i){tl.to(ms[shown],{autoAlpha:0,y:back?40:-40,scale:.97,duration:.5,ease:'power2.in'},0).to(cs[shown],{autoAlpha:0,y:back?20:-20,duration:.4,ease:'power2.in'},0)}
-    ms.forEach((m,j)=>{const v=m.querySelector('video');if(j===i){v.currentTime=0;v.play().catch(()=>{})}else v.pause()});
-    tl.fromTo(ms[i],{autoAlpha:0,y:back?-50:70,scale:.96},{autoAlpha:1,y:0,scale:1,duration:.85,ease:'power3.out'},shown<0?0:.3)
-      .fromTo(cs[i],{autoAlpha:1},{autoAlpha:1,duration:.01},'<')
-      .fromTo(cs[i].children,{opacity:0,y:26},{opacity:1,y:0,stagger:.1,duration:.6,ease:'power3.out'},'<.2');
-    shown=i;return {tl,dwell:2000}},{per:.6});
+/* ---- lens: S1 → S5 as one take; each scene pushes the last one back, the rail fills with the scroll ---- */
+$$('.lx').forEach(lx=>{const ms=$$('.lxm',lx),cs=$$('.lxc',lx),rail=$$('.lxrail li',lx);
+  gsap.set([...ms,...cs],{autoAlpha:0});const tl=gsap.timeline(),marks=[];
+  ms.forEach((m,i)=>{if(i){tl.to(ms[i-1],{autoAlpha:0,yPercent:-14,scale:.86,filter:'blur(8px)',duration:.7,ease:'power2.inOut'}).to(cs[i-1],{autoAlpha:0,y:-30,duration:.4,ease:'power2.in'},'<')}
+    marks.push(Math.max(0,tl.duration()-.35));
+    tl.fromTo(m,{autoAlpha:0,yPercent:28,scale:.9,filter:'blur(8px)'},{autoAlpha:1,yPercent:0,scale:1,filter:'blur(0px)',duration:.8,ease:'power3.out'},i?'<.2':0)
+      .set(cs[i],{autoAlpha:1},'<.2').fromTo(cs[i].children,{opacity:0,y:30},{opacity:1,y:0,stagger:.1,duration:.5,ease:'power3.out'},'<')
+      .fromTo(rail[i].querySelector('em'),{scaleX:0},{scaleX:1,duration:2.2,ease:'none'},'<')});
+  scrubScene(lx,tl,marks,i=>{rail.forEach((l,j)=>{l.classList.toggle('on',j===i);l.classList.toggle('done',j<i)});
+    ms.forEach((m,j)=>{const v=m.querySelector('video');if(j===i){v.currentTime=0;v.play().catch(()=>{})}else v.pause()})},.34);
   rail.forEach((l,k)=>l.onclick=()=>lx._go&&lx._go(k))});
 
-/* ---- anatomy / pass: header and screen together; one gesture = next element (spotlight + its card) ---- */
-const shotPick=sec=>{const sh=sec.querySelector('.ashot'),sp=sh.querySelector('.spot'),bd=$$('.bdg',sh),cr=$$('.acard',sec);
-  return k=>{const b=bd[k];sp.classList.add('on');sp.style.setProperty('--sx',b.style.left);sp.style.setProperty('--sy',b.style.top);
-    bd.forEach((x,j)=>x.classList.toggle('on',j===k));cr.forEach((c,j)=>{c.classList.toggle('on',j===k);c.classList.toggle('seen',j<k)});return cr[k]}};
-$$('.sx.an1, .sx.pj1').forEach(sx=>{const pick=shotPick(sx),cards=$$('.acard',sx),head=sx.querySelector('.hh, .ahead'),shot=sx.querySelector('.ashot');let first=true;
-  gsap.set([shot,...cards],{opacity:0});
-  mkStep(sx,cards.length,i=>{const tl=gsap.timeline();
-    if(first){first=false;tl.fromTo(shot,{opacity:0,y:40,scale:.97},{opacity:1,y:0,scale:1,duration:.8,ease:'power3.out'},0)
-      .fromTo(cards,{opacity:0,x:30},{opacity:1,x:0,stagger:.06,duration:.45,ease:'power3.out'},.3)}
-    const c=pick(i);tl.fromTo(c,{'--a':0},{'--a':1,duration:.5},first?.9:0);return {tl,dwell:1100}},{per:.45});
-  $$('.bdg,.acard',sx).forEach(b=>b.onclick=()=>sx._go&&sx._go(+b.dataset.i))});
-/* field-of-view grid: the lens is divided into five zones, one after another */
-$$('.sx.an2').forEach(sx=>{const z=$$('.fovz .z',sx),hz=sx.querySelector('.hz'),shot=sx.querySelector('.fovshot'),img=shot.querySelector('img'),t=sx.querySelector('.fovt'),g=sx.querySelector('.fovg');
-  gsap.set([...z,hz,...t.children],{opacity:0});let big=false;
-  const flip=on=>{if(big===on)return null;big=on;const a=shot.getBoundingClientRect();g.classList.toggle('big',on);const b=shot.getBoundingClientRect();
-    const tl=gsap.timeline();tl.fromTo(shot,{x:a.left-b.left,y:a.top-b.top,scale:a.width/b.width,transformOrigin:'0 0'},{x:0,y:0,scale:1,duration:.9,ease:'power3.inOut'},0)
-      .fromTo(t,{opacity:on?1:0},{opacity:on?0:1,duration:.4},0);return tl};
-  mkStep(sx,2,i=>{if(i===0){const f=flip(false),tl=gsap.timeline();if(f)tl.add(f,0);
-      tl.to(t.children,{opacity:1,y:0,startAt:{y:24},stagger:.1,duration:.6,ease:'power3.out'},0)
-        .fromTo(img,{opacity:.35},{opacity:1,duration:.8},0)
-        .fromTo(hz,{opacity:0,scaleX:0},{opacity:1,scaleX:1,duration:.7,ease:'power3.inOut'},.4)
-        .fromTo(z,{opacity:0,scale:.94},{opacity:1,scale:1,stagger:.22,duration:.5,ease:'expo.out'},.7);
-      return {tl,dwell:500}}
-    const tl=gsap.timeline();const f=flip(true);if(f)tl.add(f,0);
-    tl.fromTo(z,{boxShadow:'inset 0 0 0 2px rgba(255,255,255,.6)'},{boxShadow:'inset 0 0 0 3px #71CBF8',stagger:.15,duration:.3,yoyo:true,repeat:1},.9);
-    return {tl,dwell:900}},{per:.5})});
+/* ---- anatomy / pass: a spotlight travels across the screen from one element to the next ---- */
+const mkShot=sx=>{const sh=sx.querySelector('.ashot'),sp=sh.querySelector('.spot'),bd=$$('.bdg',sh),cr=$$('.acard',sx);
+  const tl=gsap.timeline(),marks=[];gsap.set(sp,{'--sx':bd[0].style.left,'--sy':bd[0].style.top});
+  tl.fromTo(sh,{opacity:0,y:60,scale:.94},{opacity:1,y:0,scale:1,duration:.7,ease:'power3.out'},0)
+    .fromTo(cr,{opacity:0,x:40},{opacity:1,x:0,stagger:.06,duration:.4,ease:'power3.out'},.3);
+  bd.forEach((b,k)=>{if(k)tl.to(sp,{'--sx':b.style.left,'--sy':b.style.top,duration:.7,ease:'power2.inOut'});marks.push(tl.duration()-(k?.35:0));
+    tl.fromTo(b,{scale:1},{scale:1.35,duration:.25,yoyo:true,repeat:1,ease:'power2.out'},'>-.1').to({},{duration:.9})});
+  scrubScene(sx,tl,marks,k=>{sp.classList.add('on');bd.forEach((x,j)=>x.classList.toggle('on',j===k));cr.forEach((c,j)=>{c.classList.toggle('on',j===k);c.classList.toggle('seen',j<k)})},.3);
+  $$('.bdg,.acard',sx).forEach(b=>b.onclick=()=>sx._go&&sx._go(+b.dataset.i))};
+/* field-of-view: reasoning first, then the lens grows to the whole screen while its zones stay drawn */
+const mkFov=sx=>{const z=$$('.fovz .z',sx),hz=sx.querySelector('.hz'),shot=sx.querySelector('.fovshot'),t=sx.querySelector('.fovt'),fit=sx.querySelector('.fit');
+  const G=()=>{const o=gsap.getProperty(shot,'scale'),ox=gsap.getProperty(shot,'x');gsap.set(shot,{scale:1,x:0});const a=shot.getBoundingClientRect(),f=fit.getBoundingClientRect();gsap.set(shot,{scale:o,x:ox});
+    const pad=parseFloat(getComputedStyle(fit).paddingLeft)||0,w=f.width-pad*2,s=Math.min(w/a.width,(innerHeight-90)/a.height);return {s,x:f.left+pad+(w-a.width*s)/2-a.left}};
+  const tl=gsap.timeline();
+  tl.fromTo(t.children,{opacity:0,y:30},{opacity:1,y:0,stagger:.1,duration:.5,ease:'power3.out'},0)
+    .fromTo(shot,{opacity:0,scale:.92},{opacity:1,scale:1,duration:.7,ease:'power3.out'},0)
+    .fromTo(hz,{opacity:0,scaleX:0},{opacity:1,scaleX:1,duration:.6,ease:'power2.inOut'},.5)
+    .fromTo(z,{opacity:0,scale:.9},{opacity:1,scale:1,stagger:.3,duration:.5,ease:'power3.out'},.8)
+    .to({},{duration:.6})
+    .to(t,{opacity:0,x:-120,duration:.6,ease:'power2.in'})
+    .to(shot,{x:()=>G().x,scale:()=>G().s,transformOrigin:'0 50%',duration:1,ease:'power3.inOut'},'<')
+    .to({},{duration:.9});
+  scrubScene(sx,tl,[0],null,.3)};
+$$('.sx.an1, .sx.an2, .sx.pj1').forEach(sx=>sx.classList.contains('an2')?mkFov(sx):mkShot(sx));
 
 /* ---- remaining in-place animations become soft scenes ---- */
 Object.entries(TL).forEach(([g,tl])=>{const el=document.getElementById('f'+g.replace(':','-'))||$(`[data-g="${g}"]`);
