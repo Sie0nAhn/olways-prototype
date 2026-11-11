@@ -33,3 +33,5 @@ div:has(> img.mix-blend-screen)>div{display:none!important}
 img.mix-blend-screen.object-cover{mix-blend-mode:normal!important;opacity:1!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 [class*="from-[rgba(93,95,97,0)]"]{mix-blend-mode:normal!important;background-image:linear-gradient(to bottom,rgba(0,0,0,0) 30%,rgba(0,0,0,.5) 100%)!important}
 [class*="from-[rgba(135,138,140,0)]"]{display:none!important}
+
+[data-node-id="1682:21791"] img,[data-node-id="1682:21793"] img{visibility:hidden}
