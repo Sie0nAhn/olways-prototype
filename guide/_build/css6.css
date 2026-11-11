@@ -801,3 +801,21 @@ section,.fit,.st-item{--k:14u;--b:17u;--en:14u;--ct:24u;--cb:17u;--pad:20u 24u;-
 .iv .qt .en{font-size:15u!important}
 .iv .qcard{gap:12u}
 /*}U*/
+/* ===================== v23 ===================== */
+/*U{*/
+/* headers scroll in before a pinned scene, so the scene has the whole screen */
+.st-pre{position:relative;padding:40u 0 0}
+.st-pre .phead{margin-top:-60u}
+.st-pre .hh.sh{padding:24u 40u 8u!important}
+.story .st-stage{padding:calc(var(--navh) + 12px) 40u 24px!important}
+.story.side .st-stage{grid-template-rows:minmax(0,1fr)!important;align-items:center}
+.iv .hh{padding-bottom:12u!important}
+/* interview item: heading across, chart left, quotes right — at full size */
+.iv .ig{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:24u;row-gap:18u;max-width:1320u;margin:0 auto;width:100%;align-content:center}
+.iv .ig .ih{grid-column:1/-1;grid-row:1}
+.iv .ig .cbox{grid-column:1;grid-row:2}
+.iv .ig .qcard{grid-column:2;grid-row:2;align-self:stretch}
+.iv .ig .ih h3{font-size:28u!important}
+.iv .qt .ko{font-size:22u!important}
+.iv .st-item{padding-top:0!important;align-items:center!important;justify-content:center!important}
+/*}U*/

@@ -183,8 +183,9 @@ def problem():
     def story(pairs, kick, head, first=False, top=None):
         nav = ''.join(f'<li><i>{k:02d}</i><strong>{SHORT[cid][0]}</strong><span>{SHORT[cid][1]}</span><b class="sbar"><em></em></b></li>' for k, (cid, tid, _) in pairs)
         items = ''.join(card(cid, fn) for k, (cid, tid, fn) in pairs)
-        top = f'<div class="st-top">{head_html if first else top}</div>' if (first or top) else ''
-        return (f'<div class="story side{" hd" if (first or top) else ""}"><div class="st-stage">{top}<div class="st-side"><p class="st-k">{kick}</p><p class="st-h">{head}</p><ol class="st-nav">{nav}</ol></div>'
+        # the header scrolls in before the scene; the pinned scene keeps the whole screen for the figure
+        top = f'<div class="st-pre">{head_html if first else top}</div>' if (first or top) else ''
+        return (f'{top}<div class="story side"><div class="st-stage"><div class="st-side"><p class="st-k">{kick}</p><p class="st-h">{head}</p><ol class="st-nav">{nav}</ol></div>'
                 f'<div class="st-items">{items}</div></div></div>')
     st1 = story([(1, ('2616:37248', '2616:37250', b1)), (2, ('2616:37269', '2616:37271', b2))], 'Problem · 01–02', '나가지 않는 게 아니라,<br>나갈 수 없어요', True)
     h2 = ('<header class="hh sh"><span class="htag">01  ·  PROBLEM  ·  03–04</span><p class="sht">Accessible on paper, unknown at the door</p>'
@@ -211,7 +212,23 @@ def opp():
     S, nodes = parse(EX('2616-37374')); byid = {n['id']: n for n in nodes}
     card = byid['2616:37385']
     inmap = lambda n: inside(n, card) and n['id'] != card['id']
-    S2, h, _ = render(EX('2616-37374'), dx_fn=lambda n: 60 if inmap(n) else 0)
+    # the map is drawn 25% shorter so it reads with its header on one iPad screen: positions compress, marks keep their size,
+    # and a label stays glued to the mark above it
+    SY = .74; Y0 = card['y']; CUT = card['h'] * (1 - SY)
+    marks = [n for n in nodes if inmap(n) and n['k'] != 'T' and n['h'] > 20 and n['w'] < 300]
+    def anchor(n):
+        if n['k'] == 'T':
+            cx = n['x'] + n['w'] / 2
+            ab = [m for m in marks if m['x'] - 30 <= cx <= m['x'] + m['w'] + 30 and 0 <= n['y'] - (m['y'] + m['h']) <= 60]
+            if ab: return anchor(min(ab, key=lambda m: n['y'] - (m['y'] + m['h'])))
+        return n['y']
+    def dyf(n):
+        if inmap(n): return (anchor(n) - Y0) * (SY - 1)
+        return -CUT if n['y'] > Y0 + card['h'] - 1 else 0
+    S2, h, _ = render(EX('2616-37374'), dx_fn=lambda n: 60 if inmap(n) else 0, dy_fn=dyf)
+    for nid, hh in (('2616:37385', card['h']), ('2616:37387', 600)):
+        h = re.sub(r'(id="f%s"[^>]*?height:calc\(var\(--u\)\*)([\d.]+)' % nid.replace(':', '-'), lambda m: m.group(1) + f'{hh * SY:.2f}', h, count=1)
+    S = dict(S, h=S['h'] - CUT)
     sp = Spec(); hdr_spec(nodes, sp, 300)
     g = card['id']; sp.put(g, 'rise', 0, g, dur=.8)
     sp.put(['2616:37386'], 'barh', .3, g, dur=.9); sp.put(['2616:37387'], 'drawdown', .3, g, dur=.9)
@@ -588,6 +605,7 @@ if __name__ == '__main__':
                 t = re.sub(r'style="([^"]*)"', lambda q: f'style="{q.group(1)};text-align:center"', t, count=1)
             return t
         return t.replace('font-size:calc(var(--u)*', 'font-size:calc(1*var(--u)*')
+    secs = [re.sub(r'(<p class="fe[^"]*"[^>]*data-g="hdr[^>]*>)([A-Z0-9 ·&.\-–]+</p>)', lambda m: m.group(1).replace('font-size:calc(var(--u)*', 'font-size:calc(1*var(--u)*') + m.group(2), x) for x in secs]
     secs = [re.sub(r'<[^>]*class="fe[^"]*"[^>]*>', fig_tag, x) for x in secs]
     # speech-bubble text in the journey chart is sized to its bubble: keep it out of the type-scale snap
     secs = [re.sub(r'<[^>]*data-a="btxt"[^>]*>', lambda m: m.group(0).replace('font-size:calc(var(--u)*', 'font-size:calc(1*var(--u)*'), x) for x in secs]

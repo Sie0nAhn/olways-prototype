@@ -76,10 +76,15 @@ $$('#s02overview').forEach(o=>{const t=o.querySelector('.ovtitle'),c=o.querySele
   gsap.to(c,{opacity:0,scale:.92,filter:'blur(8px)',ease:'none',scrollTrigger:{trigger:o.querySelector('.ovs'),start:'top 90%',end:'top 30%',scrub:true}})});
 
 /* Problem cards: the same white box for all four, the figure centred in it with equal top / bottom padding */
-const normCards=()=>{const cs=$$('.pcard');if(!cs.length)return;const P=34;const m=cs.map(c=>{const bg=c.firstElementChild,u=bg.offsetWidth/652||1;
-    let t=1e9,b=-1e9;[...c.children].slice(1).forEach(e=>{if(!e.offsetHeight)return;t=Math.min(t,e.offsetTop);b=Math.max(b,e.offsetTop+e.offsetHeight)});return {c,bg,u,t:t/u,h:(b-t)/u}});
-  const H=Math.max(...m.map(x=>x.h))+2*P;
-  m.forEach(({c,bg,t,h})=>{c.closest('.pcw').style.setProperty('--h',H);bg.style.height=`calc(var(--u)*${H})`;c.style.setProperty('--dy',(P+(H-2*P-h)/2-t).toFixed(2))})};
+const normCards=()=>{const cs=$$('.pcard');if(!cs.length)return;const P=34,SB=14;
+  const m=cs.map(c=>{const bg=c.firstElementChild,u=bg.offsetWidth/652||1,kids=[...c.children].slice(1).filter(e=>e.offsetHeight);
+    const src=kids.filter(e=>/^\s*\[\d/.test(e.textContent));const body=kids.filter(e=>!src.includes(e));
+    let t=1e9,b=-1e9;body.forEach(e=>{t=Math.min(t,e.offsetTop);b=Math.max(b,e.offsetTop+e.offsetHeight)});
+    const sh=src.length?Math.max(...src.map(e=>e.offsetHeight))/u:0;return {c,bg,u,src,t:t/u,h:(b-t)/u,sh}});
+  const H=Math.max(...m.map(x=>x.h+x.sh+(x.sh?20:0)))+2*P;
+  m.forEach(({c,bg,u,src,t,h,sh})=>{c.closest('.pcw').style.setProperty('--h',H);bg.style.height=`calc(var(--u)*${H})`;
+    const room=H-P-(sh?sh+SB+20:P);c.style.setProperty('--dy',(P+(room-P-h)/2-t).toFixed(2));
+    src.forEach(e=>e.style.translate=`0 calc(var(--u)*${(H-SB-sh-e.offsetTop/u).toFixed(2)})`)})};
 const fitCards=()=>$$('.pcw').forEach(c=>{const box=c.closest('.st-items').getBoundingClientRect(),u=innerWidth/1400;
   c.style.setProperty('--s',Math.min(box.width/(+c.style.getPropertyValue('--w')*u),box.height/(+c.style.getPropertyValue('--h')*u)).toFixed(3))});
 /* all five interview items share one scale, so their headings and quotes stay the same size */
@@ -110,7 +115,7 @@ $$('.iv .wrap').forEach(w=>{const igs=$$('.ig',w),ban=w.querySelector('.ban');
     g._tl=tl});
   $$('.gg',w).forEach(e=>e.remove());w.insertBefore(st,w.firstChild);
   ban&&ban.remove();
-  const hh=w.closest('section').querySelector('.hh');if(hh){const top=document.createElement('div');top.className='st-top';top.appendChild(hh);st.querySelector('.st-stage').prepend(top);st.classList.add('hd')}
+  const hh=w.closest('section').querySelector('.hh');if(hh)st.before(hh);
   st._play=it=>it._tl&&it._tl.restart()});
 /* ================= scenes =================
    Every block that animates is a scene. While a scene on screen has not finished, the page will not scroll past it:
