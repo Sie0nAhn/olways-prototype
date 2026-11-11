@@ -258,7 +258,7 @@ const mkBig=b=>{const bs=b.querySelector('.bs');
     .to({},{duration:.4})};
 /* ---- one-screen figures (positioning map, hypotheses): play, hold until drawn ---- */
 /* one-screen figures are scrubbed: the drawing follows the scroll, and the page cannot pass it before it is drawn */
-const mkFit=sec=>{const tls=sec._tls||[];const all=gsap.timeline();tls.forEach(t=>{t.paused(false);all.add(t.progress(0),0)});
+const mkFit=sec=>{if(sec._hyp){sec._hyp.tl.paused(false);return scrubScene(sec,sec._hyp.tl.progress(0),sec._hyp.marks,sec._hyp.on,.3)}const tls=sec._tls||[];const all=gsap.timeline();tls.forEach(t=>{t.paused(false);all.add(t.progress(0),0)});
   all.to({},{duration:.6});
   ScrollTrigger.create({trigger:sec,start:'top top',end:()=>'+='+innerHeight*Math.max(1.2,all.duration()*.32),pin:true,pinSpacing:true,scrub:.6,animation:all,invalidateOnRefresh:true})};
 /* ---- journey: the line follows the scroll; each speech bubble rises whole when the line reaches its dot ---- */
@@ -277,11 +277,33 @@ const mkJourney=sec=>{const tl=TL['2616:37657'];if(!tl)return;
 $$('.hh').forEach(h=>!h.closest('.st-top')&&gsap.fromTo(h.children,{opacity:0,y:40},{opacity:1,y:0,stagger:.12,ease:'none',scrollTrigger:{trigger:h,start:'top 95%',end:'top 45%',scrub:.6}}));
 
 /* ---------- hypothesis: column by column, left to right ---------- */
-$$('.hgrid').forEach(g=>{const tl=gsap.timeline({paused:true});const sc=g.closest('section');(sc._tls||(sc._tls=[])).push(tl);let t=0;
-  for(let c=0;c<5;c++){const els=$$(`[data-c="${c}"]`,g);
-    if(c%2){tl.fromTo(els,{opacity:0,x:-14},{opacity:1,x:0,duration:.25,stagger:.05,ease:'power2.out'},t);t+=.2+.05*els.length}
-    else{tl.fromTo(els,{opacity:0,scale:.88,x:-24},{opacity:1,scale:1,x:0,duration:.45,stagger:.12,ease:'expo.out'},t);t+=.3+.12*els.length}}
-  tl.fromTo(g.parentElement.querySelector('.hfin'),{opacity:0,scale:.86,filter:'blur(10px)'},{opacity:1,scale:1,filter:'blur(0px)',duration:1,ease:'expo.out'},t+.1)});
+/* hypothesis: one hypothesis at a time — what we assumed → what we heard → what it became; then the three merge into the final one */
+$$('.hgrid').forEach(g=>{const sec=g.closest('section'),fin=g.parentElement.querySelector('.hfin');sec.classList.add('scr');
+  const kids=[...g.children],steps=document.createElement('div'),rows=document.createElement('div');steps.className='hsteps';rows.className='hrows';
+  kids.slice(0,5).forEach(k=>steps.appendChild(k));const R=[];
+  for(let i=5;i<kids.length;i+=5){const r=document.createElement('div');r.className='hrow';kids.slice(i,i+5).forEach(k=>r.appendChild(k));rows.appendChild(r);R.push(r)}
+  const dots=document.createElement('ol');dots.className='hdots';dots.innerHTML=R.map((_,i)=>`<li>H${i+1}</li>`).join('')+'<li>FINAL</li>';
+  g.append(steps,rows);rows.appendChild(fin);g.parentElement.appendChild(dots);
+  const tl=gsap.timeline({paused:true}),marks=[];gsap.set([...R,fin],{autoAlpha:0});
+  tl.fromTo(steps.children,{opacity:0,y:20},{opacity:1,y:0,stagger:.08,duration:.4,ease:'power3.out'},0);
+  R.forEach((r,i)=>{const [c0,a1,c2,a3,c4]=r.children,hl=c2.querySelectorAll('.ko b');marks.push(tl.duration());
+    tl.set(r,{autoAlpha:1})
+      .fromTo(c0,{opacity:0,x:-80,filter:'blur(10px)'},{opacity:1,x:0,filter:'blur(0px)',duration:.6,ease:'power3.out'})
+      .fromTo(a1,{opacity:0,x:-20},{opacity:1,x:0,duration:.25},'>-.1')
+      .fromTo(c2,{opacity:0,y:50,filter:'blur(10px)'},{opacity:1,y:0,filter:'blur(0px)',duration:.6,ease:'power3.out'},'>-.1')
+      .fromTo(hl,{'--hl':0},{'--hl':1,duration:.5,ease:'power2.inOut'},'>-.1')
+      .to(c0,{opacity:.45,duration:.4},'<')
+      .fromTo(c0.querySelector('p:last-child'),{'--st':0},{'--st':1,duration:.5,ease:'power2.inOut'},'<')
+      .fromTo(a3,{opacity:0,x:-20},{opacity:1,x:0,duration:.25},'>-.1')
+      .fromTo(c4,{opacity:0,scale:.8,x:60,filter:'blur(12px)'},{opacity:1,scale:1,x:0,filter:'blur(0px)',duration:.7,ease:'power3.out'},'>-.1')
+      .to({},{duration:.8})
+      .to([c0,a1,c2,a3],{opacity:0,y:-40,stagger:.04,duration:.4,ease:'power2.in'})
+      .to(c4,{opacity:0,y:120,scale:.5,duration:.5,ease:'power2.in'},'<.1').set(r,{autoAlpha:0})});
+  marks.push(tl.duration());
+  tl.to(steps,{opacity:0,y:-20,duration:.3},'<-.3')
+    .fromTo(fin,{autoAlpha:0,scale:.7,filter:'blur(14px)'},{autoAlpha:1,scale:1,filter:'blur(0px)',duration:.8,ease:'power3.out'},'>-.1')
+    .to({},{duration:.8});
+  sec._hyp={tl,marks,on:i=>$$('li',dots).forEach((d,j)=>{d.classList.toggle('on',j===i);d.classList.toggle('done',j<i)})}});
 
 /* ---------- solution: today fails step by step, olways lands ---------- */
 $$('.so .scard').forEach((cd,ci)=>{const tl=gsap.timeline({paused:true});cd._tl=tl;

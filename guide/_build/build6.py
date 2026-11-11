@@ -556,6 +556,8 @@ if __name__ == '__main__':
         if not plain or re.fullmatch(r'[A-Z0-9 ·&—\-–:/.()%×+]+', plain) or len(plain) < 6: return tag
         return re.sub(r'font-size:calc\(var\(--u\)\*([\d.]+)\)', lambda q: f'font-size:calc(var(--u)*{float(q.group(1)) + (1.5 if float(q.group(1)) < 15 else 0):.2f})', tag, count=1)
     secs = [re.sub(r'(<p class="fe ft[^"]*"[^>]*>)(.*?)</p>', bump_el, x, flags=re.S) for x in secs]
+    # speech-bubble text in the journey chart is sized to its bubble: keep it out of the type-scale snap
+    secs = [re.sub(r'<[^>]*data-a="btxt"[^>]*>', lambda m: m.group(0).replace('font-size:calc(var(--u)*', 'font-size:calc(1*var(--u)*'), x) for x in secs]
     logo = open('/tmp/claude-0/site/img/logo.svg').read().replace('<svg ', '<svg aria-hidden="true" ')
     tpl = open('/tmp/claude-0/v6/tpl6.html', encoding='utf-8').read()
     css5 = open('/tmp/claude-0/v5/css5.css').read()
@@ -563,5 +565,12 @@ if __name__ == '__main__':
     css = css5 + '\n' + css6
     css = re.sub(r'/\*U\{\*/(.*?)/\*\}U\*/', lambda m: re.sub(r'(?<![\w.#-])(-?\d+(?:\.\d+)?)u\b', lambda n: f'calc(var(--u)*{n.group(1)})', m.group(1)), css, flags=re.S)
     out = tpl.replace('{{CSS}}', css).replace('{{SECTIONS}}', '\n'.join(secs)).replace('{{JS}}', open('/tmp/claude-0/v6/js6.js').read()).replace('{{LOGO}}', json.dumps(logo))
+    # one type scale for the whole page: caption 14 · body 17 · title 24 · headline 36 · statement 48 (+ giant kinetic numbers)
+    def tier(v):
+        v = float(v)
+        return 14 if v < 15.5 else 17 if v < 20.5 else 24 if v < 30.5 else 36 if v < 42 else 48 if v < 100 else v
+    snap = lambda m: f'{m.group(1)}calc(var(--u)*{tier(m.group(2)):g})'
+    out = re.sub(r'(font-size:\s*)calc\(var\(--u\)\*([\d.]+)\)', snap, out)
+    out = re.sub(r'(font:[^;{}]*?\s)calc\(var\(--u\)\*([\d.]+)\)(?=/)', snap, out)
     open(OUT + 'index.html', 'w', encoding='utf-8').write(out)
     print(len(out))

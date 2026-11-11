@@ -697,3 +697,58 @@ section,.fit,.st-item{--k:14u;--b:17u;--en:14u;--ct:19u;--cb:16u}
 .rip.go::before{animation:oping 1s ease-out 1}.rip.go::after{animation:oping 1s ease-out .25s 1}
 #s16concl,#s17thanks{overflow:visible}
 /*}U*/
+/* ===================== v20 — one type scale, one spacing scale ===================== */
+/*U{*/
+section,.fit,.st-item{--k:14u;--b:17u;--en:14u;--ct:24u;--cb:17u;--pad:20u 24u;--gap:16u;--rad:16u}
+/* headers: tag 14 · english title 36 · korean 24 · body 17 · english 14 */
+.hh .htag,.fx .ftag{font-size:14u}
+.hh .hsub{font-size:24u!important;line-height:1.45}
+.hh .hbody p{font-size:17u!important;line-height:1.6}.hh .hbody p.en{font-size:14u!important}
+.hh{gap:0}.hh .hsub{margin-top:14u}.hh .hbody{margin-top:10u}
+.xh h3,.lxc h3,.an2 .fovt h3,.ttl{font-size:24u;line-height:1.45}
+/* hypothesis scene */
+.hy.scr .wrap{gap:28u;padding-top:28u;padding-bottom:0}
+.hy.scr .hgrid{display:flex;flex-direction:column;gap:16u}
+.hsteps,.hrow{display:grid;grid-template-columns:1fr 44u 1.15fr 44u 1.25fr;align-items:stretch}
+.hy.scr .hs{height:auto;padding:14u 24u;border-radius:16u;gap:14u}
+.hy.scr .hs b{font-size:14u}.hy.scr .hs span{font-size:17u;flex-direction:row;gap:10u;align-items:baseline}.hy.scr .hs i{font-size:14u}
+.hrows{display:grid;min-height:330u}
+.hrow{grid-area:1/1}
+.hy.scr .hc{padding:24u;border-radius:16u;gap:14u;justify-content:center}
+.hy.scr .hk{font-size:17u;gap:10u}.hy.scr .hk b{font-size:24u}
+.hy.scr .c0 p:last-child{font-size:24u;font-weight:600;line-height:1.5;color:#fff;background:linear-gradient(rgba(255,255,255,.55),rgba(255,255,255,.55)) 0 55%/calc(var(--st,0)*100%) 2px no-repeat}
+.hy.scr .c2{border-radius:0 16u 16u 16u}
+.hy.scr .c2 .who{font-size:14u}.hy.scr .who.d::before{width:20u;height:20u;border-radius:50%;font-size:10u}
+.hy.scr .c2 .ko{font-size:24u;font-weight:600;line-height:1.5;color:#fff}
+.hy.scr .c2 .ko b{background:linear-gradient(rgba(113,203,248,.28),rgba(113,203,248,.28)) 0 100%/calc(var(--hl,0)*100%) 46% no-repeat}
+.hy.scr .c2 .en{font-size:14u}
+.hy.scr .hk2{font-size:14u;letter-spacing:.06em}
+.hy.scr .c4 p:last-child{font-size:24u;line-height:1.5}
+.hy.scr .har{font-size:24u}
+.hy.scr .hfin{grid-area:1/1;align-self:center;padding:40u 48u;border-width:2px;border-radius:24u;background:linear-gradient(164deg,rgba(113,203,248,.5),rgba(31,172,244,.35) 39%,rgba(11,151,222,.3) 71%)}
+.hy.scr .fk{font-size:14u;letter-spacing:.1em}.hy.scr .ft{font-size:36u;line-height:1.4;margin:14u 0;letter-spacing:-.02em}.hy.scr .fe{font-size:17u}
+.hdots{list-style:none;margin:0;padding:0;display:flex;justify-content:center;gap:10u}
+.hdots li{font-family:var(--f-gsf);font-size:14u;font-weight:700;padding:6u 14u;border-radius:99px;color:rgba(255,255,255,.35);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);transition:all .3s}
+.hdots li.done{color:rgba(255,255,255,.7)}.hdots li.on{background:#1FACF4;color:#fff;box-shadow:none}
+/* initial hypothesis on the same scale */
+.ih0 .t{font-size:24u;line-height:1.5}.ihh{font-size:17u}.ihp p:last-child{font-size:17u}.ihy p:last-child{font-size:17u}
+/* spacing: every hand-built card shares padding, radius and gap */
+.xps>div,.xq,.xz,.xwhy,.ax .acard,.ihp,.ihy,.big.so .mi{padding:var(--pad);border-radius:var(--rad)}
+.ux .xg{row-gap:var(--gap);column-gap:var(--gap)}.ux .xqs{gap:var(--gap)}
+.ihc{gap:var(--gap)}.ax{gap:var(--gap)}.ax .agrid{gap:10u}
+.xi,.lxm,.ih0{border-radius:20u}
+.lxg{gap:40u}.fovg{gap:40u}.xg,.lx .fit,.an2 .fit,.so2 .fit{--edge:40u}
+/*}U*/
+/*U{*/
+.hy.scr .hfin .fe,.hy.scr .hfin .ft,.hy.scr .hfin .fk{position:static;text-align:center;width:auto}
+.hy.scr .wrap{position:relative}
+.hy.scr .hdots{margin-top:4u}
+/*}U*/
+/*U{*/
+.hy.scr .hdots{position:static!important;overflow:visible;width:auto;height:auto;inset:auto;transform:none}
+/*}U*/
+/*U{*/
+.pj1 .ax .acard p:last-child{max-height:0;opacity:0;margin-top:0}
+.pj1 .ax .acard.on p:last-child{max-height:160u;opacity:1;margin-top:6u}
+.ux .xwm{max-width:240u}
+/*}U*/
