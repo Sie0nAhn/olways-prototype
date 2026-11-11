@@ -86,6 +86,8 @@ def HL(text, marks):
         h = h.replace(ph, f'<b class="hl{" sky" if kind == "s" else ""}">{ph}</b>', 1)
     return h
 
+OVK = 'olways는 휠체어 사용자를 위한 스마트 글라스예요. 출발 전엔 내 휠체어로 갈 수 있는지, 이동 중엔 놓친 위험을 먼저 알려줘요.'
+OVE = 'Smart glasses for wheelchair users — know if you can get in before you leave, and see the risks you missed on the move.'
 def overview():
     # callmelord-style: full-bleed street video stays put, the title rises out of a mask, then the statement lights up word by word
     from svgt import svg_title
@@ -94,7 +96,7 @@ def overview():
     inner = ('<div class="ovpin"><video class="ovv" src="media/bg_street.mp4" muted playsinline loop preload="metadata"></video><div class="ovt"></div>'
              f'<div class="ovc"><p class="ovk">Overview</p><div class="ovtitle" style="aspect-ratio:{w:g}/{hh:g}">{sv}</div>'
              f'<p class="ovsub">{E(T["2616:37230"])}</p></div></div>'
-             f'<div class="ovs"><p class="ovbig" data-wr>{HL(T["2616:37233"], [("b", "휠체어 사용자를 위한 스마트 글라스"), ("s", "내 휠체어 실측값"), ("b", "갈 수 있는 곳인지 먼저"), ("s", "보지 · 듣지 못한 위험"), ("b", "두 손을 핸들에 둔 채"), ("s", "‘갈 수 있다’는 확신")])}</p><p class="oven">{E(T["2616:37232"])}</p></div>')
+             f'<div class="ovs"><p class="ovbig" data-wr>{HL(OVK, [("s", "휠체어 사용자"), ("s", "갈 수 있는지"), ("s", "놓친 위험")])}</p><p class="oven">{E(OVE)}</p></div>')
     return section('02overview', 'ov2', inner)
 
 # ------------------------------------------------------------------ 03 problem
@@ -151,7 +153,11 @@ def problem():
         c = byid[cid]; keep = [n for n in nodes if inside(n, c)]
         sp = Spec(); g = cid; build(sp, g)
         h = apply_spec(part(keep, -c['x'], -c['y']), sp)
-        if cid == '2616:37311': h = widen3(h)
+        if cid == '2616:37311':
+            h = widen3(h)
+            # the 3% label: English and Korean on separate lines, lifted so it clears the short bar
+            h = re.sub(r'(id="f2616-37323"[^>]*?top:calc\(var\(--u\)\*)290\.00(\)[^>]*>)BF certificates on\s+streets &amp; stops',
+                       lambda m: m.group(1) + '262.00' + m.group(2) + 'BF certificates on streets &amp; stops<br>', h, count=1)
         return f'<div class="st-item" data-g="{g}"><div class="pcw" style="--w:{c["w"]};--h:{c["h"]}"><div class="pcard fx">{h}</div></div></div>'
     def b1(sp, g):
         sp.put(ids(37249, 37257), 'rise', 0, g, .05); t = .5
@@ -276,7 +282,13 @@ def inithyp():
     br = ''.join(f'<path d="M660 0 V26 Q660 38 {660 + (12 if x > 660 else -12 if x < 660 else 0)} 38 H{x + (12 if x < 660 else -12) if x != 660 else 660} Q{x} 38 {x} 50 V72" />' if x != 660 else '<path d="M660 0 V72" />' for x in (218, 660, 1102))
     body = (f'<div class="ihx"><div class="ih0"><p class="k">{E(T["2616:37777"])}</p><p class="t">{E(T["2616:37778"])}</p></div>'
             f'<svg class="ihl" viewBox="0 0 1320 72" preserveAspectRatio="none" aria-hidden="true">{br}</svg><div class="ihc">{cols}</div></div>')
-    inner = f'<div class="ihhead fx" style="height:{U(300)}">{apply_spec(h, sp)}</div>{body}'
+    from svgt import svg_title
+    sv, sx_, sy_, sw_, sh_ = svg_title('2616:37770', 'What we believed at first')
+    hh_ = apply_spec(h, sp)
+    hh_ = re.sub(r'(<p class="fe ft[^"]*" id="f2616-37770"[^>]*?style=")[^"]*("[^>]*>)[^<]*</p>',
+                 lambda m: m.group(1) + f'left:{U(700 - sw_ / 2)};top:{U(sy_)};width:{U(sw_)};height:{U(sh_)};color:#097bb5' + m.group(2).replace('<p', '<div') + sv + '</p>', hh_, count=1)
+    hh_ = hh_.replace('class="fe ft " id="f2616-37770"', 'class="fe fd fsv" id="f2616-37770"')
+    inner = f'<div class="ihhead fx" style="height:{U(300)}">{hh_}</div>{body}'
     return section('06inithyp', 'pinfit', f'<div class="fit">{inner}</div>', None, f' style="background:{S["bg"]}"')
 
 # ------------------------------------------------------------------ 10 user flow
@@ -555,7 +567,17 @@ if __name__ == '__main__':
         plain = re.sub(r'<[^>]+>', '', txt).strip()
         if not plain or re.fullmatch(r'[A-Z0-9 ·&—\-–:/.()%×+]+', plain) or len(plain) < 6: return tag
         return re.sub(r'font-size:calc\(var\(--u\)\*([\d.]+)\)', lambda q: f'font-size:calc(var(--u)*{float(q.group(1)) + (1.5 if float(q.group(1)) < 15 else 0):.2f})', tag, count=1)
-    secs = [re.sub(r'(<p class="fe ft[^"]*"[^>]*>)(.*?)</p>', bump_el, x, flags=re.S) for x in secs]
+    secs = [x if 'id="s10flow"' in x else re.sub(r'(<p class="fe ft[^"]*"[^>]*>)(.*?)</p>', bump_el, x, flags=re.S) for x in secs]
+    def fig_tag(m):
+        t = m.group(0)
+        if 'data-g="hdr' in t and t.startswith('<p'):
+            L = re.search(r'left:calc\(var\(--u\)\*(-?[\d.]+)\)', t); W = re.search(r'width:calc\(var\(--u\)\*([\d.]+)\)', t)
+            if L and W and abs(float(L.group(1)) + float(W.group(1)) / 2 - 700) < 40 and 'src=' not in t and 'fsv' not in t and 'fd ' not in t:
+                t = t.replace(L.group(0), 'left:calc(var(--u)*40)', 1).replace(W.group(0), 'width:calc(var(--u)*1320)', 1)
+                t = re.sub(r'style="([^"]*)"', lambda q: f'style="{q.group(1)};text-align:center"', t, count=1)
+            return t
+        return t.replace('font-size:calc(var(--u)*', 'font-size:calc(1*var(--u)*')
+    secs = [re.sub(r'<[^>]*class="fe[^"]*"[^>]*>', fig_tag, x) for x in secs]
     # speech-bubble text in the journey chart is sized to its bubble: keep it out of the type-scale snap
     secs = [re.sub(r'<[^>]*data-a="btxt"[^>]*>', lambda m: m.group(0).replace('font-size:calc(var(--u)*', 'font-size:calc(1*var(--u)*'), x) for x in secs]
     logo = open('/tmp/claude-0/site/img/logo.svg').read().replace('<svg ', '<svg aria-hidden="true" ')

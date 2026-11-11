@@ -752,3 +752,23 @@ section,.fit,.st-item{--k:14u;--b:17u;--en:14u;--ct:24u;--cb:17u;--pad:20u 24u;-
 .pj1 .ax .acard.on p:last-child{max-height:160u;opacity:1;margin-top:6u}
 .ux .xwm{max-width:240u}
 /*}U*/
+/* ===================== v21 ===================== */
+/*U{*/
+/* overview */
+.ovbig{font-size:44u!important;line-height:1.45;max-width:1100u}
+.oven{font-size:17u!important;line-height:1.6;max-width:900u;margin-top:24u}
+/* interview: one heading style, larger quotes */
+.iv .ih{gap:10u}.iv .ih h3{font-size:24u!important;line-height:1.45}
+.iv .vt{font-size:14u}
+.iv .qt .ko{font-size:20u!important;line-height:1.55}
+.iv .qt .en{font-size:14u!important}
+.iv .who{font-size:14u}
+.iv .row{gap:16u}.iv .cbox,.iv .qcard{padding:24u;border-radius:20u}
+/* solution: 'back home' label after the dashed line, never under the next lane */
+.trl span{left:calc(100% + 10u)!important;top:-11u!important;font-size:14u}
+.so2 .lanes{gap:34u}
+/* UT: columns never overflow into each other */
+.ux .xstage,.ux .xf,.ux .xside,.ux .xi{min-width:0;max-width:100%}
+.ux .xg{grid-template-columns:minmax(0,860fr) minmax(0,476fr)}
+.ux .xzi img{max-width:100%;object-fit:contain}
+/*}U*/

@@ -77,8 +77,10 @@ $$('#s02overview').forEach(o=>{const t=o.querySelector('.ovtitle'),c=o.querySele
 
 const fitCards=()=>$$('.pcw').forEach(c=>{const box=c.closest('.st-items').getBoundingClientRect(),u=innerWidth/1400;
   c.style.setProperty('--s',Math.min(box.width/(+c.style.getPropertyValue('--w')*u),box.height/(+c.style.getPropertyValue('--h')*u)).toFixed(3))});
-const fitIv=()=>$$('.iv .st-item').forEach(it=>{it.style.removeProperty('--u');const h=it.scrollHeight,H=it.clientHeight;
-  if(h>H)it.style.setProperty('--u',`calc(100vw / 1400 * ${(H/h).toFixed(4)})`)});
+/* all five interview items share one scale, so their headings and quotes stay the same size */
+const fitIv=()=>{const its=$$('.iv .st-item');its.forEach(it=>it.style.removeProperty('--u'));let k=1;
+  its.forEach(it=>{const h=it.scrollHeight,H=it.clientHeight;if(h>H)k=Math.min(k,H/h)});
+  its.forEach(it=>{if(k<1)it.style.setProperty('--u',`calc(100vw / 1400 * ${k.toFixed(4)})`)})};
 fitCards();addEventListener('resize',fitCards);
 const IVS=['확신 없으면 출발하지 않아요','방송보다, 다가오는 위험','보기 전에 먼저 짚어줘요','배터리로 어디까지 갈까','쓸 수 있는 화장실은 4곳 중 1곳'];
 /* ---------- interview → top-tab story; each finding plays its chart, then its quotes ---------- */
