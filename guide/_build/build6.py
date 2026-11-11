@@ -37,10 +37,10 @@ def section(key, cls, inner, h=None, extra=''):
     st = f' style="height:{U(h)}"' if (h and not extra) else ''
     return f'<section id="s{key}" class="fs {cls}{" dk" if dk else ""}" data-g="{g}" data-l="{E(l)}" data-anim="{anim}"{st}{extra}>\n{inner}\n</section>'
 
-CHAPS = {'c1': (1, 'Research', '휠체어 사용자는 왜 새로운 곳에 가지 않을까요?', 'Why don’t wheelchair users go somewhere new?', ['문제', '포지셔닝', '시나리오', '초기 가설', '인터뷰']),
-         'c2': (2, 'Strategy', '그래서, 무엇부터 풀어야 할까요?', 'So what do we solve first?', ['가설 수정', '솔루션', '유저 플로우']),
-         'c3': (3, 'Design', '어떻게 보여줘야 멈추지 않고 읽힐까요?', 'How do you show it so no one has to stop?', ['UT 3라운드', '최종 화면', '렌즈 구성', '입구 판정']),
-         'c4': (4, 'Outcome', '다녀온 길은 다음 사람을 어떻게 도울까요?', 'How does one trip help the next person?', ['데이터 루프', '결론'])}
+CHAPS = {'c1': (1, 'Research', '휠체어 사용자가 새로운 곳을 포기하는 이유에 주목했어요', 'We looked at why wheelchair users give up on new places.', ['문제', '포지셔닝', '시나리오', '초기 가설', '인터뷰']),
+         'c2': (2, 'Strategy', '‘갈 수 있는지’를 출발 전에 아는 것을 중점으로 방향을 잡았어요', 'We set our direction on knowing “can I get in?” before leaving.', ['가설 수정', '솔루션', '유저 플로우']),
+         'c3': (3, 'Design', '두 손을 핸들에 둔 채 읽히는 화면에 집중했어요', 'We focused on screens you can read with both hands on the rims.', ['UT 3라운드', '최종 화면', '렌즈 구성', '입구 판정']),
+         'c4': (4, 'Outcome', '다녀온 길이 다음 사람의 판단이 되는 구조를 만들었어요', 'Every ride becomes the next person’s pre-departure judgment.', ['데이터 루프', '결론'])}
 def chapter(key):
     n, name, ko, en, steps = CHAPS[key]
     dots = ''.join(f'<li class="{"on" if i == n else "past" if i < n else ""}"><span>{g}</span></li>' for i, g in enumerate(['Intro', 'Research', 'Strategy', 'Design', 'Outcome']))

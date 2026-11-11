@@ -899,3 +899,26 @@ section,.fit,.st-item{--k:14u;--b:17u;--en:14u;--ct:24u;--cb:17u;--pad:20u 24u;-
 .lx .lxc .lb{font-size:19u!important;line-height:1.65}
 .lx .lxc .le{font-size:15u!important;margin-top:16u}
 /*}U*/
+/* cover: exactly one iPad screen; title and tagline keep their proportions */
+#s01cover{aspect-ratio:auto!important;height:100svh!important;overflow:hidden}
+#s01cover .cvw,#s01cover .cvw img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#s01cover .b.std{left:27%!important;width:46%!important;top:calc(var(--navh) + 6svh)!important;height:auto!important}
+#s01cover .b.title{left:30%!important;width:40%!important;top:calc(var(--navh) + 6svh + 19vw)!important;height:auto!important}
+#s01cover .b img{width:100%;height:auto;display:block}
+/* positioning map: no pulsing ring; axis labels breathe; the olways caption sits clear of the axis */
+.oring{display:none!important}
+/*U{*/
+#f2616-37394,#f2616-37400,#f2616-37403,#f2616-37397{translate:0 calc(var(--u)*9)!important}
+#f2616-37406,#f2616-37407,#f2616-37405{translate:0 calc(var(--u)*-26)}
+/*}U*/
+/*U{*/
+#f2616-37406,#f2616-37407,#f2616-37405{translate:0 calc(var(--u)*-52)!important}
+#f2616-37386{min-height:1px}
+.cq{font-size:40u}
+/*}U*/
+/*U{*/
+#f2616-37408,#f2616-37409{translate:0 calc(var(--u)*-52)!important}
+/*}U*/
+/*U{*/
+#f2616-37393{translate:0 calc(var(--u)*-16)!important}#f2616-37394{translate:0 calc(var(--u)*-6)!important}
+/*}U*/
