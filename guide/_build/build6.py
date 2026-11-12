@@ -98,7 +98,7 @@ def overview():
     inner = (f'<div class="ovx"><div class="ovrow"><span>Overview</span><span>01</span></div>'
              f'<div class="ovgrid"><div class="ovtitle" style="aspect-ratio:{w:g}/{hh:g}">{sv}</div>'
              f'<div class="ovtext"><h3>{E(T["2616:37230"])}</h3><p class="ko">{HL(OVK, [("s", "휠체어 사용자"), ("s", "갈 수 있는지"), ("s", "놓친 위험")])}</p><p class="en">{E(OVE)}</p></div></div>'
-             f'<figure class="ovpanel"><video src="m/ov_video.mp4" poster="m/ov_poster.jpg" muted loop playsinline autoplay preload="auto" aria-label="횡단보도 위 휠체어 사용자와 바쁘게 지나가는 사람들"></video><figcaption>Hands-free access, measured for your own wheelchair.</figcaption></figure></div>')
+             f'<figure class="ovpanel"><img class="ovloop" src="m/ov_loop.webp" alt="횡단보도 위 휠체어 사용자와 바쁘게 지나가는 사람들" decoding="async"></figure></div>')
     return section('02overview', 'ov2', inner)
 
 # ------------------------------------------------------------------ 03 problem
@@ -738,6 +738,8 @@ if __name__ == '__main__':
     ]:
         assert a in out, a
         out = out.replace(a, b)
+    LOGO = open('/tmp/claude-0/v6/logo.svg').read().strip().replace('aria-hidden="true"', 'role="img" aria-label="olways"')
+    out = out.replace('<span class="k">OLWAYS</span>', '<span class="k kl">' + LOGO + '</span>')
     out = re.sub(r'(<h3 class="ttl">)출발 전 집에서, 길 위에서, 건물 입구 앞에서<br>olways가 먼저 알려줘요', r'\1외출 한 번을 따라가 보면, 집에서 · 길 위에서 · 입구 앞에서 olways가 먼저 알려줘요', out)
     # v32: one weight per role — regular (400) for reading, bold (700) for anything that labels or leads
     WMAP = {'100': '400', '200': '400', '300': '400', '500': '400', '600': '700', '800': '700', '900': '700'}

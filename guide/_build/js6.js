@@ -94,7 +94,7 @@ Object.entries(G).forEach(([g,els])=>{const sec=els[0].closest('section');
   if(sec)(sec._tls||(sec._tls=[])).push(tl)});
 
 /* ---------- overview: title rises out of a mask, video eases back as the statement scrolls over ---------- */
-$$('#s02overview').forEach(o=>{const x=o.querySelector('.ovx');if(!x)return;const im=x.querySelector('.ovpanel video');
+$$('#s02overview').forEach(o=>{const x=o.querySelector('.ovx');if(!x)return;const im=x.querySelector('.ovpanel .ovloop');
   const tl=gsap.timeline({scrollTrigger:{trigger:o,start:'top 85%',end:'top 10%',scrub:.6}});
   tl.fromTo(x.querySelector('.ovrow'),{opacity:0},{opacity:1,duration:.3},0)
     .fromTo(x.querySelector('.ovtitle'),{clipPath:'inset(0 0 100% 0)',y:40},{clipPath:'inset(0 0 -10% 0)',y:0,duration:.6,ease:'power3.out'},.1)
