@@ -1,6 +1,18 @@
 (()=>{
 const $=s=>document.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const U0=()=>(innerWidth-200)/1320;
+/* section headers keep three lines only: tag, title, one Korean line (the interview's participant line stays) */
+$$('#main > section').forEach(sec=>{const ps=$$('p.fe[data-g^="hdr"]',sec);if(!ps.length)return;
+  const fs=e=>parseFloat(getComputedStyle(e).fontSize),ko=ps.filter(e=>/[가-힣]/.test(e.textContent));if(!ko.length)return;
+  const sub=ko.reduce((a,b)=>fs(b)>fs(a)?b:a),tp=e=>parseFloat((e.getAttribute('style')||'').match(/top:calc\(var\(--u\)\*(-?[\d.]+)\)/)?.[1]||0);
+  const gone=ps.filter(e=>e!==sub&&tp(e)>tp(sub)&&fs(e)<fs(sub));gone.forEach(e=>e.classList.add('hgone'));
+  if(!gone.length||sec.classList.contains('pinfit'))return;
+  /* close the gap the removed lines leave: everything below the header moves up */
+  const hv=e=>parseFloat((e.getAttribute('style')||'').match(/height:calc\(var\(--u\)\*(-?[\d.]+)\)/)?.[1]||0);
+  const gb=Math.max(...gone.map(e=>tp(e)+hv(e))),sb=tp(sub)+hv(sub),D=gb-sb;if(D<=0)return;
+  const par=sub.parentElement;[...par.children].forEach(e=>{if(!(e.dataset.g||'').startsWith('hdr')&&tp(e)>=gb-1){const T=tp(e);e.setAttribute('style',e.getAttribute('style').replace(/top:calc\(var\(--u\)\*(-?[\d.]+)\)/,`top:calc(var(--u)*${(T-D).toFixed(2)})`))}});
+  const hs=par.style.height.match(/calc\(var\(--u\)\*([\d.]+)\)/);if(hs)par.style.height=`calc(var(--u)*${+hs[1]-D})`;
+  if(par!==sec){const h2=sec.style.height.match(/calc\(var\(--u\)\*([\d.]+)\)/);if(h2)sec.style.height=`calc(var(--u)*${+h2[1]-D})`}});
 (()=>{const FULL='#s01cover,#s02overview,#s17thanks,.chap';
   $$('#main > section').forEach(sec=>{if(sec.matches(FULL)){sec.classList.add('fullu');return}
     let run=null;[...sec.children].forEach(ch=>{if(ch.matches('.big, script, style')){run=null;return}
@@ -74,7 +86,7 @@ Object.entries(G).forEach(([g,els])=>{const sec=els[0].closest('section');
   if(sec)(sec._tls||(sec._tls=[])).push(tl)});
 
 /* ---------- overview: title rises out of a mask, video eases back as the statement scrolls over ---------- */
-$$('#s02overview').forEach(o=>{const t=o.querySelector('.ovtitle'),c=o.querySelector('.ovc'),v=o.querySelector('.ovv');
+$$('#s02overview').forEach(o=>{const t=o.querySelector('.ovtitle'),c=o.querySelector('.ovc'),v=o.querySelector('.ovbg');
   gsap.fromTo(t,{clipPath:'inset(0 0 100% 0)',y:60},{clipPath:'inset(0 0 -20% 0)',y:0,duration:1.4,ease:'expo.out',scrollTrigger:ST(o,'top 60%')});
   gsap.fromTo([o.querySelector('.ovk'),o.querySelector('.ovsub')],{opacity:0,y:20},{opacity:1,y:0,duration:.9,stagger:.5,delay:.3,ease:'power3.out',scrollTrigger:ST(o,'top 60%')});
   gsap.fromTo(v,{scale:1.18},{scale:1,ease:'none',scrollTrigger:{trigger:o,start:'top bottom',end:'bottom top',scrub:true}});
@@ -137,10 +149,13 @@ const fitPin=f=>{const u0=U0(),avail=innerHeight-64-60;f.style.removeProperty('-
   if(f.classList.contains('fx')){const fh=+f.style.getPropertyValue('--fh');let fb=f.querySelector(':scope>.fbody');
     if(!fb){fb=document.createElement('div');fb.className='fbody';
       [...f.children].forEach(e=>{if(!(e.dataset.g||'').startsWith('hdr')&&TOPV(e)>=300)fb.appendChild(e)});f.appendChild(fb)}
-    const y0=Math.min(...[...fb.children].map(TOPV)),bh=fh-y0,head=(300-84)*u0;
+    const HV=e=>{const m=(e.getAttribute('style')||'').match(/height:calc\(var\(--u\)\*(-?[\d.]+)\)/);return m?+m[1]:0};
+    const hd=[...f.children].filter(e=>e!==fb&&!e.classList.contains('hgone')&&(e.dataset.g||'').startsWith('hdr')&&e.tagName!=='DIV');
+    const HB=hd.length?Math.max(...hd.map(e=>TOPV(e)+HV(e)))+36:300;
+    const y0=Math.min(...[...fb.children].map(TOPV)),bh=fh-y0,head=(HB-84)*u0;
     const k=Math.min(1,(avail-head-10)/(bh*u0)),u1=u0*k;
-    f.style.marginTop=(-84*u0)+'px';f.style.height=(300*u0+bh*u1+10)+'px';
-    Object.assign(fb.style,{position:'absolute',left:(1400*(u0-u1)/2)+'px',top:(300*u0+10-y0*u1)+'px',width:(1400*u1)+'px',height:(fh*u1)+'px'});
+    f.style.marginTop=(-84*u0)+'px';f.style.height=(HB*u0+bh*u1+10)+'px';
+    Object.assign(fb.style,{position:'absolute',left:(1400*(u0-u1)/2)+'px',top:(HB*u0+10-y0*u1)+'px',width:(1400*u1)+'px',height:(fh*u1)+'px'});
     fb.style.setProperty('--u',u1+'px');
     [...fb.children].forEach(e=>{const st=e.getAttribute('style')||'';if(/left:calc\(var\(--u\)\*40(\.00)?\)/.test(st)&&/width:calc\(var\(--u\)\*1320(\.00)?\)/.test(st)){
       const W=1320*u0/u1;e.style.left=`calc(var(--u)*${40-(W-1320)/2})`;e.style.width=`calc(var(--u)*${W})`}});return}
@@ -298,11 +313,20 @@ const mkFit=sec=>{if(sec._hyp){sec._hyp.tl.paused(false);return scrubScene(sec,s
   ScrollTrigger.create({trigger:sec,start:'top top',end:()=>'+='+innerHeight*Math.max(1.2,all.duration()*.32),pin:true,pinSpacing:true,scrub:.6,animation:all,invalidateOnRefresh:true})};
 /* ---- journey: the line follows the scroll; each speech bubble rises whole when the line reaches its dot ---- */
 const mkJourney=sec=>{const tl=TL['2616:37657'];if(!tl)return;
-  const groups=Object.entries(BUB).map(([t,els])=>{const w=document.createElement('div');w.className='bgrp';sec.appendChild(w);els.forEach(e=>{w.appendChild(e);gsap.set(e,{opacity:1,clearProps:'transform,clipPath'})});
+  const groups=Object.entries(BUB).map(([t,els])=>{const w=document.createElement('div');w.className='bgrp';(sec.querySelector('.sw')||sec).appendChild(w);els.forEach(e=>{w.appendChild(e);gsap.set(e,{opacity:1,clearProps:'transform,clipPath'})});
     gsap.set(w,{opacity:0,y:26});return {t:+t,w,on:false}});
   /* bubbles follow the drawn line itself (the scrubbed time), so they never appear before the line reaches their dot */
   const dots=$$('[data-a="pop"]',sec);groups.forEach(g=>{const d=dots.slice().sort((a,b)=>Math.abs(+a.dataset.t-g.t)-Math.abs(+b.dataset.t-g.t))[0];if(!d)return;
-    const r=document.createElement('i');r.className='rip';sec.appendChild(r);g.rip=r;g.dot=d});
+    const r=document.createElement('i');r.className='rip';(sec.querySelector('.sw')||sec).appendChild(r);g.rip=r;g.dot=d});
+  /* each bubble sits centred over its dot, kept inside the white card; its tail still points at the dot */
+  const card=document.getElementById('f2616-37657');
+  const box=e=>({l:e.offsetLeft,t:e.offsetTop,w:e.offsetWidth,h:e.offsetHeight});
+  const place=()=>{const C=card?box(card):null;groups.forEach(g=>{if(!g.dot)return;const bub=g.w.querySelector('[data-a="bubble"]'),tail=g.w.querySelector('[data-a="tail"]');if(!bub)return;
+    [...g.w.children].forEach(e=>e.style.translate='');const B=box(bub),D=box(g.dot),cx=D.l+D.w/2;let dx=cx-(B.l+B.w/2);
+    const cv=document.getElementById('f2616-37679');const L0=cv?cv.offsetLeft-6:C?C.l+14:0;if(C){dx=Math.max(dx,L0-B.l);dx=Math.min(dx,C.l+C.w-14-(B.l+B.w))}
+    [...g.w.children].forEach(e=>{if(e!==tail)e.style.translate=dx+'px 0'});
+    if(tail){const T=box(tail);tail.style.translate=(cx-(T.l+T.w/2))+'px 0'}})};
+  place();addEventListener('resize',place);addEventListener('load',place);
   tl.eventCallback('onUpdate',()=>{const now=tl.time();groups.forEach(g=>{const want=now>=g.t;if(want!==g.on){g.on=want;
       if(want&&g.rip){g.rip.style.left=(g.dot.offsetLeft+g.dot.offsetWidth/2)+'px';g.rip.style.top=(g.dot.offsetTop+g.dot.offsetHeight/2)+'px';g.rip.classList.remove('go');void g.rip.offsetWidth;g.rip.classList.add('go')}
       gsap.to(g.w,want?{opacity:1,y:0,duration:.6,ease:'power3.out',overwrite:true}:{opacity:0,y:18,duration:.25,ease:'power2.in',overwrite:true})}})});
@@ -507,7 +531,7 @@ $$('.lsplit .lvid, .hp .lvid').forEach(v=>{const m=v.querySelector('video');
 $$('.hh .htitle, .fx .fsv').forEach(t=>!t.closest('.st-top')&&gsap.fromTo(t,{clipPath:'inset(0 0 100% 0)',y:40},{clipPath:'inset(0 0 -10% 0)',y:0,ease:'none',scrollTrigger:{trigger:t,start:'top 96%',end:'top 60%',scrub:.6}}));
 
 /* ---------- headers: words light up one by one as you scroll (scrubbed) ---------- */
-$$('.hh .hsub, [data-wr]').forEach(el=>{if(el.dataset.done||el.closest('.big,.st-top'))return;el.dataset.done=1;
+$$('[data-wr]').forEach(el=>{if(el.dataset.done||el.closest('.big,.st-top'))return;el.dataset.done=1;
   const walk=n=>{[...n.childNodes].forEach(ch=>{if(ch.nodeType===3){const f=document.createDocumentFragment();
       ch.textContent.split(/(\s+)/).forEach(w=>{if(!w)return;if(/^\s+$/.test(w))f.appendChild(document.createTextNode(w));else{const s=document.createElement('span');s.className='wr';s.textContent=w;f.appendChild(s)}});
       ch.replaceWith(f)}else if(ch.nodeType===1)walk(ch)})};
@@ -525,5 +549,16 @@ ScrollTrigger.getAll().filter(t=>t.pin).forEach(t=>{const el=t.pin,sp=el.parentE
   gsap.fromTo(inner,{scale:.93,opacity:.3,y:70},{scale:1,opacity:1,y:0,ease:'none',scrollTrigger:{trigger:sp,start:'top bottom',end:'top top',scrub:true}});
   gsap.fromTo(inner,{scale:1,opacity:1,y:0},{scale:.94,opacity:.2,y:-60,ease:'none',immediateRender:false,scrollTrigger:{trigger:sp,start:'bottom bottom',end:'bottom top',scrub:true}})});
 const seam=()=>$$('.pin-spacer').forEach(sp=>{const el=sp.firstElementChild;if(!el)return;const c=getComputedStyle(el.tagName==='SECTION'?el:el.closest('section')||el);sp.style.backgroundColor=c.backgroundColor;sp.style.backgroundImage=c.backgroundImage});
-const refit=()=>{seam();fitAll();normCards();fitCards();fitIv();ScrollTrigger.refresh()};addEventListener('load',refit);document.fonts&&document.fonts.ready.then(refit);
+/* every pinned scene puts its header tag at the same height: 30px under the nav */
+const HEADQ='.htag, p.fe[data-g^="hdr"], .xh .xn, .thead .tkick';
+const alignHeads=()=>{ScrollTrigger.getAll().filter(t=>t.pin).forEach(t=>{const el=t.pin;
+  const tag=[...el.querySelectorAll(HEADQ)].find(e=>e.offsetHeight&&!e.closest('.hgone'));if(!tag)return;
+  const inner=el.querySelector(':scope > .fit, :scope > .sw, :scope > .tstage, :scope > .sow')||el.firstElementChild;if(!inner)return;
+  if(inner.dataset.mt0==null)inner.dataset.mt0=inner.classList.contains('fit')&&el.classList.contains('pinfit')?'':parseFloat(getComputedStyle(inner).marginTop)||0;
+  if(inner.dataset.mt0!=='')inner.style.marginTop=inner.dataset.mt0+'px';
+  let off=0,e=tag;while(e&&e!==el){off+=e.offsetTop;e=e.offsetParent}if(e!==el)return;
+  /* scaled .fit content: offsets inside it are in its own scale */
+  const d=94-off;
+  inner.style.marginTop=(parseFloat(getComputedStyle(inner).marginTop)||0)+d+'px'})};
+const refit=()=>{seam();fitAll();normCards();fitCards();fitIv();alignHeads();ScrollTrigger.refresh()};addEventListener('load',refit);document.fonts&&document.fonts.ready.then(refit);
 })();

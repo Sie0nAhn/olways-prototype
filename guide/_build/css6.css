@@ -922,3 +922,29 @@ section,.fit,.st-item{--k:14u;--b:17u;--en:14u;--ct:24u;--cb:17u;--pad:20u 24u;-
 /*U{*/
 #f2616-37393{translate:0 calc(var(--u)*-16)!important}#f2616-37394{translate:0 calc(var(--u)*-6)!important}
 /*}U*/
+/* ===================== v29 ===================== */
+#s02overview .ovbg{position:absolute;inset:0;overflow:hidden}
+#s02overview .ovbg img{width:100%;height:100%;object-fit:cover;display:block}
+#s02overview .ovt{background:radial-gradient(80% 70% at 50% 45%,rgba(1,23,34,.15),rgba(1,23,34,.75) 75%,#011722)}
+/* cover: tagline sits just under the logo */
+#s01cover .b.title{top:calc(var(--navh) + 6svh + 15vw)!important}
+/*U{*/
+/* positioning map: top axis label sits inside the card, the vertical axis starts below it */
+#f2616-37393{translate:0 calc(var(--u)*14)!important}#f2616-37394{translate:0 calc(var(--u)*24)!important}
+#f2616-37387{clip-path:inset(calc(var(--u)*38) 0 0 0)}#f2616-37388{translate:0 calc(var(--u)*38)}
+/*}U*/
+/* headers: tag, title, one Korean line — the small lines are gone (interview keeps its participant line) */
+.hgone,.hh .hbody{display:none!important}
+.hh .hsub,.hh .hsub .wr{opacity:1!important;color:#14191C}
+.hh.dk .hsub,.hh.dk .hsub .wr{color:#fff}
+.hh.sh .hsub{color:#14191C!important}
+/* every one-screen scene starts its header at the same place: 30px under the nav */
+.pinfit{justify-content:flex-start!important}
+.ux,.lx,.sx{align-items:flex-start!important}
+/* interview: chart and quotes share one height */
+.iv .ig .cbox{align-self:stretch!important}
+.iv .ig .qcard{align-self:stretch!important}
+/* scenes inside the page frame never paint their own background: the section's colour runs edge to edge */
+.sw .pin-spacer,.sw .ux,.sw .lx,.sw .sx,.sw .trip,.sw .story{background:none!important}
+.st-pre{margin-bottom:-70px;z-index:2}
+.iv .ig .cbox{height:auto!important}.iv .ig .cbox .ca{flex:1;display:flex;flex-direction:column;justify-content:center}

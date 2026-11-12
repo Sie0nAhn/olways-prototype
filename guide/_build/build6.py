@@ -93,7 +93,7 @@ def overview():
     from svgt import svg_title
     sv, x, y, w, hh = svg_title('2616:37229', 'Know Before You Go: Hands-Free Access, Measured for You')
     T = {n['id']: n['txt'] for n in parse(EX('2616-37224'))[1] if n['k'] in 'TD'}
-    inner = ('<div class="ovpin"><video class="ovv" src="media/bg_street.mp4" muted playsinline loop preload="metadata"></video><div class="ovt"></div>'
+    inner = ('<div class="ovpin"><div class="ovbg"><img src="m/ov_bg.webp" alt="" decoding="async"></div><div class="ovt"></div>'
              f'<div class="ovc"><p class="ovk">Overview</p><div class="ovtitle" style="aspect-ratio:{w:g}/{hh:g}">{sv}</div>'
              f'<p class="ovsub">{E(T["2616:37230"])}</p></div></div>'
              f'<div class="ovs"><p class="ovbig" data-wr>{HL(OVK, [("s", "휠체어 사용자"), ("s", "갈 수 있는지"), ("s", "놓친 위험")])}</p><p class="oven">{E(OVE)}</p></div>')
@@ -149,6 +149,24 @@ def center_bubbles(h):
         h = nonlocal_h[0]
     return h
 
+def center_on_bars(h, groups):
+    """each bar's label above and its text inside sit centred on the bar"""
+    G = lambda st, k: float(re.search(k + r':calc\(var\(--u\)\*(-?[\d.]+)\)', st).group(1))
+    for bar, kids in groups:
+        st = re.search(r'id="f2616-%d"[^>]*?style="([^"]*)"' % bar, h).group(1)
+        bl, bw = G(st, 'left'), G(st, 'width')
+        for k in kids:
+            m = re.search(r'(<(p|img)[^>]*id="f2616-%d"[^>]*?style=")([^"]*)(")' % k, h)
+            ks = m.group(3)
+            if m.group(2) == 'img':
+                kw = G(ks, 'width'); ks = re.sub(r'left:calc\(var\(--u\)\*(-?[\d.]+)\)', f'left:calc(var(--u)*{bl + (bw - kw) / 2:.2f})', ks, count=1)
+            else:
+                ks = re.sub(r'left:calc\(var\(--u\)\*(-?[\d.]+)\)', f'left:calc(var(--u)*{bl + 8:.2f})', ks, count=1)
+                ks = re.sub(r'width:calc\(var\(--u\)\*([\d.]+)\)', f'width:calc(var(--u)*{bw - 16:.2f})', ks, count=1)
+                ks = re.sub(r'text-align:\w+', 'text-align:center', ks) if 'text-align' in ks else ks + ';text-align:center'
+            h = h[:m.start()] + m.group(1) + ks + m.group(4) + h[m.end():]
+    return h
+
 SHORT = {'2616:37248': ('58%', '새로운 곳, 한 곳도 못 가요'), '2616:37269': ('53%', '가장 큰 벽은 탑승'),
          '2616:37311': ('3%', '인증된 길 · 정류장은 3%뿐'), '2616:37337': ('3.3×', '환승은 3.3배 더 걸려요')}
 def problem():
@@ -175,11 +193,13 @@ def problem():
         sp = Spec(); g = cid; build(sp, g)
         h = apply_spec(part(keep, -c['x'], -c['y']), sp)
         if cid == '2616:37269': h = center_bubbles(h)
+        if cid == '2616:37337': h = center_on_bars(h, [(37350, [37349, 37351]), (37354, [37353, 37355]), (37358, [37357, 37359]), (37362, [37361, 37363])])
         if cid == '2616:37311':
             h = widen3(h)
             # the 3% label: English and Korean on separate lines, lifted so it clears the short bar
             h = re.sub(r'(id="f2616-37323"[^>]*?top:calc\(var\(--u\)\*)290\.00(\)[^>]*>)BF certificates on\s+streets &amp; stops',
                        lambda m: m.group(1) + '262.00' + m.group(2) + 'BF certificates on streets &amp; stops<br>', h, count=1)
+            h = center_on_bars(h, [(37324, [37323, 37325]), (37328, [37327, 37329, 37330]), (37333, [37332, 37334, 37335])])
         return f'<div class="st-item" data-g="{g}"><div class="pcw" style="--w:{c["w"]};--h:{c["h"]}"><div class="pcard fx">{h}</div></div></div>'
     def b1(sp, g):
         sp.put(ids(37249, 37257), 'rise', 0, g, .05); t = .5
