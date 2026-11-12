@@ -93,7 +93,7 @@ def overview():
     from svgt import svg_title
     sv, x, y, w, hh = svg_title('2616:37229', 'Know Before You Go: Hands-Free Access, Measured for You')
     T = {n['id']: n['txt'] for n in parse(EX('2616-37224'))[1] if n['k'] in 'TD'}
-    inner = ('<div class="ovpin"><div class="ovbg"><img src="m/ov_bg.webp" alt="" decoding="async"></div><div class="ovt"></div>'
+    inner = ('<div class="ovpin"><div class="ovbg"><img src="m/ov_bg.webp" alt="" decoding="async"></div><div class="ovt"></div><div class="ovarc"></div><i class="ovorb o1"></i><i class="ovorb o2"></i>'
              f'<div class="ovc"><p class="ovk">Overview</p><div class="ovtitle" style="aspect-ratio:{w:g}/{hh:g}">{sv}</div>'
              f'<p class="ovsub">{E(T["2616:37230"])}</p></div></div>'
              f'<div class="ovs"><p class="ovbig" data-wr>{HL(OVK, [("s", "휠체어 사용자"), ("s", "갈 수 있는지"), ("s", "놓친 위험")])}</p><p class="oven">{E(OVE)}</p></div>')
@@ -226,8 +226,8 @@ def problem():
         nav = ''.join(f'<li><i>{k:02d}</i><strong>{SHORT[cid][0]}</strong><span>{SHORT[cid][1]}</span><b class="sbar"><em></em></b></li>' for k, (cid, tid, _) in pairs)
         items = ''.join(card(cid, fn) for k, (cid, tid, fn) in pairs)
         # the header scrolls in before the scene; the pinned scene keeps the whole screen for the figure
-        top = f'<div class="st-pre">{head_html if first else top}</div>' if (first or top) else ''
-        return (f'{top}<div class="story side"><div class="st-stage"><div class="st-side"><p class="st-k">{kick}</p><p class="st-h">{head}</p><ol class="st-nav">{nav}</ol></div>'
+        top = f'<div class="st-top">{head_html if first else top}</div>' if (first or top) else ''
+        return (f'<div class="story side{" hd" if top else ""}"><div class="st-stage">{top}<div class="st-side"><p class="st-k">{kick}</p><p class="st-h">{head}</p><ol class="st-nav">{nav}</ol></div>'
                 f'<div class="st-items">{items}</div></div></div>')
     st1 = story([(1, ('2616:37248', '2616:37250', b1)), (2, ('2616:37269', '2616:37271', b2))], 'Problem · 01–02', '나가지 않는 게 아니라,<br>나갈 수 없어요', True)
     h2 = ('<header class="hh sh"><span class="htag">01  ·  PROBLEM  ·  03–04</span><p class="sht">Accessible on paper, unknown at the door</p>'

@@ -948,3 +948,56 @@ section,.fit,.st-item{--k:14u;--b:17u;--en:14u;--ct:24u;--cb:17u;--pad:20u 24u;-
 .sw .pin-spacer,.sw .ux,.sw .lx,.sw .sx,.sw .trip,.sw .story{background:none!important}
 .st-pre{margin-bottom:-70px;z-index:2}
 .iv .ig .cbox{height:auto!important}.iv .ig .cbox .ca{flex:1;display:flex;flex-direction:column;justify-content:center}
+/* ===================== v30 ===================== */
+.rs > .sw.swr{top:50%;bottom:auto;transform:translate(-50%,-50%);width:calc((100vw - 200px) * 1400 / 1320)}
+/* stories keep their header on screen through every step */
+.story.side.hd .st-stage,.story.top.hd .st-stage{grid-template-rows:auto minmax(0,1fr)!important}
+.story .st-top{grid-column:1/-1;margin:0 0 18px!important}
+.story .st-top .phead{margin-top:calc(var(--u)*-84)}
+.story .st-top .hh{padding:0!important}
+.story.top.hd .st-stage{grid-template-rows:auto auto minmax(0,1fr)!important}
+/* overview in the reference mood: near-black, a glowing blue horizon, glass orbs */
+#s02overview{background:#0B0E13}
+#s02overview .ovbg img{opacity:.32;filter:grayscale(.3)}
+#s02overview .ovt{background:linear-gradient(180deg,rgba(11,14,19,.55),rgba(11,14,19,.2) 40%,rgba(11,14,19,.85) 80%,#0B0E13)}
+#s02overview .ovarc{position:absolute;left:50%;top:74%;width:260vw;height:260vw;margin-left:-130vw;border-radius:50%;background:#0B0E13;
+  box-shadow:0 -2px 0 rgba(113,203,248,.9),0 -30px 90px rgba(31,140,244,.55),0 -140px 260px rgba(31,110,244,.35);pointer-events:none}
+#s02overview .ovorb{position:absolute;border-radius:50%;pointer-events:none;background:radial-gradient(circle at 32% 28%,rgba(170,215,255,.5),rgba(40,110,230,.35) 38%,rgba(10,30,70,.15) 70%,transparent 72%);box-shadow:inset -18px -24px 60px rgba(0,0,0,.45),0 0 80px rgba(31,120,244,.25);backdrop-filter:blur(2px)}
+#s02overview .ovorb.o1{width:22vw;height:22vw;left:-6vw;top:52%}
+#s02overview .ovorb.o2{width:12vw;height:12vw;right:-3vw;top:16%}
+#s02overview .ovc{z-index:3}
+#s02overview .ovs{background:linear-gradient(rgba(11,14,19,0),rgba(11,14,19,.9) 26%,#0B0E13)!important}
+/*U{*/
+/* ---- Final UI in the reference mood: near-black stage, glowing horizon, numbered glass cards ---- */
+#s13anat,#s14pass{background:#0B0E13!important;position:relative;overflow:hidden}
+#s13anat::before,#s14pass::before{content:"";position:absolute;left:50%;bottom:-210vw;width:260vw;height:260vw;margin-left:-130vw;border-radius:50%;background:#0B0E13;
+  box-shadow:0 -2px 0 rgba(113,203,248,.75),0 -30px 90px rgba(31,140,244,.45),0 -140px 260px rgba(31,110,244,.28);pointer-events:none;z-index:0}
+#s13anat > .sw,#s14pass > .sw{z-index:1}
+#s13anat .htag,#s14pass .htag{background:rgba(113,203,248,.12)!important;color:#71CBF8!important}
+#s13anat .htitle svg *,#s14pass .htitle svg *{fill:#71CBF8}
+#s13anat .hsub,#s13anat .hsub .wr,#s14pass .hsub{color:#fff!important}
+.an1 .ashot,.pj1 .ashot{border-radius:20u;box-shadow:0 0 0 1px rgba(113,203,248,.25),0 30u 80u rgba(31,120,244,.25)}
+.an1 .acard,.pj1 .acard{position:relative;display:grid;grid-template-columns:44u 1fr;align-items:center;column-gap:8u;padding:12u 18u 12u 12u!important;border-radius:14u;
+  background:#141A21!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)!important;transform:none!important}
+.an1 .acard .ak,.pj1 .acard .ak{grid-column:2;grid-row:1;margin:0;font-size:13u;color:rgba(255,255,255,.45)}
+.an1 .acard .ak b,.pj1 .acard .ak b{display:none}
+.an1 .acard::before,.pj1 .acard::before{content:attr(data-n);grid-column:1;grid-row:1/3;font-family:var(--f-gsf);font-size:28u;font-weight:700;line-height:1;color:rgba(113,203,248,.35);text-align:center}
+.an1 .acard h4,.pj1 .acard h4{grid-column:2;margin:2u 0 0!important;font-size:18u!important;color:rgba(255,255,255,.75)!important}
+.an1 .acard.on,.pj1 .acard.on{background:linear-gradient(135deg,#1F6FE0,#1A4FB0)!important;box-shadow:0 14u 34u rgba(31,110,244,.4)!important}
+.an1 .acard.on::before,.pj1 .acard.on::before{color:#fff}
+.an1 .acard.on h4,.pj1 .acard.on h4{color:#fff!important}.an1 .acard.on .ak,.pj1 .acard.on .ak{color:rgba(255,255,255,.75)}
+.an1 .acard.seen::before,.pj1 .acard.seen::before{color:rgba(113,203,248,.7)}
+.adesc,.an1 .adesc{color:#fff}
+.adesc .ak{color:#71CBF8}
+.ashot .bdg{background:#1F6FE0;box-shadow:0 0 0 4u rgba(31,110,244,.3)}
+.ashot .bdg.on{background:#fff;color:#1F6FE0}
+/* field-of-view on the dark stage */
+.an2 .fovt h3,.an2 .fovt .fb{color:#fff}.an2 .fovt .fk{color:#71CBF8}.an2 .fovt .fs2{color:rgba(255,255,255,.45)}
+.an2 .fill{background:#141A21;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.an2 .fill img{filter:invert(.92) hue-rotate(180deg) brightness(1.1)}
+.an2 .fovshot{border-radius:20u;overflow:hidden;box-shadow:0 0 0 1px rgba(113,203,248,.25),0 30u 80u rgba(31,120,244,.25)}
+/* triptych title clears the pictures */
+.trip .thead{margin-bottom:28u!important;position:relative;z-index:2}
+/*}U*/
+/*U{*/.trip .thead{margin-bottom:80u!important;z-index:3}.trip .trow{position:relative;z-index:1}/*}U*/
+#s16concl{background:#F4F6F8!important}

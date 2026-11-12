@@ -17,6 +17,7 @@ $$('#main > section').forEach(sec=>{const ps=$$('p.fe[data-g^="hdr"]',sec);if(!p
   $$('#main > section').forEach(sec=>{if(sec.matches(FULL)){sec.classList.add('fullu');return}
     let run=null;[...sec.children].forEach(ch=>{if(ch.matches('.big, script, style')){run=null;return}
       if(!run){run=document.createElement('div');run.className='sw';ch.before(run)}run.appendChild(ch)})})})();
+$$('#main > section.rs:not(.fullu)').forEach(sec=>{const sw=sec.querySelector(':scope > .sw');const ar=sec.style.aspectRatio;if(sw&&ar){sw.style.aspectRatio=ar;sw.classList.add('swr')}});
 const secs=$$('#main > section');
 const topOf=el=>el.getBoundingClientRect().top+scrollY;
 const to=el=>{window.__jump&&window.__jump();window.scrollTo({top:topOf(el),behavior:'smooth'})};
@@ -73,7 +74,7 @@ Object.entries(G).forEach(([g,els])=>{const sec=els[0].closest('section');
   const trig=g.startsWith('hdr')||g==='ov'?els[0]:(document.getElementById('f'+g.replace(':','-'))||els[0]);
   const tl=gsap.timeline({paused:true});TL[g]=tl;
   /* everything that animates in place follows the scroll (scrubbed) instead of playing on its own */
-  const inPin=els[0].closest('.pinfit'),inStory=els[0].closest('.story,[data-manual],.sx');
+  const inPin=els[0].closest('.pinfit')||(g==='2616:38532'&&els[0].closest('#s10flow')),inStory=els[0].closest('.story,[data-manual],.sx');
   if(!inPin&&(!inStory||g.startsWith('hdr'))){
     if(inStory)ScrollTrigger.create({trigger:trig,start:'top 76%',onEnter:()=>run(g),onLeaveBack:()=>tl.reverse()});
     else ScrollTrigger.create({trigger:trig,start:'top 92%',end:()=>g.startsWith('hdr')?'top 45%':'center 50%',scrub:.6,animation:tl,invalidateOnRefresh:true})}
@@ -132,7 +133,7 @@ $$('.iv .wrap').forEach(w=>{const igs=$$('.ig',w),ban=w.querySelector('.ban');
     g._tl=tl});
   $$('.gg',w).forEach(e=>e.remove());w.insertBefore(st,w.firstChild);
   ban&&ban.remove();
-  const hh=w.closest('section').querySelector('.hh');if(hh)st.before(hh);
+  const hh=w.closest('section').querySelector('.hh');if(hh){const top=document.createElement('div');top.className='st-top';top.appendChild(hh);st.querySelector('.st-stage').prepend(top);st.classList.add('hd')}
   st._play=it=>it._tl&&it._tl.restart()});
 /* ================= scenes =================
    Every block that animates is a scene. While a scene on screen has not finished, the page will not scroll past it:
@@ -440,7 +441,9 @@ $$('#s15loop').forEach(sec=>{const ring=sec.querySelector('[data-a="ring"]');if(
   const put=()=>{if(orb.parentElement!==ring.parentElement)ring.parentElement.appendChild(orb);orb.style.left=ring.offsetLeft+'px';orb.style.top=ring.offsetTop+'px';orb.style.width=ring.offsetWidth+'px';orb.style.height=ring.offsetHeight+'px'};put();addEventListener('resize',put);addEventListener('load',put);
   (sec._tls||(sec._tls=[])).push(gsap.timeline({paused:true}).fromTo(orb,{opacity:0},{opacity:1,duration:.5},1.6))});
 /* pins are created in page order */
-$$('.chap:not(#sc4), .story, .big, .pinfit:not(#s15loop), #s05journey, .so2').forEach(el=>{if(el.classList.contains('chap'))return mkChap(el);if(el.classList.contains('so')&&el.classList.contains('big'))return mkSo(el);if(el.classList.contains('so2'))return mkSol(el);
+$$('.chap:not(#sc4), .story, .big, .pinfit:not(#s15loop), #s05journey, .so2, #s10flow').forEach(el=>{
+  if(el.id==='s10flow'){const tl=TL['2616:38532'];if(tl){tl.paused(false);const all=gsap.timeline();all.add(tl.progress(0),0).to({},{duration:.8});
+    ScrollTrigger.create({trigger:el,start:'top top',end:()=>'+='+innerHeight*Math.max(1.4,all.duration()*.3),pin:true,pinSpacing:true,scrub:.6,animation:all,invalidateOnRefresh:true})}return}if(el.classList.contains('chap'))return mkChap(el);if(el.classList.contains('so')&&el.classList.contains('big'))return mkSo(el);if(el.classList.contains('so2'))return mkSol(el);
   if(el.classList.contains('story'))mkStory(el);else if(el.classList.contains('big'))mkBig(el);else if(el.id==='s05journey')mkJourney(el);else mkFit(el)});
 /* usability test setup cards */
 /* usability-test setup cards tip up into place like cards being dealt */
@@ -486,7 +489,7 @@ $$('.lx').forEach(lx=>{const ms=$$('.lxm',lx),cs=$$('.lxc',lx),rail=$$('.lxrail 
   rail.forEach((l,k)=>l.onclick=()=>lx._go&&lx._go(k))});
 
 /* ---- anatomy / pass: a spotlight travels across the screen from one element to the next ---- */
-const mkShot=sx=>{const sh=sx.querySelector('.ashot'),sp=sh.querySelector('.spot'),bd=$$('.bdg',sh),cr=$$('.acard',sx);
+const mkShot=sx=>{const sh=sx.querySelector('.ashot'),sp=sh.querySelector('.spot'),bd=$$('.bdg',sh),cr=$$('.acard',sx);cr.forEach((c,i)=>c.dataset.n=String(i+1).padStart(2,'0'));
   const tl=gsap.timeline(),marks=[];gsap.set(sp,{'--sx':bd[0].style.left,'--sy':bd[0].style.top});
   tl.fromTo(sh,{opacity:0,y:60,scale:.94},{opacity:1,y:0,scale:1,duration:.7,ease:'power3.out'},0)
     .fromTo(cr,{opacity:0,x:40},{opacity:1,x:0,stagger:.06,duration:.4,ease:'power3.out'},.3);
