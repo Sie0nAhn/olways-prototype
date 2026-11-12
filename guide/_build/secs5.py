@@ -37,25 +37,29 @@ def interview(head, s):
     g1 = grp('Validated', 'v1', '휠체어 유저는 휠체어로 갈 수 있는 길과 장소라는 확신이 없으면 아예 출발하지 않아요.', '',
         ivrow('c1', [0, 1, 2], 372, 'How do they check if a place is accessible before going?', '방문 전, 접근 가능 여부를 무엇으로 확인하나요?', [
             ('참여자 D · 전동', '지도에는 있는데 폐업한 곳이라 어이없었던 적 있어요. **이후에는 식당에 전화 먼저** 걸어봐요.', 'It was on the map but had closed down. Now I always call the restaurant first.'),
-            ('참여자 C · 수동+전동', '장소도 장소지만 휠체어탄 사람을 어떻게 보는지 시선도 중요해요. 좋지 않은 시선일 때가 많아서 위축되거든요. **그래서 전화를 많이 해요**.', 'It’s not just the place — how people look at wheelchair users matters too. The looks are often unkind and make me shrink, so I call ahead a lot.')],
+            ('참여자 C · 수동+전동', '장소도 장소지만 휠체어탄 사람을 어떻게 보는지 시선도 중요해요. 좋지 않은 시선일 때가 많아서 위축되거든요. **그래서 전화를 많이 해요**.', 'It’s not just the place — how people look at wheelchair users matters too. The looks are often unkind and make me shrink, so I call ahead a lot.'),
+            ('참여자 · 수동+전동', '전화를 가장 많이 믿어요. 휠체어 가능 여부뿐 아니라 장애인을 잘 받아주는지도 확인할 수 있어요. 지인 말은 잘 못 믿는데, **‘휠체어 와도 되겠다’고 했는데 막상 가보니 불편한 경우가 많아서요**.', 'I trust phone calls the most — I can check not just wheelchair access but whether they welcome disabled guests. Friends said “a wheelchair will be fine,” but it often wasn’t.')],
             '확인 방법 순위: 1위 가게에 직접 전화, 2위 최근 다녀온 지인, 3위 지도 앱·블로그'))
     g2 = grp('Partially validated', 'v2', '방송을 렌즈에 띄우는 것보다, 다가오는 위험을 먼저 감지해 알리는 게 필요해요.', '',
         ivrow('c2', [0, 1, 2], 307, 'What sound put them most at risk on the move?', '이동 중 소리 때문에 가장 위험했던 순간은?', [
             ('참여자 A · 수동+전동', '누가 부르는 소리, **차 지나가는 소리를 못 들어서** 늘 조심해요.', '“I can’t hear people calling me or cars passing, so I’m always on guard.”'),
-            ('참여자 B · 수동+반전동', '위험하게 다가오면 알아서 피해주면 좋겠어요. **치고 간 적도 있어요**.', '“I wish it would steer me away when something comes at me. I’ve been hit before.”')],
+            ('참여자 B · 수동+반전동', '위험하게 다가오면 알아서 피해주면 좋겠어요. **치고 간 적도 있어요**.', '“I wish it would steer me away when something comes at me. I’ve been hit before.”'),
+            ('참여자 · 수동+반자동', '전동으로는 차도랑 같이 다녀야 하는 상황이 있는데, 차가 빨리 달려오면 **까딱하면 박겠다는 위험감**이 있었어요.', 'On my power chair I sometimes have to share the road with cars. When one comes fast, I feel one slip and I’ll be hit.')],
             '위험했던 소리: 다가오는 차·사람 3명, 부르는 소리 2명, 안내·긴급 방송 0명'))
-    g3 = grp('', '', '보지 않아도 위험을 먼저 짚어줘야 해요.', '',
+    g3 = grp('Partially validated', 'v2', '보지 않아도 위험을 먼저 짚어줘야 해요.', '',
         ivrow('c3', [0, 1, 2, 3, 4], 314, 'What caused their near-misses on the move?', '이동 중 사고가 날 뻔했던 순간, 무엇 때문이었나요?', [
             ('참여자 B · 수동+반전동', '턱이 시야에 있어도 제가 못 알아채면 그냥 지나쳐요. 그걸 먼저 짚어줬으면 해요.', '“Even when a curb is in view, I miss it if I don’t notice. I want it flagged first.”'),
-            ('참여자 C · 수동+전동', '시야가 산만해지거나 **사각지대가 생길까 봐** 걱정돼요.', '“I worry the view gets cluttered or creates blind spots.”')],
+            ('참여자 C · 수동+전동', '시야가 산만해지거나 **사각지대가 생길까 봐** 걱정돼요.', '“I worry the view gets cluttered or creates blind spots.”'),
+            ('참여자 · 수동+반자동', '수동 휠체어는 진짜 작은 턱에도 걸려버려요. 뒤에서 통째로 넘겨주지 않으면 **작은 턱에도 걸려서 앞으로 쏠려버려요**.', 'A manual chair catches on even the smallest curb. Unless someone lifts it over from behind, I get thrown forward.')],
             '사고가 날 뻔한 원인: 미처 보지 못한 턱·단차 5명, 시야 밖에서 다가온 사람·자전거 4명, 턱이 바닥과 구분이 안 됨 3명, 경사로 2명씩'))
     g4 = grp('New finding', 'v3', '전동 휠체어는 이동 범위를 넓혀주지만, 배터리로 어디까지 갈 수 있는지 몰라 새로운 곳을 망설여요.',
         'Power chairs widen their range, but not knowing how far the battery will go makes new places feel risky.',
         ivrow('c4', [0, 1, 2], 372, 'What worries them most on a power wheelchair?', '전동 휠체어로 이동할 때 무엇이 가장 걱정되나요?', [
             ('참여자 B · 수동+반전동', '전동 휠체어를 타면 덜 힘들어서 혼자 많이 가요. 하지만 충전된 정도에 따라 **얼마나 갈 수 있는지 잘 모르겠고**, 충전소 찾는 것도 힘들어서 **매번 같은 곳만 가게 돼요**.', '“On a power chair I go out alone more — but I can’t tell how far the charge lasts, so I keep going to the same places.”'),
-            ('참여자 D · 전동', '외부 충전이 어려워서 **멀리 못 가요**. 잔량은 꼭 확인하고 나가요.', '“Charging outside is hard, so I can’t go far. I always check the battery before leaving.”')],
+            ('참여자 D · 전동', '외부에서 충전하는 게 쉽지 않아서 **멀리 나가는 건 최대한 자제**해요. 항상 배터리 잔량을 꼼꼼하게 확인하고, 멀리 갈 일이 생기면 가족과 함께 가요.', 'Charging outside is hard, so I avoid going far. I always check the battery carefully, and if I must go far, I go with family.'),
+            ('참여자 · 수동+전동', '지하철 충전소는 대부분의 역에 없어요. 앱에서 충전기 위치를 알려주긴 하는데 **업데이트가 잘 안 돼서 틀릴 때가 있어요**. 충전소 찾기가 어려워서 웬만하면 직접 가지고 다녀요.', 'Most subway stations have no charger. The app shows charger locations, but it isn’t updated and is sometimes wrong — so I usually carry my own.')],
             '전동 휠체어 걱정: 충전소 찾기 5명, 남은 거리 짐작 4명, 처음 가는 곳 2명'))
-    g5 = grp('', '', '‘장애인 화장실 있음’ 표시는 많지만, 실제로 쓸 수 있는 곳은 4곳 중 1곳뿐이었어요', '',
+    g5 = grp('New finding', 'v3', '‘장애인 화장실 있음’ 표시는 많지만, 실제로 쓸 수 있는 곳은 4곳 중 1곳뿐이었어요', '',
         ivrow('c5', [0, 1, 2, 3], 550, 'Can they actually use a restroom marked “accessible”?', '지도에 ‘장애인 화장실 있음’이면, 정말 쓸 수 있었나요?', [
             ('참여자 F · 전동', '장애인 화장실이라고 해서 다 갈 수 있는 화장실이 아니에요. 문턱도 있고, 공간이 좁은 곳도 있고 그래서 **실제로 갈 수 있는 장애인 화장실은 더 없어요**.', 'Not every “accessible” restroom is usable. Some have thresholds, some are too narrow — so the ones I can actually use are even fewer.'),
             ('참여자 C · 수동+전동', '화장실에 조그마한 턱이 있어서, **사람들 올 때까지 기다렸다가** 나왔어요.', 'There was a small threshold in the restroom — I had to wait until someone came to help me out.'),
