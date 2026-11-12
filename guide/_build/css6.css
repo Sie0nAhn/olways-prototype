@@ -1125,3 +1125,19 @@ p.fe:has(.tp){font-size:calc(var(--u)*12)!important;line-height:calc(var(--u)*26
 .so2 .scard .lanes .seg,.so2 .scard .lanes .r,.so2 .scard .lanes em,.so2 .scard .lanes .trl,.so2 .scard .lanes span:not(.k):not(.mk){font-size:calc((100vw - 200px) / 1320 * 20)!important}
 .so2 .scard .lanes .k{font-size:calc((100vw - 200px) / 1320 * 14)!important}
 .so2 .scard .lanes .k.kl svg{height:calc((100vw - 200px) / 1320 * 20)}
+/* v35 overview: Korean lead matches every other section subtitle; English line sits under the English title */
+/*U{*/.ovtext h3{font-family:var(--f-suit)!important;font-size:24u!important;font-weight:700!important;line-height:1.4!important;letter-spacing:-.02em!important;color:#14191C!important}
+.ovleft .en{margin:18u 0 0;max-width:560u;font-family:var(--f-gsf);font-size:14u;line-height:1.6;color:rgba(20,25,28,.5)}/*}U*/
+/* v35 hypothesis steps: STEP n never breaks; Korean over English */
+/*U{*/.hy.scr .hs{min-height:104u!important;gap:18u!important}
+.hy.scr .hs b{white-space:nowrap;flex:none}
+.hy.scr .hs span{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:4u!important;line-height:1.3}
+.hy.scr .hs span i{display:block;font-style:normal;white-space:nowrap}/*}U*/
+/* v35 "다시 집으로": a clean dashed return loop with an arrowhead back into the start */
+.so2 .lane .trl{top:calc(100% + 6px)!important;height:18px!important;border:2px dashed #FF9C80!important;border-top:0!important;border-radius:0 0 12px 12px!important;box-sizing:border-box}
+.so2 .lane .trl::before{content:"";position:absolute;left:-7px;top:-9px;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:9px solid #FF9C80}
+.so2 .lane .trl span{left:50%!important;top:calc(100% + 4px)!important;transform:translateX(-50%);font-size:calc((100vw - 200px) / 1320 * 14)!important;font-weight:700;color:#FF9C80}
+/* v35 lens prototype + FOV principle: centre the block between the nav and the 30px bottom margin */
+.lx{align-items:center!important;padding-top:var(--navh)!important;box-sizing:border-box}
+/*U{*/.lxg{grid-template-columns:1fr 330u!important}/*}U*/
+.sx.an2{padding-top:0!important;align-items:flex-start!important}.sx.an2 > .fit{margin-top:calc(100svh - 30px - (100vw - 200px) / 1320 * 742.5)!important}

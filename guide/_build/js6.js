@@ -98,7 +98,7 @@ $$('#s02overview').forEach(o=>{const x=o.querySelector('.ovx');if(!x)return;cons
   const tl=gsap.timeline({scrollTrigger:{trigger:o,start:'top 85%',end:'top 10%',scrub:.6}});
   tl.fromTo(x.querySelector('.ovrow'),{opacity:0},{opacity:1,duration:.3},0)
     .fromTo(x.querySelector('.ovtitle'),{clipPath:'inset(0 0 100% 0)',y:40},{clipPath:'inset(0 0 -10% 0)',y:0,duration:.6,ease:'power3.out'},.1)
-    .fromTo(x.querySelectorAll('.ovtext > *'),{opacity:0,y:30},{opacity:1,y:0,stagger:.12,duration:.5,ease:'power3.out'},.3)
+    .fromTo(x.querySelectorAll('.ovtext > *, .ovleft .en'),{opacity:0,y:30},{opacity:1,y:0,stagger:.12,duration:.5,ease:'power3.out'},.3)
     .fromTo(x.querySelector('.ovpanel'),{opacity:0,y:80,scale:.96},{opacity:1,y:0,scale:1,duration:.7,ease:'power3.out'},.45);
   gsap.fromTo(im,{scale:1.18,yPercent:-6},{scale:1,yPercent:6,ease:'none',scrollTrigger:{trigger:x.querySelector('.ovpanel'),start:'top bottom',end:'bottom top',scrub:true}})});
 
@@ -513,7 +513,7 @@ const mkShot=sx=>{const sh=sx.querySelector('.ashot'),sp=sh.querySelector('.spot
 /* field-of-view: reasoning first, then the lens grows to the whole screen while its zones stay drawn */
 const mkFov=sx=>{const z=$$('.fovz .z',sx),hz=sx.querySelector('.hz'),shot=sx.querySelector('.fovshot'),t=sx.querySelector('.fovt'),fit=sx.querySelector('.fit');
   const G=()=>{const o=gsap.getProperty(shot,'scale'),ox=gsap.getProperty(shot,'x');gsap.set(shot,{scale:1,x:0});const a=shot.getBoundingClientRect(),f=fit.getBoundingClientRect();gsap.set(shot,{scale:o,x:ox});
-    const pad=parseFloat(getComputedStyle(fit).paddingLeft)||0,w=f.width-pad*2,s=Math.min(w/a.width,(innerHeight-30-a.top)/a.height);return {s,x:f.left+pad+(w-a.width*s)/2-a.left}};
+    const pad=parseFloat(getComputedStyle(fit).paddingLeft)||0,w=f.width-pad*2,s=Math.min(w/a.width,(innerHeight-30-64-30)/a.height);return {s,x:f.left+pad+(w-a.width*s)/2-a.left,y:Math.max(0,innerHeight-30-(a.top+a.height*s))}};
   const tl=gsap.timeline();
   tl.fromTo(t.children,{opacity:0,y:30},{opacity:1,y:0,stagger:.1,duration:.5,ease:'power3.out'},0)
     .fromTo(shot,{opacity:0,scale:.92},{opacity:1,scale:1,duration:.7,ease:'power3.out'},0)
@@ -521,7 +521,7 @@ const mkFov=sx=>{const z=$$('.fovz .z',sx),hz=sx.querySelector('.hz'),shot=sx.qu
     .fromTo(z,{opacity:0,scale:.9},{opacity:1,scale:1,stagger:.3,duration:.5,ease:'power3.out'},.8)
     .to({},{duration:.6})
     .to(t,{opacity:0,x:-120,duration:.6,ease:'power2.in'})
-    .to(shot,{x:()=>G().x,scale:()=>G().s,transformOrigin:'0 0',duration:1,ease:'power3.inOut'},'<')
+    .to(shot,{x:()=>G().x,y:()=>G().y,scale:()=>G().s,transformOrigin:'0 0',duration:1,ease:'power3.inOut'},'<')
     .to({},{duration:.9});
   scrubScene(sx,tl,[0],null,.3)};
 $$('.sx.an1, .sx.an2, .sx.pj1').forEach(sx=>sx.classList.contains('an2')?mkFov(sx):mkShot(sx));
@@ -580,5 +580,11 @@ function flowFit(){const s=document.getElementById('s10flow');if(!s)return;const
   const capB=caps.length?Math.max(...caps.map(e=>e.offsetTop+e.offsetHeight)):cb;
   const D=Math.max(0,innerHeight-30-sw.offsetTop-capB);c.style.height=(h+D)+'px';
   els.forEach(e=>{const t=e.offsetTop;if(t>=cb-2)e.style.top=`calc(${e.dataset.t0} + ${D}px)`;else if(t>top)e.style.top=`calc(${e.dataset.t0} + ${D/2}px)`})}
+/* FOV principle: drop the whole block so that the grown lens ends on the 30px bottom margin */
+function fovFit(){$$('.sx.an2').forEach(sx=>{const shot=sx.querySelector('.fovshot'),fit=sx.querySelector('.fit');if(!shot||!fit)return;
+  fit.style.marginTop='0px';const o=gsap.getProperty(shot,'scale'),ox=gsap.getProperty(shot,'x');gsap.set(shot,{scale:1,x:0});
+  const a=shot.getBoundingClientRect(),f=fit.getBoundingClientRect(),S=sx.getBoundingClientRect();gsap.set(shot,{scale:o,x:ox});
+  const pad=parseFloat(getComputedStyle(fit).paddingLeft)||0,s=(f.width-pad*2)/a.width,top=a.top-S.top;
+  const D=Math.max(0,innerHeight-30-(top+a.height*s));fit.style.marginTop=D+'px'})}
 const refit=()=>{seam();fitAll();normCards();fitCards();fitIv();alignHeads();flowFit();ScrollTrigger.refresh()};addEventListener('load',refit);document.fonts&&document.fonts.ready.then(refit);
 })();
