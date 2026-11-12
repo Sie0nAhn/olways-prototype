@@ -1109,3 +1109,4 @@ p.fe:has(.tp){font-size:calc(var(--u)*12)!important;line-height:calc(var(--u)*26
 #f2616-38834 svg *,#f2616-37379 svg *,#f2616-38834 path,#f2616-37379 path{fill:#097BB5!important}
 /*U{*/#f2616-37256,#f2616-37277,#f2616-37319,#f2616-37345{font-size:17u!important;font-weight:400!important}/*}U*/
 .lxm .live,.lvid .live{font-size:calc((100vw - 200px) / 1320 * 12)!important}
+.iv .qh .qe{font-size:calc((100vw - 200px) / 1320 * 17)!important}.iv .qh .qk{font-size:calc((100vw - 200px) / 1320 * 14)!important}

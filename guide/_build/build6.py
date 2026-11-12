@@ -449,13 +449,17 @@ def interview():
         out = []
         for k, (en, ko, pct, val, note, hot) in enumerate(rows):
             nt = f'<em class="ivbn">⌄ {E(note)}</em>' if note else ''
-            out.append(f'<i class="pc barh hbr{" hot" if hot else ""}" data-o="{k}"><span class="ivbl"><b>{E(en)}</b><small>{E(ko)}</small></span>'
+            out.append(f'<i class="pc barh hbr{" hot" if hot else ""}" data-o="{k}"><span class="ivbl"><b>{E(en)}</b>{f'<small>{E(ko)}</small>' if ko else ''}</span>'
                        f'<span class="ivbr"><span class="ivbb" style="width:{pct}%"></span><span class="ivbv">{E(val)}</span>{nt}</span></i>')
         return '<div class="ca hbars">' + ''.join(out) + '</div>'
     C1 = hbars([('Map apps', '지도 앱 · 블로그', 34, '3rd', '', 0), ('A friend who went', '최근 다녀온 지인', 58, '2nd', '', 0), ('Calling the place', '가게에 직접 전화', 86, '1st', '', 1)])
     C5 = hbars([('On the map', '지도 표시', 80, '100%', '', 0), ('No threshold', '문턱 없음', 46.4, '58%', '문턱에 걸려 못 들어감', 0),
                 ('Room to turn', '회전 1.4m', 26.4, '33%', '좁아서 돌 수 없음', 0), ('Usable alone', '실제 사용', 20, '25%', '', 1)])
-    for key, rep in (('iv_c1_0', C1), ('iv_c5_0', C5)):
+    C2 = hbars([('Announcements', '안내 · 긴급 방송', 1.5, '0명', '', 0), ('Someone calling', '부르는 소리', 57, '2명', '', 0), ('Approaching cars', '다가오는 차 · 사람', 86, '3명', '', 1)])
+    C3 = hbars([('경사로', '', 34, '2명씩', '', 0), ('턱이 바닥과 구분이 안 됨', '', 52, '3명', '', 0),
+                ('시야 밖에서 다가온 사람 · 자전거', '', 69, '4명', '', 0), ('미처 보지 못한 턱 · 단차에 걸림', '', 86, '5명', '', 1)])
+    C4 = hbars([('처음 가는 곳', '', 34, '2명', '', 0), ('남은 거리 짐작', '', 69, '4명', '', 0), ('충전소 찾기', '', 86, '5명', '', 1)])
+    for key, rep in (('iv_c1_0', C1), ('iv_c2_0', C2), ('iv_c3_0', C3), ('iv_c4_0', C4), ('iv_c5_0', C5)):
         i = h.find(key); a = h.rfind('<div class="ca"', 0, i); b = h.find('</div>', i) + 6
         h = h[:a] + rep + h[b:]
     return section('07interview', 'hx iv', hd + h)
