@@ -12,3 +12,23 @@ def svg_title(nid, label=''):
     path = re.sub(r' id="[^"]*"', '', path)
     lab = html.escape(label)
     return (f'<svg viewBox="0 0 {w:g} {h:g}" role="img" aria-label="{lab}" preserveAspectRatio="none">{path}</svg>', x, y, w, h)
+
+def left_align(sv):
+    """re-flow a centred multi-line outlined title so every line starts at x=0"""
+    import re, sys
+    sys.path.insert(0, '/tmp/claude-0/v6/gl')
+    from glyph import subpaths, pts, shift
+    def fix(m):
+        sps = subpaths(m.group(1))
+        bb = [pts(s) for s in sps]
+        ys = sorted(set(round((b[2] + b[3]) / 2) for b in bb))
+        mid = (min(b[2] for b in bb) + max(b[3] for b in bb)) / 2
+        lines = {}
+        for s, b in zip(sps, bb):
+            lines.setdefault((b[2] + b[3]) / 2 > mid, []).append((s, b))
+        out = []
+        for k, items in lines.items():
+            l = min(b[0] for _, b in items)
+            for s, _ in items: out += shift(s, -l)
+        return 'd="' + ' '.join(out) + '"'
+    return re.sub(r'd="([^"]*)"', fix, sv)

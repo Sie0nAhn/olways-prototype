@@ -58,7 +58,7 @@ META = {
  'c3': ('Design', 'Chapter 03 · Design', 1, 'chap'), 'c4': ('Outcome', 'Chapter 04 · Outcome', 1, 'chap'),
  '03problem': ('Research', '01 · Problem', 0, 'rise'), '04opp': ('Research', 'Positioning map', 0, 'rise'), '05journey': ('Research', '02 · Scenario', 0, 'rise'),
  '06inithyp': ('Research', '03 · Initial hypothesis', 0, 'cascade'), '07interview': ('Research', '04 · User interview', 0, 'sides'),
- '08hyp': ('Strategy', '04 · Hypothesis', 1, 'slideblur'), '09solution': ('Strategy', '06 · Solution', 1, 'tilt'), '10flow': ('Strategy', '07 · User flow', 0, 'rise'),
+ '08hyp': ('Strategy', '05 · Hypothesis', 1, 'slideblur'), '09solution': ('Strategy', '06 · Solution', 1, 'tilt'), '10flow': ('Strategy', '07 · User flow', 0, 'rise'),
  '11iter': ('Design', '08 · Usability test', 1, 'focus'), '12lens': ('Design', '09 · Through the lens', 0, 'rise'), '13anat': ('Design', '09 · Lens anatomy', 0, 'rise'),
  '14pass': ('Design', '09 · Pass judgment', 1, 'rise'), '15loop': ('Outcome', '10 · Data loop', 1, 'rise'), '16concl': ('Outcome', '11 · Conclusion', 0, 'flip'), '17thanks': ('Outcome', 'Thank you', 1, 'dissolve')}
 
@@ -92,11 +92,13 @@ def overview():
     # callmelord-style: full-bleed street video stays put, the title rises out of a mask, then the statement lights up word by word
     from svgt import svg_title
     sv, x, y, w, hh = svg_title('2616:37229', 'Know Before You Go: Hands-Free Access, Measured for You')
+    from svgt import left_align
+    sv = left_align(sv)
     T = {n['id']: n['txt'] for n in parse(EX('2616-37224'))[1] if n['k'] in 'TD'}
     inner = (f'<div class="ovx"><div class="ovrow"><span>Overview</span><span>01</span></div>'
              f'<div class="ovgrid"><div class="ovtitle" style="aspect-ratio:{w:g}/{hh:g}">{sv}</div>'
              f'<div class="ovtext"><h3>{E(T["2616:37230"])}</h3><p class="ko">{HL(OVK, [("s", "휠체어 사용자"), ("s", "갈 수 있는지"), ("s", "놓친 위험")])}</p><p class="en">{E(OVE)}</p></div></div>'
-             f'<figure class="ovpanel"><img src="m/ov_photo.webp" alt="횡단보도 위 휠체어 사용자와 바쁘게 지나가는 사람들" decoding="async"><figcaption>Hands-free access, measured for your own wheelchair.</figcaption></figure></div>')
+             f'<figure class="ovpanel"><video src="m/ov_video.mp4" poster="m/ov_poster.jpg" muted loop playsinline autoplay preload="auto" aria-label="횡단보도 위 휠체어 사용자와 바쁘게 지나가는 사람들"></video><figcaption>Hands-free access, measured for your own wheelchair.</figcaption></figure></div>')
     return section('02overview', 'ov2', inner)
 
 # ------------------------------------------------------------------ 03 problem
@@ -311,6 +313,10 @@ def journey():
     for nid, H in (('2616:37657', Y(738) - Y(317)), ('2616:37679', 90 * F)):
         h = re.sub(r'(id="f%s"[^>]*?height:calc\(var\(--u\)\*)([\d.]+)' % nid.replace(':', '-'), lambda m: m.group(1) + f'{H:.2f}', h, count=1)
     S = dict(S, h=S['h'] + (Y(738) - 738))
+    # the curve raster carried the white dot rings, which turned into ovals once stretched; draw the stroke as a vector instead
+    CV = ('<svg viewBox="0 0 1110 94" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="jcg" x1="2" y1="47" x2="989" y2="47" gradientUnits="userSpaceOnUse"><stop stop-color="#71CBF8"/><stop offset="1" stop-color="#0B97DE"/></linearGradient></defs>'
+          '<path d="M2 2C84.2857 2 134.929 92 217.214 92C299.5 92 321.429 46.686 403.714 46.686C486 46.686 490.929 92 573.214 92C655.5 92 664.429 47 746.714 47C915.714 47 830.429 47 912.714 47C1135.21 47 1024.93 47 1107.21 47" fill="none" stroke="url(#jcg)" stroke-width="4" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>')
+    h = re.sub(r'<img ([^>]*id="f2616-37679"[^>]*?) src="[^"]*" alt=""([^>]*)>', lambda m: '<div ' + m.group(1).replace('fi fv', 'fi fv jcv') + m.group(2) + '>' + CV + '</div>', h, count=1)
     sp = Spec(); hdr_spec(nodes, sp, 300)
     g = '2616:37657'; sp.put(g, 'rise', 0, g); sp.put(['2616:37660', '2616:37661'], 'rise', .1, g, .06)
     axis = [n['id'] for n in nodes if n['x'] < 100 and 500 < n['y'] < 720] + ['2616:37663', '2616:37667', '2616:37671', '2616:37675']
@@ -438,6 +444,20 @@ def interview():
               [('en', 'Wheelchair users spent more energy confirming they could get somewhere than actually getting there.')], extra=meta)
     h = h.replace('s/iv_', 'm/iv_').replace('.webp"', '.png"') if False else h
     h = re.sub(r'src="s/(iv_c\d_\d)\.webp"', r'src="m/\1.png"', h)
+    # charts 1 and 5 are rebuilt as live bars: the rasters had tiny type and "Usable alone" ran past its bar
+    def hbars(rows):
+        out = []
+        for k, (en, ko, pct, val, note, hot) in enumerate(rows):
+            nt = f'<em class="ivbn">⌄ {E(note)}</em>' if note else ''
+            out.append(f'<i class="pc barh hbr{" hot" if hot else ""}" data-o="{k}"><span class="ivbl"><b>{E(en)}</b><small>{E(ko)}</small></span>'
+                       f'<span class="ivbr"><span class="ivbb" style="width:{pct}%"></span><span class="ivbv">{E(val)}</span>{nt}</span></i>')
+        return '<div class="ca hbars">' + ''.join(out) + '</div>'
+    C1 = hbars([('Map apps', '지도 앱 · 블로그', 34, '3rd', '', 0), ('A friend who went', '최근 다녀온 지인', 58, '2nd', '', 0), ('Calling the place', '가게에 직접 전화', 86, '1st', '', 1)])
+    C5 = hbars([('On the map', '지도 표시', 80, '100%', '', 0), ('No threshold', '문턱 없음', 46.4, '58%', '문턱에 걸려 못 들어감', 0),
+                ('Room to turn', '회전 1.4m', 26.4, '33%', '좁아서 돌 수 없음', 0), ('Usable alone', '실제 사용', 20, '25%', '', 1)])
+    for key, rep in (('iv_c1_0', C1), ('iv_c5_0', C5)):
+        i = h.find(key); a = h.rfind('<div class="ca"', 0, i); b = h.find('</div>', i) + 6
+        h = h[:a] + rep + h[b:]
     return section('07interview', 'hx iv', hd + h)
 
 def hyp():
@@ -699,5 +719,26 @@ if __name__ == '__main__':
                    ('보여준다.', '보여줘요.'), ('보조한다.', '보조해요.'), ('알려준다.', '알려줘요.'),
                    ('1곳 이상 방문했다', '1곳 이상 방문'), ('한 곳도 가지 못했다', '한 곳도 못 감')]:
         out = out.replace(x_, y_)
+    # v32: section subtitles rewritten so the headers alone read as one story
+    for a, b in [
+        ('휠체어 이동을 돕는 서비스 12개를 살펴보니, 대부분 한 가지 감각을 보조하거나 지도 정보를 보여주는 데 머물러 있었어요.', '이동을 돕는 서비스 12개를 살펴봤지만, 출발부터 도착까지 이어주는 곳은 없었어요'),
+        ('휠체어 유저가 외출이 끊기는 건, 가기 전엔 알 수 없는 ‘높이’와 ‘틈’ 때문이에요', '외출을 따라가 보니, 길은 가기 전엔 알 수 없는 ‘높이’와 ‘틈’에서 끊겼어요'),
+        ('‘보이지 않는 정보를 렌즈에 띄우면’ 이동이 풀릴 거라 봤어요', '처음엔 ‘보이지 않는 정보를 렌즈에 띄우면’ 이동이 풀릴 거라 봤어요'),
+        ('휠체어 사용자는 이동하는 것보다, 갈 수 있는지 확인하는 데 더 많은 에너지를 썼어요', '하지만 사용자들은 이동보다 ‘갈 수 있는지 확인하는 일’에 더 많은 에너지를 썼어요'),
+        ('04  ·  HYPOTHESIS', '05  ·  HYPOTHESIS'),
+        ('이동중에 휠체어를 멈추지 않아도 나아갈 수 있도록 설계했어요', '그래서 화면은 휠체어를 멈추지 않아도 읽히도록 설계했어요'),
+        ('멈추지 않고 움직이는 사람에게 필요한 여섯 가지를 중점으로 보여줘요', '렌즈에는 움직이는 사람에게 꼭 필요한 여섯 가지만 띄워요'),
+        ('건물 입구 한 장면에, 판정 · 대안 경로 · 음성 안내 · 답장이 함께 떠요', '입구 앞에선 통과 여부를 센티미터로 판정하고, 대안 경로까지 함께 띄워요'),
+        ('지나가며 잰 단차 · 경사가 쌓여, 다음 사람의 ‘출발 전 판정’이 정확해져요', '그리고 지나가며 잰 단차 · 경사가 쌓여, 다음 사람의 ‘출발 전 판정’이 정확해져요'),
+        ('<p class="tkick">PROTOTYPE · 외출 한 번을 따라가 보면</p>', '<p class="tkick">PROTOTYPE</p>'),
+    ]:
+        assert a in out, a
+        out = out.replace(a, b)
+    out = re.sub(r'(<h3 class="ttl">)출발 전 집에서, 길 위에서, 건물 입구 앞에서<br>olways가 먼저 알려줘요', r'\1외출 한 번을 따라가 보면, 집에서 · 길 위에서 · 입구 앞에서 olways가 먼저 알려줘요', out)
+    # v32: one weight per role — regular (400) for reading, bold (700) for anything that labels or leads
+    WMAP = {'100': '400', '200': '400', '300': '400', '500': '400', '600': '700', '800': '700', '900': '700'}
+    out = re.sub(r'font-weight:\s*([1-9]00)', lambda m: 'font-weight:' + WMAP.get(m.group(1), m.group(1)), out)
+    out = re.sub(r'font-weight:\s*(bolder|lighter)', 'font-weight:700', out)
+    out = re.sub(r'font:\s*([1-9]00)\b', lambda m: 'font:' + WMAP.get(m.group(1), m.group(1)), out)
     open(OUT + 'index.html', 'w', encoding='utf-8').write(out)
     print(len(out))

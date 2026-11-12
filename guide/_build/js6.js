@@ -1,6 +1,13 @@
 (()=>{
 const $=s=>document.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const U0=()=>(innerWidth-200)/1320;
+/* v32: every section tag is the same pill — the Figma pill rectangles go, the text carries its own pill */
+$$('#main > section').forEach(sec=>{const tag=$$('p.fe[data-g^="hdr"]',sec).find(e=>/^\s*(\d\d\s+·|POSITIONING|PROTOTYPE)/.test(e.textContent));if(!tag||tag.querySelector('.tp'))return;
+  const v=(e,k)=>parseFloat(((e.getAttribute('style')||'').match(new RegExp(k+':calc\\(var\\(--u\\)\\*(-?[\\d.]+)\\)'))||[])[1]);
+  const ty=v(tag,'top');$$('.fe.fb',sec).forEach(r=>{const t=v(r,'top'),h=v(r,'height');if(h<=44&&t>=ty-16&&t<=ty+6)r.style.display='none'});
+  tag.innerHTML='<span class="tp">'+tag.innerHTML.trim()+'</span>';
+  const bg=getComputedStyle(sec).backgroundImage+getComputedStyle(sec).backgroundColor;const m=bg.match(/rgba?\((\d+), (\d+), (\d+)/);
+  if(sec.classList.contains('dk')||(m&&(+m[1]+ +m[2]+ +m[3])<240))tag.classList.add('tpd')});
 /* section headers keep three lines only: tag, title, one Korean line (the interview's participant line stays) */
 $$('#main > section').forEach(sec=>{const ps=$$('p.fe[data-g^="hdr"]',sec);if(!ps.length)return;
   const fs=e=>parseFloat(getComputedStyle(e).fontSize),ko=ps.filter(e=>/[가-힣]/.test(e.textContent));if(!ko.length)return;
@@ -87,7 +94,7 @@ Object.entries(G).forEach(([g,els])=>{const sec=els[0].closest('section');
   if(sec)(sec._tls||(sec._tls=[])).push(tl)});
 
 /* ---------- overview: title rises out of a mask, video eases back as the statement scrolls over ---------- */
-$$('#s02overview').forEach(o=>{const x=o.querySelector('.ovx');if(!x)return;const im=x.querySelector('.ovpanel img');
+$$('#s02overview').forEach(o=>{const x=o.querySelector('.ovx');if(!x)return;const im=x.querySelector('.ovpanel video');
   const tl=gsap.timeline({scrollTrigger:{trigger:o,start:'top 85%',end:'top 10%',scrub:.6}});
   tl.fromTo(x.querySelector('.ovrow'),{opacity:0},{opacity:1,duration:.3},0)
     .fromTo(x.querySelector('.ovtitle'),{clipPath:'inset(0 0 100% 0)',y:40},{clipPath:'inset(0 0 -10% 0)',y:0,duration:.6,ease:'power3.out'},.1)
@@ -349,6 +356,7 @@ $$('.hgrid').forEach(g=>{const sec=g.closest('section'),fin=g.parentElement.quer
   g.append(steps,rows);rows.appendChild(fin);g.parentElement.appendChild(dots);
   const tl=gsap.timeline({paused:true}),marks=[];gsap.set([...R,fin],{autoAlpha:0});
   tl.fromTo(steps.children,{opacity:0,y:20},{opacity:1,y:0,stagger:.08,duration:.4,ease:'power3.out'},0);
+  R.forEach(r=>{const q=r.children[0].querySelector('p:last-child');if(q&&!q.querySelector('.stx'))q.innerHTML='<span class="stx">'+q.innerHTML+'</span>'});
   R.forEach((r,i)=>{const [c0,a1,c2,a3,c4]=r.children,hl=c2.querySelectorAll('.ko b');marks.push(tl.duration());
     tl.set(r,{autoAlpha:1})
       .fromTo(c0,{opacity:0,x:-80,filter:'blur(10px)'},{opacity:1,x:0,filter:'blur(0px)',duration:.6,ease:'power3.out'})
@@ -563,5 +571,14 @@ const alignHeads=()=>{ScrollTrigger.getAll().filter(t=>t.pin).forEach(t=>{const 
   /* scaled .fit content: offsets inside it are in its own scale */
   const d=94-off;
   inner.style.marginTop=(parseFloat(getComputedStyle(inner).marginTop)||0)+d+'px'})};
-const refit=()=>{seam();fitAll();normCards();fitCards();fitIv();alignHeads();ScrollTrigger.refresh()};addEventListener('load',refit);document.fonts&&document.fonts.ready.then(refit);
+/* user flow: the white card grows so the caption under it lands on the 30px bottom margin */
+function flowFit(){const s=document.getElementById('s10flow');if(!s)return;const sw=s.querySelector('.sw'),c=document.getElementById('f2616-38532');if(!sw||!c)return;
+  const els=[...sw.children].filter(e=>e.id&&e!==c);
+  if(!c.dataset.h0){c.dataset.h0=c.style.height;els.forEach(e=>e.dataset.t0=e.style.top)}
+  c.style.height=c.dataset.h0;els.forEach(e=>e.style.top=e.dataset.t0);
+  const top=c.offsetTop,h=c.offsetHeight,cb=top+h,caps=els.filter(e=>e.offsetTop>=cb-2);
+  const capB=caps.length?Math.max(...caps.map(e=>e.offsetTop+e.offsetHeight)):cb;
+  const D=Math.max(0,innerHeight-30-sw.offsetTop-capB);c.style.height=(h+D)+'px';
+  els.forEach(e=>{const t=e.offsetTop;if(t>=cb-2)e.style.top=`calc(${e.dataset.t0} + ${D}px)`;else if(t>top)e.style.top=`calc(${e.dataset.t0} + ${D/2}px)`})}
+const refit=()=>{seam();fitAll();normCards();fitCards();fitIv();alignHeads();flowFit();ScrollTrigger.refresh()};addEventListener('load',refit);document.fonts&&document.fonts.ready.then(refit);
 })();

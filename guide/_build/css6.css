@@ -1040,3 +1040,72 @@ section,.fit,.st-item{--k:14u;--b:17u;--en:14u;--ct:24u;--cb:17u;--pad:20u 24u;-
 .so2 .srow{--u:calc((100vw - 200px) / 1320 * 1.34)}
 .so2 .scard{min-height:calc(100svh - 262px)!important;justify-content:space-evenly!important}
 /*U{*/.ovpanel{height:604u}/*}U*/
+/* v32 overview: no rule under the label row, title left-aligned, video panel */
+.ovrow{border-bottom:0!important;padding-bottom:0!important}
+.ovpanel video{width:100%;height:100%;object-fit:cover;object-position:50% 70%;display:block;transform-origin:50% 50%}
+.ovtitle svg{display:block}
+/* v32 map: 복합장애 label centred on the axis, the arrow starts below the label; legend dots on the text centre line */
+#f2616-37393,#f2616-37394{left:calc(var(--u)*640)!important;width:calc(var(--u)*120)!important;text-align:center!important}
+#f2616-37387{clip-path:inset(calc(var(--u)*58) 0 0 0)!important}#f2616-37388{translate:0 calc(var(--u)*58)!important}
+#f2616-37460,#f2616-37463,#f2616-37466{translate:0 calc(var(--u)*1.6)}
+.jcv svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.jcv svg path{stroke-width:calc(var(--u)*4)}
+/* v32: the strike-through sits on each line's text centre and is only as long as the words */
+.hy.scr .c0 p:last-child{background:none!important}
+/*U{*/.hy.scr .c0 .stx{background:linear-gradient(rgba(255,255,255,.6),rgba(255,255,255,.6)) 0 52%/calc(var(--st,0)*100%) 2px no-repeat;-webkit-box-decoration-break:clone;box-decoration-break:clone}/*}U*/
+/* v32 interview charts 1 and 5 as live bars: label above, bar + value below, nothing clipped */
+/*U{*/
+.iv .ca.hbars{position:relative;width:100%!important;height:auto!important;display:flex;flex-direction:column;gap:18u;padding:0 4u;box-sizing:border-box}
+.iv .ca.hbars .pc{position:relative!important;left:auto!important;top:auto!important;width:auto!important;height:auto!important;display:flex;flex-direction:column;gap:7u}
+.hbr .ivbl{display:flex;align-items:baseline;gap:8u}
+.hbr .ivbl b{font-family:var(--f-gsf);font-weight:700;font-size:17u;color:#4A5560}
+.hbr .ivbl small{font-family:var(--f-suit);font-weight:500;font-size:14u;color:#8A949E}
+.hbr .ivbr{display:flex;align-items:center;gap:14u}
+.hbr .ivbb{display:block;height:40u;border-radius:12u;background:linear-gradient(180deg,#E9EDF1,#D3D9DF);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.hbr .ivbv{font-family:var(--f-gsf);font-weight:500;font-size:24u;color:#9AA4AE;line-height:1}
+.hbr .ivbn{font-style:normal;font-family:var(--f-suit);font-size:14u;font-weight:500;color:#E5684A;white-space:nowrap}
+.hbr.hot .ivbl b{color:#097BB5}
+.hbr.hot .ivbb{height:52u;background:linear-gradient(180deg,#7FC8F5,#2E95E0);box-shadow:0 10u 24u rgba(46,149,224,.25)}
+.hbr.hot .ivbv{font-weight:700;font-size:36u;color:#14191C}
+/*}U*/
+.iv .ca.hbars .pc{font-style:normal}.hbr .ivbv{background:none!important;padding:0!important;box-shadow:none!important;border-radius:0!important}
+.iv .ca.hbars{--u:calc((100vw - 200px) / 1320)}
+#s10flow{height:100svh!important;max-height:none!important;aspect-ratio:auto!important}
+/* v32 prototype header: same tag pill + subtitle type as every other section header */
+/*U{*/
+.trip .thead{text-align:center}
+.trip .thead .tkick{display:inline-block;margin:0 0 18u!important;padding:0 14u;height:26u;line-height:26u;border-radius:99u;background:#fff;font-family:var(--f-gsf);font-weight:700;font-size:12u!important;letter-spacing:.06em;color:#097BB5}
+.trip .thead .ttl{font-family:var(--f-suit)!important;font-weight:700!important;font-size:24u!important;line-height:1.4!important;letter-spacing:-.02em!important;color:#14191C}
+.trip .thead .ttl br{display:none}
+/*}U*/
+#s13anat::before,#s14pass::before{display:none!important}
+/* ===== v32 type roles =====
+   tag 12u/700 · section title (Dystopian) · section subtitle 24u/700 · card title 17u/700 · body 17u|14u/400 · caption 14u · label 12u ===== */
+/*U{*/
+#f2616-37377{font-size:12u!important;letter-spacing:.06em!important}
+/* scenario: card titles, metrics, quotes, body */
+#f2616-37660{font-size:17u!important}
+#f2616-37714,#f2616-37721,#f2616-37728,#f2616-37735,#f2616-37742,#f2616-37749,#f2616-37756{font-size:17u!important;font-weight:700!important}
+#f2616-37716,#f2616-37723,#f2616-37730,#f2616-37737,#f2616-37744,#f2616-37751,#f2616-37758{font-size:14u!important;font-weight:700!important}
+#f2616-37661{font-size:14u!important}
+/* positioning map labels */
+#f2616-37393,#f2616-37396,#f2616-37399,#f2616-37402,#f2616-37408{font-size:14u!important}
+#f2616-37394,#f2616-37397,#f2616-37400,#f2616-37403,#f2616-37409{font-size:12u!important}
+#f2616-37407{font-size:14u!important}
+/* data loop */
+#f2616-39528,#f2616-39536,#f2616-39542,#f2616-39548,#f2616-39554,#f2616-39530{font-size:17u!important}
+#f2616-39540,#f2616-39546,#f2616-39510,#f2616-39520,#f2616-39523{font-size:14u!important}
+/*}U*/
+/* solution card: keep the bigger card, but text follows the page roles */
+.so2 .srow{--b:calc((100vw - 200px) / 1320)}
+.so2 .srow .sh b{font-size:calc(var(--b)*17)!important}
+.so2 .srow .sh span,.so2 .srow .se{font-size:calc(var(--b)*14)!important}
+.so2 .srow .st{font-size:calc(var(--b)*24)!important;line-height:1.45!important}
+.fit > .hh,.fit > header.hh{--u:calc((100vw - 200px) / 1320)!important}
+/* v32 section tag pill — one style everywhere */
+p.fe .tp,.hh .htag{display:inline-block;height:calc(var(--u)*26);line-height:calc(var(--u)*26)!important;padding:0 calc(var(--u)*14)!important;border-radius:99px;background:#fff!important;box-shadow:none!important;border:0!important;
+  font-family:var(--f-gsf)!important;font-weight:700!important;font-size:calc(var(--u)*12)!important;letter-spacing:.06em!important;color:#097BB5!important;white-space:nowrap}
+p.fe.tpd .tp,.hh.dk .htag,.dk .hh .htag{background:rgba(113,203,248,.14)!important;color:#71CBF8!important}
+p.fe:has(.tp){font-size:calc(var(--u)*12)!important;line-height:calc(var(--u)*26)!important}
+#f2616-38834 svg *,#f2616-37379 svg *,#f2616-38834 path,#f2616-37379 path{fill:#097BB5!important}
+/*U{*/#f2616-37256,#f2616-37277,#f2616-37319,#f2616-37345{font-size:17u!important;font-weight:400!important}/*}U*/
+.lxm .live,.lvid .live{font-size:calc((100vw - 200px) / 1320 * 12)!important}
