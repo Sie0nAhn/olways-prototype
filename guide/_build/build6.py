@@ -39,7 +39,7 @@ def section(key, cls, inner, h=None, extra=''):
 
 CHAPS = {'c1': (1, 'Research', '휠체어 사용자가 새로운 곳을 포기하는 이유에 주목했어요', 'We looked at why wheelchair users give up on new places.', ['문제', '포지셔닝', '시나리오', '초기 가설', '인터뷰']),
          'c2': (2, 'Strategy', '‘갈 수 있는지’를 출발 전에 아는 것을 중점으로 방향을 잡았어요', 'We set our direction on knowing “can I get in?” before leaving.', ['가설 수정', '솔루션', '유저 플로우']),
-         'c3': (3, 'Design', '두 손을 핸들에 둔 채 읽히는 화면에 집중했어요', 'We focused on screens you can read with both hands on the rims.', ['UT 3라운드', '최종 화면', '렌즈 구성', '입구 판정']),
+         'c3': (3, 'Design', '이동 중에 멈추지 않고도 읽히는 화면에 집중했어요', 'We focused on screens you can read without ever stopping.', ['UT 3라운드', '최종 화면', '렌즈 구성', '입구 판정']),
          'c4': (4, 'Outcome', '다녀온 길이 다음 사람의 판단이 되는 구조를 만들었어요', 'Every ride becomes the next person’s pre-departure judgment.', ['데이터 루프', '결론'])}
 def chapter(key):
     n, name, ko, en, steps = CHAPS[key]
@@ -304,7 +304,10 @@ def journey():
         if n.get('name') == 'Ellipse': return None
         cs = [c for c in boxes if c is not n and c['x'] - 6 <= n['x'] <= c['x'] + c['w'] and c['y'] - 2 <= n['y'] <= c['y'] + c['h'] + 28 and n['h'] <= c['h'] + 10]
         return min(cs, key=lambda c: c['w'] * c['h']) if cs else None
+    cards0 = [c for c in n0 if c.get('k') == 'B' and str(c.get('name', '')).startswith('Frame') and abs(c['y'] - 388.45) < 1]
+    def in_card(n): return any(c['x'] - 1 <= n['x'] <= c['x'] + c['w'] and c['y'] - 1 <= n['y'] <= c['y'] + c['h'] for c in cards0)
     def dyf(n):
+        if in_card(n): return 10.6  # v36: 8px more air between the card title block and the 7 step cards
         if n['id'] in ('2616:37657', '2616:37679'): return Y(n['y']) - n['y']
         if n.get('name') == 'Ellipse': c = n['y'] + n['h'] / 2; return Y(c) - c
         a = anchor(n); y = (a or n)['y']
