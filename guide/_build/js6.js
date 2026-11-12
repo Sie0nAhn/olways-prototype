@@ -13,7 +13,7 @@ $$('#main > section').forEach(sec=>{const ps=$$('p.fe[data-g^="hdr"]',sec);if(!p
   const par=sub.parentElement;[...par.children].forEach(e=>{if(!(e.dataset.g||'').startsWith('hdr')&&tp(e)>=gb-1){const T=tp(e);e.setAttribute('style',e.getAttribute('style').replace(/top:calc\(var\(--u\)\*(-?[\d.]+)\)/,`top:calc(var(--u)*${(T-D).toFixed(2)})`))}});
   const hs=par.style.height.match(/calc\(var\(--u\)\*([\d.]+)\)/);if(hs)par.style.height=`calc(var(--u)*${+hs[1]-D})`;
   if(par!==sec){const h2=sec.style.height.match(/calc\(var\(--u\)\*([\d.]+)\)/);if(h2)sec.style.height=`calc(var(--u)*${+h2[1]-D})`}});
-(()=>{const FULL='#s01cover,#s02overview,#s17thanks,.chap';
+(()=>{const FULL='#s01cover,#s17thanks,.chap';
   $$('#main > section').forEach(sec=>{if(sec.matches(FULL)){sec.classList.add('fullu');return}
     let run=null;[...sec.children].forEach(ch=>{if(ch.matches('.big, script, style')){run=null;return}
       if(!run){run=document.createElement('div');run.className='sw';ch.before(run)}run.appendChild(ch)})})})();
@@ -87,11 +87,13 @@ Object.entries(G).forEach(([g,els])=>{const sec=els[0].closest('section');
   if(sec)(sec._tls||(sec._tls=[])).push(tl)});
 
 /* ---------- overview: title rises out of a mask, video eases back as the statement scrolls over ---------- */
-$$('#s02overview').forEach(o=>{const t=o.querySelector('.ovtitle'),c=o.querySelector('.ovc'),v=o.querySelector('.ovbg');
-  gsap.fromTo(t,{clipPath:'inset(0 0 100% 0)',y:60},{clipPath:'inset(0 0 -20% 0)',y:0,duration:1.4,ease:'expo.out',scrollTrigger:ST(o,'top 60%')});
-  gsap.fromTo([o.querySelector('.ovk'),o.querySelector('.ovsub')],{opacity:0,y:20},{opacity:1,y:0,duration:.9,stagger:.5,delay:.3,ease:'power3.out',scrollTrigger:ST(o,'top 60%')});
-  gsap.fromTo(v,{scale:1.18},{scale:1,ease:'none',scrollTrigger:{trigger:o,start:'top bottom',end:'bottom top',scrub:true}});
-  gsap.to(c,{opacity:0,scale:.92,filter:'blur(8px)',ease:'none',scrollTrigger:{trigger:o.querySelector('.ovs'),start:'top 90%',end:'top 30%',scrub:true}})});
+$$('#s02overview').forEach(o=>{const x=o.querySelector('.ovx');if(!x)return;const im=x.querySelector('.ovpanel img');
+  const tl=gsap.timeline({scrollTrigger:{trigger:o,start:'top 85%',end:'top 10%',scrub:.6}});
+  tl.fromTo(x.querySelector('.ovrow'),{opacity:0},{opacity:1,duration:.3},0)
+    .fromTo(x.querySelector('.ovtitle'),{clipPath:'inset(0 0 100% 0)',y:40},{clipPath:'inset(0 0 -10% 0)',y:0,duration:.6,ease:'power3.out'},.1)
+    .fromTo(x.querySelectorAll('.ovtext > *'),{opacity:0,y:30},{opacity:1,y:0,stagger:.12,duration:.5,ease:'power3.out'},.3)
+    .fromTo(x.querySelector('.ovpanel'),{opacity:0,y:80,scale:.96},{opacity:1,y:0,scale:1,duration:.7,ease:'power3.out'},.45);
+  gsap.fromTo(im,{scale:1.18,yPercent:-6},{scale:1,yPercent:6,ease:'none',scrollTrigger:{trigger:x.querySelector('.ovpanel'),start:'top bottom',end:'bottom top',scrub:true}})});
 
 /* Problem cards: the same white box for all four, the figure centred in it with equal top / bottom padding */
 const normCards=()=>{const cs=$$('.pcard');if(!cs.length)return;const P=34,SB=14;
@@ -163,7 +165,7 @@ const fitPin=f=>{const u0=U0(),avail=innerHeight-64-60;f.style.removeProperty('-
   const kids=[...f.children],head=kids[0],body=kids.slice(1);body.forEach(b=>b.style.removeProperty('--u'));
   const hh=head.getBoundingClientRect().height,bh=body.reduce((a,b)=>a+b.getBoundingClientRect().height,0);
   const mt=head.classList.contains('fx')?-84*u0:0;f.style.marginTop=mt+'px';
-  const k=Math.min(1,(avail-hh-mt)/Math.max(1,bh));body.forEach(b=>b.style.setProperty('--u',`calc((100vw - 200px) / 1320 * ${k.toFixed(4)})`))};
+  const k=Math.min(1,(avail+(f.closest('#s08hyp')?69:0)-hh-mt)/Math.max(1,bh));body.forEach(b=>b.style.setProperty('--u',`calc((100vw - 200px) / 1320 * ${k.toFixed(4)})`))};
 const fitAll=()=>$$('.fit').forEach(f=>{if(f.closest('.pinfit'))return fitPin(f);f.style.removeProperty('--u');const u=U0(),nav=64;
   const h=f.style.getPropertyValue('--fh')?(+f.style.getPropertyValue('--fh'))*u:f.scrollHeight;
   const s=Math.min(1,(innerHeight-nav-60)/h);f.style.setProperty('--u',`calc((100vw - 200px) / 1320 * ${s.toFixed(4)})`)});
@@ -325,8 +327,9 @@ const mkJourney=sec=>{const tl=TL['2616:37657'];if(!tl)return;
   const place=()=>{const C=card?box(card):null;groups.forEach(g=>{if(!g.dot)return;const bub=g.w.querySelector('[data-a="bubble"]'),tail=g.w.querySelector('[data-a="tail"]');if(!bub)return;
     [...g.w.children].forEach(e=>e.style.translate='');const B=box(bub),D=box(g.dot),cx=D.l+D.w/2;let dx=cx-(B.l+B.w/2);
     const cv=document.getElementById('f2616-37679');const L0=cv?cv.offsetLeft-6:C?C.l+14:0;if(C){dx=Math.max(dx,L0-B.l);dx=Math.min(dx,C.l+C.w-14-(B.l+B.w))}
-    [...g.w.children].forEach(e=>{if(e!==tail)e.style.translate=dx+'px 0'});
-    if(tail){const T=box(tail);tail.style.translate=(cx-(T.l+T.w/2))+'px 0'}})};
+    const T0=tail?box(tail):B;const dy=Math.max(0,(D.t-36)-(T0.t+T0.h));
+    [...g.w.children].forEach(e=>{if(e!==tail)e.style.translate=dx+'px '+dy+'px'});
+    if(tail){tail.style.translate=(cx-(T0.l+T0.w/2))+'px '+dy+'px'}})};
   place();addEventListener('resize',place);addEventListener('load',place);
   tl.eventCallback('onUpdate',()=>{const now=tl.time();groups.forEach(g=>{const want=now>=g.t;if(want!==g.on){g.on=want;
       if(want&&g.rip){g.rip.style.left=(g.dot.offsetLeft+g.dot.offsetWidth/2)+'px';g.rip.style.top=(g.dot.offsetTop+g.dot.offsetHeight/2)+'px';g.rip.classList.remove('go');void g.rip.offsetWidth;g.rip.classList.add('go')}
@@ -468,14 +471,11 @@ $$('.ux').forEach(ux=>{const figs=$$('.xf',ux),zs=$$('.xz',ux),tabs=$$('.xt',ux)
 /* ---------- triptych opener ---------- */
 /* ---------- triptych opener: full-bleed scene shrinks into the centre, siblings slide in ---------- */
 $$('.trip').forEach(t=>{const c=t.querySelector('.tp-c .tpm'),l=t.querySelector('.tp-l'),r=t.querySelector('.tp-r'),caps=$$('figcaption',t),k=t.querySelector('.tkick');
-  const R=()=>{const tr=c.style.transform;c.style.transform='none';const b=c.getBoundingClientRect(),sb=t.querySelector('.tstage').getBoundingClientRect();c.style.transform=tr;return {b,sb}};
-  const S=()=>{const {b}=R();return Math.min(innerWidth/b.width,innerHeight/b.height)};
-  const cy=()=>{const {b,sb}=R();return (sb.top+sb.height/2)-(b.top+b.height/2)};
-  const tl=gsap.timeline({scrollTrigger:{trigger:t,start:'top top',end:()=>'+='+innerHeight*1.3,pin:true,scrub:.7,invalidateOnRefresh:true}});
-  tl.fromTo(c,{scale:S,y:cy,borderRadius:0},{scale:1,y:0,borderRadius:()=>(22*U0())+'px',ease:'power2.inOut',duration:1},0)
-    .fromTo(l,{xPercent:-130,opacity:0},{xPercent:0,opacity:1,ease:'power3.out',duration:.6},.45)
-    .fromTo(r,{xPercent:130,opacity:0},{xPercent:0,opacity:1,ease:'power3.out',duration:.6},.45)
-    .fromTo([k,...caps],{opacity:0,y:18},{opacity:1,y:0,stagger:.06,duration:.3},.85)});
+  const tl=gsap.timeline({scrollTrigger:{trigger:t,start:'top top',end:()=>'+='+innerHeight*1.1,pin:true,scrub:.7,invalidateOnRefresh:true}});
+  tl.fromTo(c,{opacity:0,y:70,scale:.9},{opacity:1,y:0,scale:1,ease:'power3.out',duration:.7},0)
+    .fromTo(l,{xPercent:-40,opacity:0},{xPercent:0,opacity:1,ease:'power3.out',duration:.6},.3)
+    .fromTo(r,{xPercent:40,opacity:0},{xPercent:0,opacity:1,ease:'power3.out',duration:.6},.3)
+    .fromTo(caps,{opacity:0,y:14},{opacity:1,y:0,stagger:.06,duration:.3},.7).to({},{duration:.4})});
 /* ---- lens: S1 → S5 as one take; each scene pushes the last one back, the rail fills with the scroll ---- */
 $$('.lx').forEach(lx=>{const ms=$$('.lxm',lx),cs=$$('.lxc',lx),rail=$$('.lxrail li',lx);
   gsap.set([...ms,...cs],{autoAlpha:0});const tl=gsap.timeline(),marks=[];
@@ -505,7 +505,7 @@ const mkShot=sx=>{const sh=sx.querySelector('.ashot'),sp=sh.querySelector('.spot
 /* field-of-view: reasoning first, then the lens grows to the whole screen while its zones stay drawn */
 const mkFov=sx=>{const z=$$('.fovz .z',sx),hz=sx.querySelector('.hz'),shot=sx.querySelector('.fovshot'),t=sx.querySelector('.fovt'),fit=sx.querySelector('.fit');
   const G=()=>{const o=gsap.getProperty(shot,'scale'),ox=gsap.getProperty(shot,'x');gsap.set(shot,{scale:1,x:0});const a=shot.getBoundingClientRect(),f=fit.getBoundingClientRect();gsap.set(shot,{scale:o,x:ox});
-    const pad=parseFloat(getComputedStyle(fit).paddingLeft)||0,w=f.width-pad*2,s=Math.min(w/a.width,(innerHeight-90)/a.height);return {s,x:f.left+pad+(w-a.width*s)/2-a.left}};
+    const pad=parseFloat(getComputedStyle(fit).paddingLeft)||0,w=f.width-pad*2,s=Math.min(w/a.width,(innerHeight-30-a.top)/a.height);return {s,x:f.left+pad+(w-a.width*s)/2-a.left}};
   const tl=gsap.timeline();
   tl.fromTo(t.children,{opacity:0,y:30},{opacity:1,y:0,stagger:.1,duration:.5,ease:'power3.out'},0)
     .fromTo(shot,{opacity:0,scale:.92},{opacity:1,scale:1,duration:.7,ease:'power3.out'},0)
@@ -513,7 +513,7 @@ const mkFov=sx=>{const z=$$('.fovz .z',sx),hz=sx.querySelector('.hz'),shot=sx.qu
     .fromTo(z,{opacity:0,scale:.9},{opacity:1,scale:1,stagger:.3,duration:.5,ease:'power3.out'},.8)
     .to({},{duration:.6})
     .to(t,{opacity:0,x:-120,duration:.6,ease:'power2.in'})
-    .to(shot,{x:()=>G().x,scale:()=>G().s,transformOrigin:'0 50%',duration:1,ease:'power3.inOut'},'<')
+    .to(shot,{x:()=>G().x,scale:()=>G().s,transformOrigin:'0 0',duration:1,ease:'power3.inOut'},'<')
     .to({},{duration:.9});
   scrubScene(sx,tl,[0],null,.3)};
 $$('.sx.an1, .sx.an2, .sx.pj1').forEach(sx=>sx.classList.contains('an2')?mkFov(sx):mkShot(sx));

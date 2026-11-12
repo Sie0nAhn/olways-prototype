@@ -1001,3 +1001,42 @@ section,.fit,.st-item{--k:14u;--b:17u;--en:14u;--ct:24u;--cb:17u;--pad:20u 24u;-
 /*}U*/
 /*U{*/.trip .thead{margin-bottom:80u!important;z-index:3}.trip .trow{position:relative;z-index:1}/*}U*/
 #s16concl{background:#F4F6F8!important}
+/* ===================== v31: overview in the editorial (Peaktime) mood ===================== */
+/*U{*/
+#s02overview{background:#F4F5F7!important;height:auto!important;padding:calc(var(--navh) + 30px) 0 30px}
+#s02overview .ovx{width:1320u;margin:0 auto}
+.ovrow{display:flex;justify-content:space-between;padding-bottom:14u;border-bottom:1px solid rgba(20,25,28,.12);font-family:var(--f-gsf);font-size:14u;color:rgba(20,25,28,.45)}
+.ovgrid{display:grid;grid-template-columns:600u 1fr;column-gap:64u;align-items:start;padding:28u 0 30u}
+#s02overview .ovtitle{width:560u;height:auto}
+#s02overview .ovtitle svg{width:100%;height:auto;display:block}
+#s02overview .ovtitle svg *{fill:#14191C}
+.ovtext h3{margin:0;font-size:24u;font-weight:700;line-height:1.45;color:#14191C}
+.ovtext .ko{margin:14u 0 0;font-size:17u;line-height:1.7;color:rgba(20,25,28,.7)}
+.ovtext .ko .hl{color:#14191C;font-weight:700}.ovtext .ko .hl.sky{color:#0B97DE}
+.ovtext .en{margin:12u 0 0;font-family:var(--f-gsf);font-size:14u;line-height:1.6;color:rgba(20,25,28,.45)}
+.ovpanel{position:relative;margin:0;height:380u;border-radius:28u;overflow:hidden;background:#fff;box-shadow:0 20u 50u rgba(20,25,28,.08)}
+.ovpanel img{width:100%;height:100%;object-fit:cover;display:block;transform-origin:50% 50%}
+.ovpanel figcaption{position:absolute;right:24u;bottom:20u;padding:8u 14u;border-radius:99px;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);font-family:var(--f-gsf);font-size:14u;color:#14191C}
+/*}U*/
+/*U{*/.ovpanel{height:470u}.ovpanel img{object-position:50% 80%}/*}U*/
+/*U{*/.ovpanel{height:560u}/*}U*/
+/* v31 triptych: header stays on top, cards sit centred below it — nothing overlaps or crops */
+/*U{*/
+.trip .tstage{justify-content:flex-start!important;gap:0!important;padding:calc(var(--navh) + 30px) 0 30px;box-sizing:border-box;overflow:visible}
+.trip .thead{margin:0 40u!important}
+.trip .thead .tkick{font-size:14u;margin:0 0 10u}
+.trip .thead .ttl{margin:0;font-family:var(--f-suit);font-size:24u;font-weight:700;line-height:1.45;color:#14191C;letter-spacing:-.01em}
+.trip .trow{margin:auto 0;grid-template-columns:1fr 1.7fr 1fr;align-items:center;gap:20u}
+.trip .tp figcaption{font-size:17u}
+.trip .tp-c figcaption{color:#097BB5}
+/*}U*/
+/* v31 interview: tag sits 8px lower, the two boxes run down to the 30px bottom margin */
+.iv .st-items{align-items:stretch!important}
+.iv .st-item{height:100%!important;align-items:stretch!important}
+/*U{*/.iv .ig{height:100%;box-sizing:border-box;grid-template-rows:auto minmax(0,1fr)!important;align-content:stretch!important;padding-top:calc(var(--u)*8 + 8px)!important;padding-bottom:0!important}/*}U*/
+.iv .ig .cbox .ca{flex:none!important;margin-top:auto!important;margin-bottom:auto!important}
+.iv .ig .qcard{justify-content:center!important}
+/*U{*/.hy.scr .hrows{min-height:660u}.hy.scr .hfin{padding:64u 56u}/*}U*/
+.so2 .srow{--u:calc((100vw - 200px) / 1320 * 1.34)}
+.so2 .scard{min-height:calc(100svh - 262px)!important;justify-content:space-evenly!important}
+/*U{*/.ovpanel{height:604u}/*}U*/

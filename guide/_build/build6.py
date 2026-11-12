@@ -93,10 +93,10 @@ def overview():
     from svgt import svg_title
     sv, x, y, w, hh = svg_title('2616:37229', 'Know Before You Go: Hands-Free Access, Measured for You')
     T = {n['id']: n['txt'] for n in parse(EX('2616-37224'))[1] if n['k'] in 'TD'}
-    inner = ('<div class="ovpin"><div class="ovbg"><img src="m/ov_bg.webp" alt="" decoding="async"></div><div class="ovt"></div><div class="ovarc"></div><i class="ovorb o1"></i><i class="ovorb o2"></i>'
-             f'<div class="ovc"><p class="ovk">Overview</p><div class="ovtitle" style="aspect-ratio:{w:g}/{hh:g}">{sv}</div>'
-             f'<p class="ovsub">{E(T["2616:37230"])}</p></div></div>'
-             f'<div class="ovs"><p class="ovbig" data-wr>{HL(OVK, [("s", "휠체어 사용자"), ("s", "갈 수 있는지"), ("s", "놓친 위험")])}</p><p class="oven">{E(OVE)}</p></div>')
+    inner = (f'<div class="ovx"><div class="ovrow"><span>Overview</span><span>01</span></div>'
+             f'<div class="ovgrid"><div class="ovtitle" style="aspect-ratio:{w:g}/{hh:g}">{sv}</div>'
+             f'<div class="ovtext"><h3>{E(T["2616:37230"])}</h3><p class="ko">{HL(OVK, [("s", "휠체어 사용자"), ("s", "갈 수 있는지"), ("s", "놓친 위험")])}</p><p class="en">{E(OVE)}</p></div></div>'
+             f'<figure class="ovpanel"><img src="m/ov_photo.webp" alt="횡단보도 위 휠체어 사용자와 바쁘게 지나가는 사람들" decoding="async"><figcaption>Hands-free access, measured for your own wheelchair.</figcaption></figure></div>')
     return section('02overview', 'ov2', inner)
 
 # ------------------------------------------------------------------ 03 problem
@@ -292,7 +292,25 @@ def opp():
 # ------------------------------------------------------------------ 05 journey
 TAILS = []; ORIG = {}
 def journey():
-    S, h, nodes = render(EX('2616-37609')); byid = {n['id']: n for n in nodes}
+    # the chart below the step cards is drawn taller so the scene fills one iPad screen: positions stretch, glyphs keep their size,
+    # and each bubble / face icon moves as one piece
+    _, n0 = parse(EX('2616-37609'))
+    Y0, F = 505, 2.0
+    Y = lambda y: y if y < Y0 else Y0 + 40 + (y - Y0) * F
+    boxes = [c for c in n0 if c.get('name') == 'Bubble' or str(c.get('name', '')).startswith('carbon:')]
+    def anchor(n):
+        if n.get('name') == 'Ellipse': return None
+        cs = [c for c in boxes if c is not n and c['x'] - 6 <= n['x'] <= c['x'] + c['w'] and c['y'] - 2 <= n['y'] <= c['y'] + c['h'] + 28 and n['h'] <= c['h'] + 10]
+        return min(cs, key=lambda c: c['w'] * c['h']) if cs else None
+    def dyf(n):
+        if n['id'] in ('2616:37657', '2616:37679'): return Y(n['y']) - n['y']
+        if n.get('name') == 'Ellipse': c = n['y'] + n['h'] / 2; return Y(c) - c
+        a = anchor(n); y = (a or n)['y']
+        return Y(y) - y
+    S, h, nodes = render(EX('2616-37609'), dy_fn=dyf); byid = {n['id']: n for n in nodes}
+    for nid, H in (('2616:37657', Y(738) - Y(317)), ('2616:37679', 90 * F)):
+        h = re.sub(r'(id="f%s"[^>]*?height:calc\(var\(--u\)\*)([\d.]+)' % nid.replace(':', '-'), lambda m: m.group(1) + f'{H:.2f}', h, count=1)
+    S = dict(S, h=S['h'] + (Y(738) - 738))
     sp = Spec(); hdr_spec(nodes, sp, 300)
     g = '2616:37657'; sp.put(g, 'rise', 0, g); sp.put(['2616:37660', '2616:37661'], 'rise', .1, g, .06)
     axis = [n['id'] for n in nodes if n['x'] < 100 and 500 < n['y'] < 720] + ['2616:37663', '2616:37667', '2616:37671', '2616:37675']
