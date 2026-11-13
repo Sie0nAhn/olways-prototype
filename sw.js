@@ -1,7 +1,7 @@
 /* 올웨이즈 offline cache
    - 앱·이미지·음성: 저장본을 바로 사용
    - 영상: 저장본이 있으면 늘 저장본을 조각(range)으로 제공, 없을 때만 서버에서 */
-const V='olw-e28d073a22';
+const V='olw-1791d71211';
 const STORE='olw-store';
 const BLOB=new Map();
 self.addEventListener('install',e=>{self.skipWaiting()});
