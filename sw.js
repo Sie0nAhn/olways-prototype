@@ -1,7 +1,7 @@
 /* 올웨이즈 offline cache
    - 앱·이미지·음성: 저장본을 바로 사용
    - 영상: 인터넷이 되면 원래 서버에서 바로 스트리밍(Claude 앱과 같은 방식), 안 되면 저장본을 조각(range)으로 제공 */
-const V='olw-cb84e9b6d9';
+const V='olw-b0297704ba';
 const STORE='olw-store';
 const BLOB=new Map();
 self.addEventListener('install',e=>{self.skipWaiting()});
