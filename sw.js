@@ -1,7 +1,7 @@
 /* 올웨이즈 offline cache
    - 앱·이미지·음성: 저장본을 바로 사용
-   - 영상: 저장본이 있으면 늘 저장본을 조각(range)으로 제공, 없을 때만 서버에서 */
-const V='olw-1791d71211';
+   - 영상: 앱이 저장본을 메모리(blob)로 꺼내 재생. 저장 전이면 온라인은 서버 직접, 오프라인은 저장본 조각 */
+const V='olw-fb0f6340f6';
 const STORE='olw-store';
 const BLOB=new Map();
 self.addEventListener('install',e=>{self.skipWaiting()});
@@ -27,8 +27,24 @@ self.addEventListener('fetch',e=>{
   if(u.origin!==location.origin||e.request.method!=='GET'||u.searchParams.has('h'))return;
   const key=u.origin+u.pathname+(u.pathname.endsWith('/')?'index.html':''); /* 주소가 /로 끝나도 저장된 index.html 로 */
   if(/\.mp4$/i.test(u.pathname)){
-    /* 저장본이 있으면 항상 저장본으로 — 전시장 와이파이가 약하거나 인터넷이 끊겨도 영상이 멈추거나 까맣게 되지 않게. 아직 저장 전이면 서버에서 */
-    e.respondWith((async()=>{try{const r=await fromCache(e.request,key);if(r)return r}catch(_){}return fetch(e.request)})());
+    /* 영상은 앱이 저장본을 직접 꺼내 기기 메모리에서 재생한다(서비스워커를 거치지 않음 — 아이패드 사파리에서 끊김 방지).
+       여기 오는 건 아직 저장 전인 영상뿐: 인터넷이 되면 서버에서 바로, 안 되면 저장본 조각으로 */
+    if(self.navigator.onLine!==false)return;
+    e.respondWith((async()=>(await fromCache(e.request,key))||fetch(e.request))());
+    return;
+  }
+  /* 페이지와 시작 스크립트는 인터넷부터(3초) — 새 버전을 알아채야 업데이트가 된다. 안 되면 저장본 */
+  if(e.request.mode==='navigate'||/\/boot\.js$/.test(u.pathname)){
+    e.respondWith((async()=>{
+      try{
+        const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),3000);
+        const r=await fetch(u.origin+u.pathname+'?h='+Date.now(),{cache:'no-store',signal:ctl.signal});
+        clearTimeout(tm);
+        if(r.ok&&!r.redirected){try{(await caches.open(STORE)).put(key,r.clone())}catch(_){}return r}
+      }catch(_){}
+      const c=await fromCache(e.request,key);
+      return c||fetch(e.request);
+    })());
     return;
   }
   e.respondWith((async()=>{
