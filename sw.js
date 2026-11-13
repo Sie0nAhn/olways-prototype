@@ -1,7 +1,7 @@
 /* 올웨이즈 offline cache
    - 앱·이미지·음성: 저장본을 바로 사용
-   - 영상: 인터넷이 되면 원래 서버에서 바로 스트리밍(Claude 앱과 같은 방식), 안 되면 저장본을 조각(range)으로 제공 */
-const V='olw-bf546ef8f4';
+   - 영상: 저장본이 있으면 늘 저장본을 조각(range)으로 제공, 없을 때만 서버에서 */
+const V='olw-e28d073a22';
 const STORE='olw-store';
 const BLOB=new Map();
 self.addEventListener('install',e=>{self.skipWaiting()});
@@ -25,10 +25,10 @@ async function fromCache(req,key){
 self.addEventListener('fetch',e=>{
   const u=new URL(e.request.url);
   if(u.origin!==location.origin||e.request.method!=='GET'||u.searchParams.has('h'))return;
-  const key=u.origin+u.pathname;
+  const key=u.origin+u.pathname+(u.pathname.endsWith('/')?'index.html':''); /* 주소가 /로 끝나도 저장된 index.html 로 */
   if(/\.mp4$/i.test(u.pathname)){
-    if(self.navigator.onLine!==false)return; /* 온라인: 브라우저가 서버에서 직접 스트리밍 (서비스워커 거치지 않음) */
-    e.respondWith((async()=>(await fromCache(e.request,key))||fetch(e.request))());
+    /* 저장본이 있으면 항상 저장본으로 — 전시장 와이파이가 약하거나 인터넷이 끊겨도 영상이 멈추거나 까맣게 되지 않게. 아직 저장 전이면 서버에서 */
+    e.respondWith((async()=>{try{const r=await fromCache(e.request,key);if(r)return r}catch(_){}return fetch(e.request)})());
     return;
   }
   e.respondWith((async()=>{
