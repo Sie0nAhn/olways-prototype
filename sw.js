@@ -1,7 +1,7 @@
 /* 올웨이즈 offline cache
    - 앱·이미지·음성: 저장본을 바로 사용
    - 영상: 앱이 저장본을 메모리(blob)로 꺼내 재생. 저장 전이면 온라인은 서버 직접, 오프라인은 저장본 조각 */
-const V='olw-6faf1f80bb';
+const V='olw-ad72b8e257';
 const STORE='olw-store';
 const BLOB=new Map();
 self.addEventListener('install',e=>{self.skipWaiting()});

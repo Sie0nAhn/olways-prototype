@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>올웨이즈 전시 영상</title>
+<!--
+  올웨이즈 전시 — 녹화 영상 재생판
+  화면(UI·AR 표시)과 소리를 미리 녹화해 둔 영상을 그대로 튼다. 아이패드가 장면을 직접 그리지 않으므로 끊김·어긋남이 없다.
+    아이패드 창 : /play/            → 아이패드 비율 영상(ipad.mp4), 소리 있음, 시간 기준
+    안경 창     : /play/?glasses    → 16:9 영상(glasses.mp4), 소리 없음, 아이패드 창 시간에 맞춰 따라감
+  두 창은 같은 사파리 안에서 BroadcastChannel 로 이어진다.
+  처음 한 번 인터넷이 될 때 열면 영상을 기기에 저장해 두고, 그 뒤엔 인터넷 없이 재생한다.
+  조작: 화면을 누르면 시작(소리·전체 화면) · 1.5초 길게 누르면 처음부터
+-->
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
+  #tap { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 14px;
+         background: rgba(0,0,0,.55); color: #fff; font: 600 24px -apple-system, system-ui, sans-serif; transition: opacity .4s; }
+  #tap small { font-weight: 500; font-size: 15px; opacity: .7; }
+  #st { position: fixed; left: 14px; bottom: 12px; padding: 6px 12px; border-radius: 14px; background: rgba(0,0,0,.5);
+        color: rgba(255,255,255,.85); font: 600 12px -apple-system, system-ui, sans-serif; pointer-events: none; transition: opacity .6s; }
+</style>
+</head><body>
+<video id="v" playsinline webkit-playsinline preload="auto" loop></video>
+<div id="tap">화면을 누르면 시작합니다<small>1.5초 길게 누르면 처음부터</small></div>
+<div id="st" hidden></div>
+<script>
+(function () {
+  var GL = /[?&]glasses\b/.test(location.search);
+  var FILE = GL ? "glasses.mp4" : "ipad.mp4";
+  var VER = "2";                                   // 영상을 바꾸면 올린다 — 기기에 저장된 예전 영상을 새로 받게
+  var STORE = "olw-play-" + VER;
+  var v = document.getElementById("v"), tap = document.getElementById("tap"), st = document.getElementById("st");
+  var ch = null; try { ch = new BroadcastChannel("olw-play"); } catch (_) {}
+
+  /* 화면 맞추기 — 영상과 화면 비율이 조금만 다르면(주소창이 보일 때 등) 빈틈 없이 꽉 채우고, 많이 다를 때만 전체가 보이게 */
+  var AR = GL ? 1920 / 1080 : 1920 / 1340;
+  function fit() {
+    var r = innerWidth / innerHeight, d = Math.max(r / AR, AR / r) - 1;
+    v.style.objectFit = d <= 0.15 ? "cover" : "contain";
+  }
+  fit(); addEventListener("resize", fit);
+
+  function status(t, hideMs) { st.textContent = t; st.hidden = false; st.style.opacity = 1; if (hideMs) setTimeout(function () { st.style.opacity = 0; }, hideMs); }
+
+  /* 영상 — 기기에 저장돼 있으면 메모리에서, 없으면 인터넷에서 틀고 뒤에서 저장 */
+  var abs = new URL(FILE, location.href).href;
+  function setSrc(u) { var t = v.currentTime; v.src = u; if (t) v.currentTime = t; }
+  (window.caches ? caches.open(STORE).then(function (c) { return c.match(abs); }) : Promise.resolve(null))
+    .then(function (r) { return r ? r.blob() : null; })
+    .then(function (b) {
+      if (b && b.size > 1e6) { setSrc(URL.createObjectURL(b)); return; }
+      setSrc(abs);
+      if (!window.caches) return;
+      status("오프라인용 영상 저장 중…");
+      fetch(abs + "?h=" + VER, { cache: "no-store" }).then(function (r) {
+        if (!r.ok) throw 0;
+        return caches.open(STORE).then(function (c) { return c.put(abs, r); });
+      }).then(function () {
+        status("오프라인 준비 완료 · 인터넷 없이도 재생돼요", 5000);
+        caches.keys().then(function (ks) { ks.forEach(function (k) { if (/^olw-play-/.test(k) && k !== STORE) caches.delete(k); }); });
+      }).catch(function () { status("영상 저장 실패 · 인터넷 연결 후 새로고침해 주세요", 12000); });
+    }).catch(function () { setSrc(abs); });
+
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {});
+
+  function fullscreen() {
+    var el = document.documentElement, d = document;
+    if (d.fullscreenElement || d.webkitFullscreenElement) return;
+    var f = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (f) try { var p = f.call(el); p && p.catch && p.catch(function () {}); } catch (_) {}
+  }
+  function awake() { try { navigator.wakeLock && navigator.wakeLock.request("screen").catch(function () {}); } catch (_) {} }
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) awake(); });
+
+  var started = false;
+  function start() {
+    if (started) return;
+    started = true;
+    tap.style.opacity = 0; setTimeout(function () { tap.remove(); }, 400);
+    v.muted = GL;                     // 소리는 아이패드 창 하나에서만
+    v.play().catch(function () { v.muted = true; v.play().catch(function () {}); });
+    awake();
+  }
+  function restart() { v.currentTime = 0; v.play().catch(function () {}); post({ t: "restart" }); }
+
+  /* 누르기: 시작 · 전체 화면 / 길게 누르기: 처음부터 */
+  var hold = null;
+  addEventListener("pointerdown", function () { hold = setTimeout(function () { hold = null; if (!GL) restart(); }, 1500); });
+  addEventListener("pointerup", function () { if (hold) clearTimeout(hold); fullscreen(); start(); if (!GL && v.muted && started) { v.muted = false; } });
+  addEventListener("contextmenu", function (e) { e.preventDefault(); });
+
+  function post(m) { try { ch && ch.postMessage(m); } catch (_) {} }
+
+  if (!GL) {
+    /* 아이패드 창 — 시간 기준. 0.25초마다 지금 위치를 알린다 */
+    setInterval(function () { post({ t: "tick", c: v.currentTime, p: v.paused, n: Date.now() }); }, 250);
+  } else {
+    /* 안경 창 — 소리 없이 자동 재생, 아이패드 창 시간을 따라간다 */
+    tap.innerHTML = "안경 화면 · 아이패드 창을 따라 재생합니다";
+    v.muted = true;
+    v.addEventListener("loadeddata", function () { if (!started) start(); }, { once: true });
+    var lastSeek = 0;
+    if (ch) ch.onmessage = function (ev) {
+      var m = ev.data || {};
+      if (m.t === "restart") { v.currentTime = 0; return; }
+      if (m.t !== "tick" || !v.duration) return;
+      if (m.p) { if (!v.paused) v.pause(); if (Math.abs(v.currentTime - m.c) > 0.1) v.currentTime = m.c; return; }
+      var want = (m.c + (Date.now() - m.n) / 1000) % v.duration;
+      if (v.paused) v.play().catch(function () {});
+      var d = want - v.currentTime;
+      if (d > v.duration / 2) d -= v.duration; else if (d < -v.duration / 2) d += v.duration;   // 반복 경계
+      var now = Date.now();
+      if (Math.abs(d) > 0.4 && now - lastSeek > 2000 && !v.seeking) { lastSeek = now; v.currentTime = want; v.playbackRate = 1; }
+      else v.playbackRate = Math.abs(d) < 0.04 ? 1 : 1 + Math.max(-0.05, Math.min(0.05, d * 0.5));
+    };
+  }
+})();
+</script>
+</body></html>
