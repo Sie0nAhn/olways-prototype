@@ -26,14 +26,14 @@
         color: rgba(255,255,255,.85); font: 600 12px -apple-system, system-ui, sans-serif; pointer-events: none; transition: opacity .6s; }
 </style>
 </head><body>
-<video id="v" playsinline webkit-playsinline preload="auto" loop></video>
+<video id="v" playsinline webkit-playsinline preload="auto" loop disableremoteplayback disablepictureinpicture x-webkit-airplay="deny"></video>
 <div id="tap">화면을 누르면 시작합니다<small>1.5초 길게 누르면 처음부터</small></div>
 <div id="st" hidden></div>
 <script>
 (function () {
   var GL = /[?&]glasses\b/.test(location.search);
   var FILE = GL ? "glasses.mp4" : "ipad.mp4";
-  var VER = "3";                                  // 영상을 바꾸면 올린다 — 기기에 저장된 예전 영상을 새로 받게
+  var VER = "4";                                 // 영상을 바꾸면 올린다 — 기기에 저장된 예전 영상을 새로 받게
   var STORE = "olw-play-" + VER;
   var v = document.getElementById("v"), tap = document.getElementById("tap"), st = document.getElementById("st");
   var ch = null; try { ch = new BroadcastChannel("olw-play"); } catch (_) {}
@@ -100,7 +100,7 @@
 
   if (!GL) {
     /* 아이패드 창 — 시간 기준. 0.25초마다 지금 위치를 알린다 */
-    setInterval(function () { post({ t: "tick", c: v.currentTime, p: v.paused, n: Date.now() }); }, 250);
+    setInterval(function () { post({ t: "tick", c: v.currentTime, p: v.paused, n: Date.now() }); }, 500);
   } else {
     /* 안경 창 — 소리 없이 자동 재생, 아이패드 창 시간을 따라간다 */
     tap.innerHTML = "안경 화면 · 아이패드 창을 따라 재생합니다";
@@ -116,9 +116,10 @@
       if (v.paused) v.play().catch(function () {});
       var d = want - v.currentTime;
       if (d > v.duration / 2) d -= v.duration; else if (d < -v.duration / 2) d += v.duration;   // 반복 경계
+      /* 재생 속도는 건드리지 않는다(사파리에서 속도를 바꾸면 화면이 미세하게 끊긴다).
+         0.5초 넘게 벌어졌을 때만 위치를 한 번 맞추고, 맞춘 뒤 3초는 그대로 둔다 */
       var now = Date.now();
-      if (Math.abs(d) > 0.4 && now - lastSeek > 2000 && !v.seeking) { lastSeek = now; v.currentTime = want; v.playbackRate = 1; }
-      else v.playbackRate = Math.abs(d) < 0.04 ? 1 : 1 + Math.max(-0.05, Math.min(0.05, d * 0.5));
+      if (Math.abs(d) > 0.5 && now - lastSeek > 3000 && !v.seeking) { lastSeek = now; v.currentTime = want + 0.05; }
     };
   }
 })();
