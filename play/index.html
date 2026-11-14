@@ -33,13 +33,13 @@
 (function () {
   var GL = /[?&]glasses\b/.test(location.search);
   var FILE = GL ? "glasses.mp4" : "ipad.mp4";
-  var VER = "2";                                   // 영상을 바꾸면 올린다 — 기기에 저장된 예전 영상을 새로 받게
+  var VER = "3";                                  // 영상을 바꾸면 올린다 — 기기에 저장된 예전 영상을 새로 받게
   var STORE = "olw-play-" + VER;
   var v = document.getElementById("v"), tap = document.getElementById("tap"), st = document.getElementById("st");
   var ch = null; try { ch = new BroadcastChannel("olw-play"); } catch (_) {}
 
   /* 화면 맞추기 — 영상과 화면 비율이 조금만 다르면(주소창이 보일 때 등) 빈틈 없이 꽉 채우고, 많이 다를 때만 전체가 보이게 */
-  var AR = GL ? 1920 / 1080 : 1920 / 1340;
+  var AR = GL ? 1920 / 1080 : 2388 / 1668;
   function fit() {
     var r = innerWidth / innerHeight, d = Math.max(r / AR, AR / r) - 1;
     v.style.objectFit = d <= 0.15 ? "cover" : "contain";
