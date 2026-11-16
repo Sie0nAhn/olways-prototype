@@ -33,7 +33,7 @@
 (function () {
   var GL = /[?&]glasses\b/.test(location.search);
   var FILE = GL ? "glasses.mp4" : "ipad.mp4";
-  var VER = "5";                                 // 영상을 바꾸면 올린다 — 기기에 저장된 예전 영상을 새로 받게
+  var VER = "6";                                 // 영상을 바꾸면 올린다 — 기기에 저장된 예전 영상을 새로 받게
   var STORE = "olw-play-" + VER;
   var v = document.getElementById("v"), tap = document.getElementById("tap"), st = document.getElementById("st");
   var ch = null; try { ch = new BroadcastChannel("olw-play"); } catch (_) {}
