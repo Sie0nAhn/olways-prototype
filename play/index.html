@@ -10,6 +10,7 @@
   올웨이즈 전시 — 녹화 영상 재생판
   화면(UI·AR 표시)과 소리를 미리 녹화해 둔 영상을 그대로 튼다. 아이패드가 장면을 직접 그리지 않으므로 끊김·어긋남이 없다.
     아이패드 창 : /play/            → 아이패드 비율 영상(ipad.mp4), 소리 있음, 시간 기준
+    아이패드 창(비교용) : /play/?full → 화면을 꽉 채운 아이패드 영상(ipad_full.mp4), 나머지는 같음
     안경 창     : /play/?glasses    → 16:9 영상(glasses.mp4), 소리 없음, 아이패드 창 시간에 맞춰 따라감
   두 창은 같은 사파리 안에서 BroadcastChannel 로 이어진다.
   처음 한 번 인터넷이 될 때 열면 영상을 기기에 저장해 두고, 그 뒤엔 인터넷 없이 재생한다.
@@ -32,8 +33,9 @@
 <script>
 (function () {
   var GL = /[?&]glasses\b/.test(location.search);
-  var FILE = GL ? "glasses.mp4" : "ipad.mp4";
-  var VER = "6";                                 // 영상을 바꾸면 올린다 — 기기에 저장된 예전 영상을 새로 받게
+  var FULL = /[?&]full\b/.test(location.search);
+  var FILE = GL ? "glasses.mp4" : FULL ? "ipad_full.mp4" : "ipad.mp4";
+  var VER = "7";                                 // 영상을 바꾸면 올린다 — 기기에 저장된 예전 영상을 새로 받게
   var STORE = "olw-play-" + VER;
   var v = document.getElementById("v"), tap = document.getElementById("tap"), st = document.getElementById("st");
   var ch = null; try { ch = new BroadcastChannel("olw-play"); } catch (_) {}
