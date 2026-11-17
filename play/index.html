@@ -40,8 +40,20 @@
   var FULL = /[?&]full\b/.test(location.search);
   var FILE = GL ? "glasses.mp4" : FULL ? "ipad_full.mp4" : "ipad.mp4";
   var VER = "7";                                 // 영상을 바꾸면 올린다 — 기기에 저장된 예전 영상을 새로 받게
+  var BUILD = "7.2";                             // 페이지를 고칠 때마다 올린다 — 예전 페이지가 떠 있으면 스스로 새로고침
   var STORE = "olw-play-" + VER;
   var v = document.getElementById("v"), tap = document.getElementById("tap"), st = document.getElementById("st");
+  var verLine = "<small style='font-size:12px;opacity:.5'>버전 " + BUILD + " · " + FILE + "</small>";
+  tap.insertAdjacentHTML("beforeend", verLine);
+
+  /* 예전 페이지가 저장본으로 떠 있으면(인터넷이 느릴 때 등) 최신 페이지를 확인해 한 번 새로고침 */
+  if (navigator.onLine) fetch(location.pathname + "?h=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) {
+    var m = t.match(/var BUILD = "([^"]+)"/);
+    if (!m || m[1] === BUILD) return;
+    var k = "olw-reload-" + m[1];
+    try { if (sessionStorage.getItem(k)) return; sessionStorage.setItem(k, "1"); } catch (_) {}
+    location.reload();
+  }).catch(function () {});
   var ch = null; try { ch = new BroadcastChannel("olw-play"); } catch (_) {}
 
   /* 화면 맞추기 — 영상 속 그림(검은 띠 제외)이 화면 안에 "전부" 들어오게 맞춘다. 그림은 절대 자르지 않는다.
@@ -59,11 +71,11 @@
     v.style.width = w + "px"; v.style.height = h + "px"; v.style.left = x + "px"; v.style.top = y + "px";
     if (DBG) {
       dbg.hidden = false;
-      dbg.textContent = "화면 " + W + "×" + H + " (" + (W / H).toFixed(3) + ")\n그림 " + FR[0] + "×" + FR[3] + " (" + (FR[0] / FR[3]).toFixed(3) + ")\n" +
+      dbg.textContent = "버전 " + BUILD + " · " + FILE + " " + (v.videoWidth ? v.videoWidth + "×" + v.videoHeight : "") + "\n화면 " + W + "×" + H + " (" + (W / H).toFixed(3) + ")\n그림 " + FR[0] + "×" + FR[3] + " (" + (FR[0] / FR[3]).toFixed(3) + ")\n" +
         "그림 표시 " + Math.round(w) + "×" + Math.round(ch) + "\n좌우 여백 " + Math.round(x) + "px · 위아래 여백 " + Math.round((H - ch) / 2) + "px\n잘림 없음" + (INSET ? " · 안쪽 " + INSET * 100 + "%" : "");
     }
   }
-  fit(); addEventListener("resize", fit);
+  fit(); addEventListener("resize", fit); v.addEventListener("loadedmetadata", fit);
   document.addEventListener("fullscreenchange", fit); document.addEventListener("webkitfullscreenchange", fit);
   addEventListener("orientationchange", function () { setTimeout(fit, 300); });
 
@@ -124,7 +136,7 @@
     setInterval(function () { post({ t: "tick", c: v.currentTime, p: v.paused, n: Date.now() }); }, 500);
   } else {
     /* 안경 창 — 소리 없이 자동 재생, 아이패드 창 시간을 따라간다 */
-    tap.innerHTML = "안경 화면 · 아이패드 창을 따라 재생합니다";
+    tap.innerHTML = "안경 화면 · 아이패드 창을 따라 재생합니다" + verLine;
     v.muted = true;
     v.addEventListener("loadeddata", function () { if (!started) start(); }, { once: true });
     var lastSeek = 0;
