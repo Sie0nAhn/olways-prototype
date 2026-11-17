@@ -20,7 +20,14 @@
 <style>
   :root { color-scheme: dark; }
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-  video { position: fixed; left: 0; top: 0; width: 100%; height: 100%; object-fit: fill; background: #000; }
+  /* 무대(#stage)가 화면 전체를 덮고, 영상 크기는 CSS가 무대 크기(cqw·cqh)로 직접 계산한다.
+     전체 화면으로 바뀌어도 브라우저가 다시 배치하면서 바로 맞춰진다(자바스크립트 계산 시점에 의존하지 않음). */
+  #stage { position: fixed; inset: 0; overflow: hidden; background: #000; container-type: size; }
+  #stage video { position: absolute; object-fit: fill; background: #000;
+    --wc: min(calc(100cqw * var(--k, 1)), calc(100cqh * var(--a, 1.334) * var(--k, 1)));
+    width: calc(var(--wc) * var(--fx, 1)); height: calc(var(--wc) * var(--fy, .75));
+    left: calc((100cqw - var(--wc) * var(--fx, 1)) / 2);
+    top: calc((100cqh - var(--wc) / var(--a, 1.334)) / 2 - var(--wc) * var(--oy, 0)); }
   #dbg { position: fixed; right: 10px; top: 10px; z-index: 9; padding: 8px 12px; border-radius: 10px; background: rgba(0,0,0,.75); color: #0f0;
          font: 600 13px/1.5 ui-monospace, Menlo, monospace; white-space: pre; pointer-events: none; }
   #tap { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 14px;
@@ -30,7 +37,7 @@
         color: rgba(255,255,255,.85); font: 600 12px -apple-system, system-ui, sans-serif; pointer-events: none; transition: opacity .6s; }
 </style>
 </head><body>
-<video id="v" playsinline webkit-playsinline preload="auto" loop disableremoteplayback disablepictureinpicture x-webkit-airplay="deny"></video>
+<div id="stage"><video id="v" playsinline webkit-playsinline preload="auto" loop disableremoteplayback disablepictureinpicture x-webkit-airplay="deny"></video></div>
 <div id="tap">화면을 누르면 시작합니다<small>1.5초 길게 누르면 처음부터</small></div>
 <div id="st" hidden></div>
 <div id="dbg" hidden></div>
@@ -40,7 +47,7 @@
   var FULL = /[?&]full\b/.test(location.search);
   var FILE = GL ? "glasses.mp4" : FULL ? "ipad_full.mp4" : "ipad.mp4";
   var VER = "7";                                 // 영상을 바꾸면 올린다 — 기기에 저장된 예전 영상을 새로 받게
-  var BUILD = "7.2";                             // 페이지를 고칠 때마다 올린다 — 예전 페이지가 떠 있으면 스스로 새로고침
+  var BUILD = "7.3";                             // 페이지를 고칠 때마다 올린다 — 예전 페이지가 떠 있으면 스스로 새로고침
   var STORE = "olw-play-" + VER;
   var v = document.getElementById("v"), tap = document.getElementById("tap"), st = document.getElementById("st");
   var verLine = "<small style='font-size:12px;opacity:.5'>버전 " + BUILD + " · " + FILE + "</small>";
@@ -63,21 +70,35 @@
   var FR = GL ? [1920, 1080, 0, 1080] : FULL ? [2732, 2048, 0, 2048] : [2732, 2048, 72, 1906];   // 틀 너비, 틀 높이, 그림 위 y, 그림 높이
   var INSET = Math.min(20, Math.max(0, parseFloat((location.search.match(/[?&]inset=([\d.]+)/) || [])[1]) || 0)) / 100;
   var DBG = /[?&]debug\b/.test(location.search), dbg = document.getElementById("dbg");
-  function fit() {
-    var W = innerWidth, H = innerHeight;
+  var stage = document.getElementById("stage"), CQ = window.CSS && CSS.supports && CSS.supports("width", "1cqw");
+  var vs = v.style;
+  vs.setProperty("--a", FR[0] / FR[3]); vs.setProperty("--fx", 1); vs.setProperty("--fy", FR[1] / FR[0]);
+  vs.setProperty("--oy", FR[2] / FR[0]); vs.setProperty("--k", 1 - 2 * INSET);
+  function fit() {                     // 컨테이너 단위를 못 쓰는 옛 브라우저만 자바스크립트로 맞춘다
+    if (CQ) return;
+    var W = stage.clientWidth, H = stage.clientHeight;
     var sc = Math.min(W / FR[0], H / FR[3]) * (1 - 2 * INSET);
-    var w = FR[0] * sc, h = FR[1] * sc, ch = FR[3] * sc;
-    var x = (W - w) / 2, y = (H - ch) / 2 - FR[2] * sc;
-    v.style.width = w + "px"; v.style.height = h + "px"; v.style.left = x + "px"; v.style.top = y + "px";
-    if (DBG) {
-      dbg.hidden = false;
-      dbg.textContent = "버전 " + BUILD + " · " + FILE + " " + (v.videoWidth ? v.videoWidth + "×" + v.videoHeight : "") + "\n화면 " + W + "×" + H + " (" + (W / H).toFixed(3) + ")\n그림 " + FR[0] + "×" + FR[3] + " (" + (FR[0] / FR[3]).toFixed(3) + ")\n" +
-        "그림 표시 " + Math.round(w) + "×" + Math.round(ch) + "\n좌우 여백 " + Math.round(x) + "px · 위아래 여백 " + Math.round((H - ch) / 2) + "px\n잘림 없음" + (INSET ? " · 안쪽 " + INSET * 100 + "%" : "");
-    }
+    vs.width = FR[0] * sc + "px"; vs.height = FR[1] * sc + "px";
+    vs.left = (W - FR[0] * sc) / 2 + "px"; vs.top = (H - FR[3] * sc) / 2 - FR[2] * sc + "px";
   }
-  fit(); addEventListener("resize", fit); v.addEventListener("loadedmetadata", fit);
-  document.addEventListener("fullscreenchange", fit); document.addEventListener("webkitfullscreenchange", fit);
-  addEventListener("orientationchange", function () { setTimeout(fit, 300); });
+  function refit() { fit(); [100, 400, 1000].forEach(function (t) { setTimeout(fit, t); }); }
+  fit(); addEventListener("resize", refit); v.addEventListener("loadedmetadata", refit);
+  document.addEventListener("fullscreenchange", refit); document.addEventListener("webkitfullscreenchange", refit);
+  addEventListener("orientationchange", refit);
+  if (window.visualViewport) visualViewport.addEventListener("resize", refit);
+  /* ?debug — 지금 실제로 보이는 크기를 1초마다 재서 그림이 화면 밖으로 나갔는지 표시 */
+  if (DBG) setInterval(function () {
+    var S = stage.getBoundingClientRect(), R = v.getBoundingClientRect(), sc = R.width / FR[0];
+    var cx0 = R.left, cx1 = R.right, cy0 = R.top + FR[2] * sc, cy1 = cy0 + FR[3] * sc;
+    var cut = [Math.max(0, S.left - cx0), Math.max(0, cx1 - S.right), Math.max(0, S.top - cy0), Math.max(0, cy1 - S.bottom)].map(Math.round);
+    var fs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    dbg.hidden = false;
+    dbg.textContent = "버전 " + BUILD + " · " + FILE + (v.videoWidth ? " " + v.videoWidth + "×" + v.videoHeight : "") +
+      "\n화면 " + Math.round(S.width) + "×" + Math.round(S.height) + " (창 " + innerWidth + "×" + innerHeight + ", 화면 " + screen.width + "×" + screen.height + ")" +
+      "\n전체 화면 " + (fs ? "켜짐" : "꺼짐") + " · 계산 " + (CQ ? "CSS" : "JS") +
+      "\n그림 표시 " + Math.round(cx1 - cx0) + "×" + Math.round(cy1 - cy0) + " · 여백 좌우 " + Math.round(cx0 - S.left) + " 위아래 " + Math.round(cy0 - S.top) +
+      "\n" + (cut.some(Boolean) ? "잘림 있음 — 좌 " + cut[0] + " 우 " + cut[1] + " 위 " + cut[2] + " 아래 " + cut[3] : "잘림 없음") + (INSET ? " · 안쪽 " + INSET * 100 + "%" : "");
+  }, 1000);
 
   function status(t, hideMs) { st.textContent = t; st.hidden = false; st.style.opacity = 1; if (hideMs) setTimeout(function () { st.style.opacity = 0; }, hideMs); }
 
